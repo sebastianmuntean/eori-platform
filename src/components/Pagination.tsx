@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/ui';
+import { Button } from '@/src/components/ui';
 
 interface PaginationProps {
   page: number;

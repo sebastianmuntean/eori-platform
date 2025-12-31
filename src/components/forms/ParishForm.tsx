@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Input, Select, Modal } from '@/components/ui';
-import type { Parish } from '@/hooks/useParishes';
-import type { Diocese } from '@/hooks/useDioceses';
-import type { Deanery } from '@/hooks/useDeaneries';
+import { Button, Input, Select, Modal } from '@/src/components/ui';
+import type { Parish } from '@/src/hooks/useParishes';
+import type { Diocese } from '@/src/hooks/useDioceses';
+import type { Deanery } from '@/src/hooks/useDeaneries';
 
 interface ParishFormProps {
   isOpen: boolean;

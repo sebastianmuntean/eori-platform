@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParishes, Parish } from '@/hooks/useParishes';
-import { useDioceses } from '@/hooks/useDioceses';
-import { useDeaneries } from '@/hooks/useDeaneries';
-import { ParishForm } from '@/components/forms';
-import { DataTable } from '@/components/DataTable';
-import { Pagination } from '@/components/Pagination';
-import { Button, Input, Select } from '@/components/ui';
+import { useParishes, Parish } from '@/src/hooks/useParishes';
+import { useDioceses } from '@/src/hooks/useDioceses';
+import { useDeaneries } from '@/src/hooks/useDeaneries';
+import { ParishForm } from '@/src/components/forms';
+import { DataTable } from '@/src/components/DataTable';
+import { Pagination } from '@/src/components/Pagination';
+import { Button, Input, Select } from '@/src/components/ui';
 
 export default function ParishesPage() {
   const { parishes, loading, error, pagination, fetchParishes, createParish, updateParish, deleteParish } = useParishes();

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Modal } from '@/components/ui';
-import type { Diocese } from '@/hooks/useDioceses';
+import { Button, Input, Modal } from '@/src/components/ui';
+import type { Diocese } from '@/src/hooks/useDioceses';
 
 interface DioceseFormProps {
   isOpen: boolean;

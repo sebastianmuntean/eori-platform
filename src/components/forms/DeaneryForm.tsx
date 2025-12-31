@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Select, Modal } from '@/components/ui';
-import type { Deanery } from '@/hooks/useDeaneries';
-import type { Diocese } from '@/hooks/useDioceses';
+import { Button, Input, Select, Modal } from '@/src/components/ui';
+import type { Deanery } from '@/src/hooks/useDeaneries';
+import type { Diocese } from '@/src/hooks/useDioceses';
 
 interface DeaneryFormProps {
   isOpen: boolean;

@@ -1,61 +1,81 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useDioceses, Diocese } from '@/hooks/useDioceses';
-import { DioceseForm } from '@/components/forms';
-import { DataTable } from '@/components/DataTable';
-import { Pagination } from '@/components/Pagination';
-import { Button, Input } from '@/components/ui';
+import { useDeaneries, Deanery } from '@/src/hooks/useDeaneries';
+import { useDioceses } from '@/src/hooks/useDioceses';
+import { DeaneryForm } from '@/src/components/forms';
+import { DataTable } from '@/src/components/DataTable';
+import { Pagination } from '@/src/components/Pagination';
+import { Button, Input, Select } from '@/src/components/ui';
 
-export default function DiocesesPage() {
-  const { dioceses, loading, error, pagination, fetchDioceses, createDiocese, updateDiocese, deleteDiocese } = useDioceses();
+export default function DeaneriesPage() {
+  const { deaneries, loading, error, pagination, fetchDeaneries, createDeanery, updateDeanery, deleteDeanery } = useDeaneries();
+  const { dioceses, fetchDioceses } = useDioceses();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDiocese, setEditingDiocese] = useState<Diocese | null>(null);
+  const [editingDeanery, setEditingDeanery] = useState<Deanery | null>(null);
   const [search, setSearch] = useState('');
+  const [dioceseFilter, setDioceseFilter] = useState('');
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetchDioceses({ page, search: search || undefined });
-  }, [fetchDioceses, page, search]);
+    fetchDioceses({ pageSize: 100, isActive: 'true' });
+  }, [fetchDioceses]);
+
+  useEffect(() => {
+    fetchDeaneries({
+      page,
+      search: search || undefined,
+      dioceseId: dioceseFilter || undefined,
+    });
+  }, [fetchDeaneries, page, search, dioceseFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchDioceses({ page: 1, search: search || undefined });
+    fetchDeaneries({
+      page: 1,
+      search: search || undefined,
+      dioceseId: dioceseFilter || undefined,
+    });
   };
 
   const handleCreate = () => {
-    setEditingDiocese(null);
+    setEditingDeanery(null);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (diocese: Diocese) => {
-    setEditingDiocese(diocese);
+  const handleEdit = (deanery: Deanery) => {
+    setEditingDeanery(deanery);
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (diocese: Diocese) => {
-    await deleteDiocese(diocese.id);
+  const handleDelete = async (deanery: Deanery) => {
+    await deleteDeanery(deanery.id);
   };
 
-  const handleSubmit = async (data: Partial<Diocese>) => {
-    if (editingDiocese) {
-      return await updateDiocese(editingDiocese.id, data);
+  const handleSubmit = async (data: Partial<Deanery>) => {
+    if (editingDeanery) {
+      return await updateDeanery(editingDeanery.id, data);
     }
-    return await createDiocese(data);
+    return await createDeanery(data);
   };
+
+  const dioceseOptions = dioceses.map((d) => ({
+    value: d.id,
+    label: `${d.code} - ${d.name}`,
+  }));
 
   const columns = [
     { key: 'code', header: 'Cod' },
     { key: 'name', header: 'Denumire' },
+    { key: 'dioceseName', header: 'Dieceză' },
     { key: 'city', header: 'Oraș' },
-    { key: 'county', header: 'Județ' },
-    { key: 'bishopName', header: 'Episcop' },
+    { key: 'deanName', header: 'Protopop' },
     {
       key: 'isActive',
       header: 'Status',
-      render: (item: Diocese) => (
+      render: (item: Deanery) => (
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             item.isActive
@@ -74,20 +94,30 @@ export default function DiocesesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dieceze</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Protopopiate</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Gestionează diecezele din sistem
+            Gestionează protopopiatele din sistem
           </p>
         </div>
 
         {/* Toolbar */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between">
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2 flex-wrap">
             <Input
-              placeholder="Caută după cod, nume, oraș..."
+              placeholder="Caută după cod, nume..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64"
+              className="w-48"
+            />
+            <Select
+              options={dioceseOptions}
+              value={dioceseFilter}
+              onChange={(e) => {
+                setDioceseFilter(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Toate diecezele"
+              className="w-48"
             />
             <Button type="submit" variant="secondary">
               Caută
@@ -107,7 +137,7 @@ export default function DiocesesPage() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Adaugă Dieceză
+            Adaugă Protopopiat
           </Button>
         </div>
 
@@ -121,12 +151,12 @@ export default function DiocesesPage() {
         {/* Data Table */}
         <DataTable
           columns={columns}
-          data={dioceses}
+          data={deaneries}
           loading={loading}
           keyField="id"
           onEdit={handleEdit}
           onDelete={handleDelete}
-          emptyMessage="Nu există dieceze înregistrate"
+          emptyMessage="Nu există protopopiate înregistrate"
         />
 
         {/* Pagination */}
@@ -141,11 +171,12 @@ export default function DiocesesPage() {
         )}
 
         {/* Form Modal */}
-        <DioceseForm
+        <DeaneryForm
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}
           onSubmit={handleSubmit}
-          diocese={editingDiocese}
+          deanery={editingDeanery}
+          dioceses={dioceses}
           loading={loading}
         />
       </div>
