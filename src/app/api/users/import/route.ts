@@ -5,7 +5,7 @@ import { formatErrorResponse, logError } from '@/lib/errors';
 import { hashPassword } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
 import { eq } from 'drizzle-orm';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { randomBytes } from 'crypto';
 
 /**
@@ -41,13 +41,36 @@ export async function POST(request: Request) {
 
     // Read file buffer
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
 
     console.log('Step 4: Parsing Excel file');
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+    const worksheet = workbook.worksheets[0];
+    
+    // Convert worksheet to JSON array
+    const data: any[] = [];
+    const headerRow = worksheet.getRow(1);
+    const headers: string[] = [];
+    
+    // Extract headers from first row
+    headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+      headers[colNumber] = cell.value?.toString() || '';
+    });
+    
+    // Process data rows
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Skip header row
+      const rowData: any = {};
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const header = headers[colNumber] || '';
+        if (header) {
+          rowData[header] = cell.value?.toString() || '';
+        }
+      });
+      if (Object.keys(rowData).length > 0) {
+        data.push(rowData);
+      }
+    });
 
     console.log(`✓ Found ${data.length} rows in Excel file`);
 
@@ -139,7 +162,7 @@ export async function POST(request: Request) {
 
         // Generate confirmation link
         const locale = 'ro'; // Default locale
-        const confirmationLink = `${process.env.APP_URL || 'http://localhost:3050'}/${locale}/confirm-password?token=${verificationToken}`;
+        const confirmationLink = `${process.env.APP_URL || 'http://localhost:4058'}/${locale}/confirm-password?token=${verificationToken}`;
 
         console.log(`  Step 5.${i + 1}.2: Sending confirmation email`);
         // Send confirmation email (async, don't wait)

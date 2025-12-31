@@ -3,7 +3,7 @@ import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { eq, like, or, desc, asc } from 'drizzle-orm';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 /**
  * GET /api/users/export - Export users to Excel
@@ -66,23 +66,40 @@ export async function GET(request: Request) {
 
     // Create workbook and worksheet
     console.log('Step 5: Creating Excel workbook');
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Utilizatori');
+
+    // Add headers
+    const headers = Object.keys(excelData[0] || {});
+    worksheet.addRow(headers);
+
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Add data rows
+    excelData.forEach((row) => {
+      worksheet.addRow(Object.values(row));
+    });
 
     // Set column widths
-    worksheet['!cols'] = [
-      { wch: 30 }, // Nume
-      { wch: 35 }, // Email
-      { wch: 35 }, // Adresă
-      { wch: 20 }, // Oraș
-      { wch: 15 }, // Telefon
-      { wch: 15 }, // Rol
-      { wch: 12 }, // Status
-      { wch: 18 }, // Status Aprobare
-      { wch: 15 }, // Data Creării
+    worksheet.columns = [
+      { width: 30 }, // Nume
+      { width: 35 }, // Email
+      { width: 35 }, // Adresă
+      { width: 20 }, // Oraș
+      { width: 15 }, // Telefon
+      { width: 15 }, // Rol
+      { width: 12 }, // Status
+      { width: 18 }, // Status Aprobare
+      { width: 15 }, // Data Creării
     ];
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Utilizatori');
 
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
@@ -91,7 +108,7 @@ export async function GET(request: Request) {
     console.log(`Step 6: Generating Excel file: ${filename}`);
 
     // Convert to buffer
-    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const excelBuffer = await workbook.xlsx.writeBuffer();
 
     console.log(`✓ Excel file generated: ${excelBuffer.length} bytes`);
 
