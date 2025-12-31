@@ -10,13 +10,15 @@
     "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx database/seed.ts"
+    "db:seed": "tsx database/seed.ts",
+    "db:seed:rbac": "tsx drizzle/seeds/run-rbac.ts"
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
     "@types/xlsx": "^0.0.35",
     "bcryptjs": "^2.4.3",
     "crypto": "^1.0.1",
+    "date-fns": "^3.6.0",
     "drizzle-orm": "^0.29.0",
     "exceljs": "^4.4.0",
     "next": "^14",
