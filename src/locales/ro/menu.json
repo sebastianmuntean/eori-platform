@@ -1,7 +1,9 @@
 {
+  "menu": "Meniu",
   "management": "Management",
   "administration": "Administrare",
   "superadmin": "Superadmin",
+  "organization": "Organizare",
   "overview": "Overview",
   "roles": "Roluri",
   "permissions": "Permisiuni",
@@ -12,6 +14,9 @@
   "entities": "Entități",
   "reports": "Rapoarte",
   "dashboard": "Dashboard",
-  "settings": "Setări"
+  "settings": "Setări",
+  "dioceses": "Dieceze",
+  "deaneries": "Protopopiate",
+  "parishes": "Parohii"
 }
 
