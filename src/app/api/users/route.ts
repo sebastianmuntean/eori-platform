@@ -191,7 +191,7 @@ export async function POST(request: Request) {
 
     // Generate confirmation link
     const locale = 'ro'; // Default locale, can be passed from request
-    const confirmationLink = `${process.env.APP_URL || 'http://localhost:3050'}/${locale}/confirm-password?token=${verificationToken}`;
+    const confirmationLink = `${process.env.APP_URL || 'http://localhost:4058'}/${locale}/confirm-password?token=${verificationToken}`;
 
     console.log('Step 7: Sending confirmation email');
     // Send confirmation email (async, don't wait)

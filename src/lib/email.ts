@@ -8,7 +8,7 @@ console.log('Step 1: Initializing email service');
 // Use BREVO_VERIFIED_SENDER from .env (the verified sender email from Brevo)
 const SENDER_EMAIL = process.env.BREVO_VERIFIED_SENDER || process.env.BREVO_SENDER_EMAIL || 'noreply@example.com';
 const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Platform';
-const APP_URL = process.env.APP_URL || 'http://localhost:3050';
+const APP_URL = process.env.APP_URL || 'http://localhost:4058';
 
 /**
  * Initialize Brevo API client

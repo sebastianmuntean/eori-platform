@@ -71,7 +71,7 @@ export async function POST(
 
     // Generate confirmation link
     const locale = 'ro'; // Default locale, can be passed from request
-    const confirmationLink = `${process.env.APP_URL || 'http://localhost:3050'}/${locale}/confirm-password?token=${verificationToken}`;
+    const confirmationLink = `${process.env.APP_URL || 'http://localhost:4058'}/${locale}/confirm-password?token=${verificationToken}`;
 
     console.log('Step 4: Sending confirmation email');
     console.log(`  Email: ${user.email}`);
