@@ -22,7 +22,8 @@
       "@/*": ["./*", "./src/*"],
       "@/database/*": ["./database/*"],
       "@/drizzle/*": ["./drizzle/*"],
-      "@/lib/*": ["./lib/*"]
+      "@/lib/*": ["./lib/*", "./src/lib/*"],
+      "@/src/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
