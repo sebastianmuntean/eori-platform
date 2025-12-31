@@ -1,7 +1,9 @@
 {
+  "menu": "Menu",
   "management": "Gestione",
   "administration": "Amministrazione",
   "superadmin": "Superadmin",
+  "organization": "Organizzazione",
   "overview": "Panoramica",
   "roles": "Ruoli",
   "permissions": "Permessi",
@@ -12,7 +14,10 @@
   "entities": "Entità",
   "reports": "Report",
   "dashboard": "Dashboard",
-  "settings": "Impostazioni"
+  "settings": "Impostazioni",
+  "dioceses": "Diocesi",
+  "deaneries": "Decanati",
+  "parishes": "Parrocchie"
 }
 
 
