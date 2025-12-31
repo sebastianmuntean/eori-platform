@@ -1,0 +1,18 @@
+{
+  "management": "Gestione",
+  "administration": "Amministrazione",
+  "superadmin": "Superadmin",
+  "overview": "Panoramica",
+  "roles": "Ruoli",
+  "permissions": "Permessi",
+  "userRoles": "Utenti-Ruoli",
+  "rolePermissions": "Ruolo-Permessi",
+  "users": "Utenti",
+  "emailTemplates": "Modelli Email",
+  "entities": "Entità",
+  "reports": "Report",
+  "dashboard": "Dashboard",
+  "settings": "Impostazioni"
+}
+
+

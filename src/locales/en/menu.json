@@ -1,0 +1,17 @@
+{
+  "management": "Management",
+  "administration": "Administration",
+  "superadmin": "Superadmin",
+  "overview": "Overview",
+  "roles": "Roles",
+  "permissions": "Permissions",
+  "userRoles": "User-Roles",
+  "rolePermissions": "Role-Permissions",
+  "users": "Users",
+  "emailTemplates": "Email Templates",
+  "entities": "Entities",
+  "reports": "Reports",
+  "dashboard": "Dashboard",
+  "settings": "Settings"
+}
+

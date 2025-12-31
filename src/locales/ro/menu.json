@@ -1,0 +1,17 @@
+{
+  "management": "Management",
+  "administration": "Administrare",
+  "superadmin": "Superadmin",
+  "overview": "Overview",
+  "roles": "Roluri",
+  "permissions": "Permisiuni",
+  "userRoles": "Utilizatori-Roluri",
+  "rolePermissions": "Rol-Permisiuni",
+  "users": "Utilizatori",
+  "emailTemplates": "Șabloane Email",
+  "entities": "Entități",
+  "reports": "Rapoarte",
+  "dashboard": "Dashboard",
+  "settings": "Setări"
+}
+

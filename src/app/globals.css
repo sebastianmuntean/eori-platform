@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ERP Color Palette */
+    --color-primary: 59 130 246; /* blue-500 */
+    --color-primary-dark: 37 99 235; /* blue-600 */
+    --color-primary-light: 147 197 253; /* blue-300 */
+    --color-secondary: 107 114 128; /* gray-500 */
+    --color-success: 34 197 94; /* green-500 */
+    --color-warning: 234 179 8; /* yellow-500 */
+    --color-danger: 239 68 68; /* red-500 */
+    --color-info: 59 130 246; /* blue-500 */
+    
+    /* Background Colors - Light Mode */
+    --color-bg-primary: 255 255 255; /* white */
+    --color-bg-secondary: 249 250 251; /* gray-50 */
+    --color-bg-tertiary: 243 244 246; /* gray-100 */
+    
+    /* Text Colors - Light Mode */
+    --color-text-primary: 17 24 39; /* gray-900 */
+    --color-text-secondary: 107 114 128; /* gray-500 */
+    --color-text-muted: 156 163 175; /* gray-400 */
+    
+    /* Border Colors - Light Mode */
+    --color-border: 229 231 235; /* gray-200 */
+    --color-border-dark: 209 213 219; /* gray-300 */
+    
+    /* Spacing */
+    --spacing-sidebar: 16rem; /* 256px */
+    --spacing-sidebar-collapsed: 4rem; /* 64px */
+    --spacing-header: 4rem; /* 64px */
+  }
+
+  .dark {
+    /* Background Colors - Dark Mode */
+    --color-bg-primary: 17 24 39; /* gray-900 */
+    --color-bg-secondary: 31 41 55; /* gray-800 */
+    --color-bg-tertiary: 55 65 81; /* gray-700 */
+    
+    /* Text Colors - Dark Mode */
+    --color-text-primary: 243 244 246; /* gray-100 */
+    --color-text-secondary: 209 213 219; /* gray-300 */
+    --color-text-muted: 156 163 175; /* gray-400 */
+    
+    /* Border Colors - Dark Mode */
+    --color-border: 55 65 81; /* gray-700 */
+    --color-border-dark: 75 85 99; /* gray-600 */
+  }
+}
+
+@layer components {
+  .sidebar-transition {
+    transition: width 0.3s ease-in-out;
+  }
+}
+

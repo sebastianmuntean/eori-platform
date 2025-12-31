@@ -1,0 +1,45 @@
+{
+  "name": "eori-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3050",
+    "build": "next build",
+    "start": "next start -p 3050",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "drizzle-kit push:pg",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx database/seed.ts"
+  },
+  "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
+    "@types/xlsx": "^0.0.35",
+    "bcryptjs": "^2.4.3",
+    "crypto": "^1.0.1",
+    "drizzle-orm": "^0.29.0",
+    "exceljs": "^4.4.0",
+    "next": "^14",
+    "next-intl": "^4.6.1",
+    "postgres": "^3.4.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "xlsx": "^0.18.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10",
+    "clsx": "^2",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.20.0",
+    "postcss": "^8",
+    "tailwind-merge": "^2",
+    "tailwindcss": "^3",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
