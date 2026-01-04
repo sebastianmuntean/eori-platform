@@ -11,6 +11,7 @@ import {
   products,
   fixedAssets,
   inventorySessions,
+  documentRegistry,
 } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { sql, eq, and } from 'drizzle-orm';
@@ -36,8 +37,10 @@ export async function GET() {
       contractsByDirection,
       contractsByType,
       productsCount,
+      pangarProductsCount,
       fixedAssetsCount,
       inventoryCount,
+      documentsCount,
     ] = await Promise.all([
       // Total parishes
       db
@@ -131,11 +134,25 @@ export async function GET() {
         .from(products)
         .where(eq(products.isActive, true)),
       
+      // Total pangar products (products with category 'pangar')
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(products)
+        .where(
+          and(
+            eq(products.isActive, true),
+            eq(products.category, 'pangar')
+          )
+        ),
+      
       // Total fixed assets
       db.select({ count: sql<number>`count(*)` }).from(fixedAssets),
       
       // Total inventory sessions
       db.select({ count: sql<number>`count(*)` }).from(inventorySessions),
+      
+      // Total documents registry
+      db.select({ count: sql<number>`count(*)` }).from(documentRegistry),
     ]);
 
 
@@ -258,8 +275,10 @@ export async function GET() {
         donations: Number(donationsCount[0]?.count || 0),
         contracts: Number(contractsCount[0]?.count || 0),
         products: Number(productsCount[0]?.count || 0),
+        pangarProducts: Number(pangarProductsCount[0]?.count || 0),
         fixedAssets: Number(fixedAssetsCount[0]?.count || 0),
         inventory: Number(inventoryCount[0]?.count || 0),
+        documents: Number(documentsCount[0]?.count || 0),
       },
       breakdown: {
         invoices: invoicesByTypeMap,

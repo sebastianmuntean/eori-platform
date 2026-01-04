@@ -154,8 +154,8 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }

@@ -1,5 +1,4 @@
-import { z } from 'zod';
-import { and, or, ilike, sql, type SQL } from 'drizzle-orm';
+import { and, or, ilike, sql, type SQL, type Column } from 'drizzle-orm';
 
 /**
  * Validates and normalizes pagination parameters
@@ -31,10 +30,14 @@ export function normalizeSortParams<T extends string>(
 
 /**
  * Builds a search condition for multiple fields
+ * 
+ * @param search - Search string to match against
+ * @param fields - Array of column definitions with optional coalesce flag
+ * @returns SQL condition or undefined if search is empty
  */
 export function buildSearchCondition(
   search: string | null,
-  fields: Array<{ column: any; useCoalesce?: boolean }>
+  fields: Array<{ column: Column | SQL; useCoalesce?: boolean }>
 ): SQL | undefined {
   if (!search || !search.trim()) {
     return undefined;
@@ -47,7 +50,7 @@ export function buildSearchCondition(
     if (useCoalesce) {
       return sql`COALESCE(${column}, '') ILIKE ${searchPattern}`;
     }
-    return ilike(column, searchPattern);
+    return ilike(column as Column, searchPattern);
   });
   
   if (conditions.length === 0) {
@@ -93,4 +96,74 @@ export function validateDateRange(startDate: string, endDate: string): { valid: 
   }
   
   return { valid: true };
+}
+
+/**
+ * Type guard for grave status
+ */
+export type GraveStatus = 'free' | 'occupied' | 'reserved' | 'maintenance';
+
+export function isValidGraveStatus(status: string): status is GraveStatus {
+  const validStatuses: readonly GraveStatus[] = ['free', 'occupied', 'reserved', 'maintenance'];
+  return validStatuses.includes(status as GraveStatus);
+}
+
+/**
+ * Type guard for concession status
+ */
+export type ConcessionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
+
+export function isValidConcessionStatus(status: string): status is ConcessionStatus {
+  const validStatuses: readonly ConcessionStatus[] = ['active', 'expired', 'cancelled', 'pending'];
+  return validStatuses.includes(status as ConcessionStatus);
+}
+
+/**
+ * Builds a where clause from an array of conditions
+ */
+export function buildWhereClause(conditions: SQL[]): SQL | undefined {
+  if (conditions.length === 0) {
+    return undefined;
+  }
+  return conditions.length === 1 ? conditions[0] : and(...conditions);
+}
+
+/**
+ * Generates a unique payment number using timestamp to avoid race conditions
+ * 
+ * @param parishId - Parish UUID (first 8 chars used for uniqueness)
+ * @param prefix - Payment prefix (default: 'INC')
+ * @returns Unique payment number
+ */
+export function generatePaymentNumber(parishId: string, prefix: string = 'INC'): string {
+  const timestamp = Date.now();
+  const parishPrefix = parishId.substring(0, 8).replace(/-/g, '').toUpperCase();
+  return `${prefix}-${parishPrefix}-${timestamp}`;
+}
+
+/**
+ * Builds an update data object with only defined fields
+ * Automatically includes updatedAt and updatedBy fields
+ * 
+ * @param userId - User ID for updatedBy field
+ * @param data - Partial data object with fields to update
+ * @returns Update data object with only defined fields plus updatedAt and updatedBy
+ */
+export function buildUpdateData<T extends Record<string, any>>(
+  userId: string,
+  data: Partial<T>
+): Partial<T> & { updatedAt: Date; updatedBy: string } {
+  const updateData: Partial<T> & { updatedAt: Date; updatedBy: string } = {
+    updatedAt: new Date(),
+    updatedBy: userId,
+  } as Partial<T> & { updatedAt: Date; updatedBy: string };
+
+  // Only include fields that are explicitly defined (not undefined)
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      (updateData as any)[key] = value;
+    }
+  }
+
+  return updateData;
 }

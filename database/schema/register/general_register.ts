@@ -13,6 +13,7 @@ export const generalRegister = pgTable('general_register', {
   year: integer('year').notNull(),
   documentType: documentTypeEnum('document_type').notNull(),
   date: date('date').notNull(),
+  dueDate: date('due_date'),
   subject: varchar('subject', { length: 500 }).notNull(),
   from: varchar('from', { length: 255 }),
   petitionerClientId: uuid('petitioner_client_id').references(() => clients.id),

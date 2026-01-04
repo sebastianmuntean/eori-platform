@@ -131,32 +131,12 @@ async function processRegistraturaSubmission(
       // Check if mapping has SQL query
       const transformation = mapping.transformation as any;
       if (transformation?.mappingType === 'sql' && transformation?.sqlQuery) {
-        // Execute SQL query with form data as parameters
-        try {
-          const sqlQuery = transformation.sqlQuery;
-          // Replace parameters $1, $2, etc. with actual values
-          // This is a simplified approach - in production, use parameterized queries
-          let processedQuery = sqlQuery;
-          let paramIndex = 1;
-          const queryParams: any[] = [];
-
-          // Extract parameter values from form data
-          Object.keys(formData).forEach((key) => {
-            processedQuery = processedQuery.replace(
-              new RegExp(`\\$${paramIndex}`, 'g'),
-              `'${formData[key]}'`
-            );
-            queryParams.push(formData[key]);
-            paramIndex++;
-          });
-
-          // For now, we'll skip SQL execution in mapping - this should be done at dataset level
-          // Instead, we'll use the direct mapping if SQL fails or isn't applicable
-          console.warn('SQL mapping execution not fully implemented yet');
-        } catch (error) {
-          console.error('Error executing SQL mapping:', error);
-          // Fall back to direct mapping
-        }
+        // SECURITY: SQL mapping execution is disabled due to SQL injection vulnerability
+        // The previous implementation used string interpolation which is vulnerable to SQL injection
+        // This feature should be re-implemented using proper parameterized queries or Drizzle ORM
+        // For now, we skip SQL execution and use direct mapping
+        console.warn('SQL mapping execution is disabled for security reasons. Using direct mapping instead.');
+        // Fall back to direct mapping - value remains as fieldValue
       }
 
       // Apply transformation if needed

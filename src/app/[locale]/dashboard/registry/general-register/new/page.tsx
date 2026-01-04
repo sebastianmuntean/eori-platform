@@ -27,7 +27,7 @@ export default function CreateDocumentPage() {
     petitionerClientId?: string | null;
     to?: string | null;
     description?: string | null;
-    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+    status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
   } | undefined>(undefined);
   const [loadingCopy, setLoadingCopy] = useState(false);
   const { toasts, success, error: showError, removeToast } = useToast();
@@ -72,7 +72,7 @@ export default function CreateDocumentPage() {
     to?: string | null;
     description?: string | null;
     filePath?: string | null;
-    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+    status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
   }) => {
     setLoading(true);
     try {

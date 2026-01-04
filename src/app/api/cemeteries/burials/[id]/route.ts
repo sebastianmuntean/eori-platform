@@ -3,9 +3,10 @@ import { db } from '@/database/client';
 import { burials, cemeteryGraves, cemeteryConcessions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq, sql, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { validateUuid } from '@/lib/utils/cemetery';
+import { validateUuid, buildUpdateData } from '@/lib/utils/cemetery';
 
 const updateBurialSchema = z.object({
   deceasedClientId: z.string().uuid().optional().nullable(),
@@ -69,7 +70,7 @@ export async function PUT(
   try {
     // Require authentication and permission
     const { userId } = await requireAuth();
-    await requirePermission('cemeteries.burials.update');
+    await requirePermission(CEMETERY_PERMISSIONS.BURIALS_UPDATE);
 
     const { id } = await params;
     
@@ -119,31 +120,17 @@ export async function PUT(
       }
     }
 
-    // Build update data with proper typing
-    const updateData: {
-      updatedAt: Date;
-      updatedBy: string;
-      deceasedClientId?: string | null;
-      deceasedName?: string;
-      deceasedBirthDate?: string | null;
-      deceasedDeathDate?: string;
-      burialDate?: string;
-      burialCertificateNumber?: string | null;
-      burialCertificateDate?: string | null;
-      notes?: string | null;
-    } = {
-      updatedAt: new Date(),
-      updatedBy: userId,
-    };
-
-    if (data.deceasedClientId !== undefined) updateData.deceasedClientId = data.deceasedClientId;
-    if (data.deceasedName !== undefined) updateData.deceasedName = data.deceasedName;
-    if (data.deceasedBirthDate !== undefined) updateData.deceasedBirthDate = data.deceasedBirthDate;
-    if (data.deceasedDeathDate !== undefined) updateData.deceasedDeathDate = data.deceasedDeathDate;
-    if (data.burialDate !== undefined) updateData.burialDate = data.burialDate;
-    if (data.burialCertificateNumber !== undefined) updateData.burialCertificateNumber = data.burialCertificateNumber;
-    if (data.burialCertificateDate !== undefined) updateData.burialCertificateDate = data.burialCertificateDate;
-    if (data.notes !== undefined) updateData.notes = data.notes;
+    // Build update data with only defined fields
+    const updateData = buildUpdateData(userId, {
+      deceasedClientId: data.deceasedClientId,
+      deceasedName: data.deceasedName,
+      deceasedBirthDate: data.deceasedBirthDate,
+      deceasedDeathDate: data.deceasedDeathDate,
+      burialDate: data.burialDate,
+      burialCertificateNumber: data.burialCertificateNumber,
+      burialCertificateDate: data.burialCertificateDate,
+      notes: data.notes,
+    });
 
     const [updatedBurial] = await db
       .update(burials)
@@ -177,7 +164,7 @@ export async function DELETE(
   try {
     // Require authentication and permission
     await requireAuth();
-    await requirePermission('cemeteries.burials.delete');
+    await requirePermission(CEMETERY_PERMISSIONS.BURIALS_DELETE);
 
     const { id } = await params;
     

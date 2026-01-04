@@ -117,18 +117,22 @@ export function logRequest(endpoint: string, method: string, context?: LogContex
   });
 
   // Add Sentry breadcrumb for request tracking
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     try {
-      const { addBreadcrumb } = require('./monitoring/sentry');
-      addBreadcrumb({
-        category: 'http',
-        message: `${method} ${endpoint}`,
-        level: 'info',
-        data: {
-          endpoint,
-          method,
-          ...(context?.userId && { userId: context.userId }),
-        },
+      // Use dynamic import to avoid loading Sentry module if not needed
+      import('./monitoring/sentry').then(({ addBreadcrumb }) => {
+        addBreadcrumb({
+          category: 'http',
+          message: `${method} ${endpoint}`,
+          level: 'info',
+          data: {
+            endpoint,
+            method,
+            ...(context?.userId && { userId: context.userId }),
+          },
+        });
+      }).catch(() => {
+        // Silently fail if Sentry is not available
       });
     } catch {
       // Silently fail if Sentry is not available
@@ -162,17 +166,21 @@ export function logError(message: string, error: unknown, context?: LogContext):
   });
 
   // Add Sentry breadcrumb for error tracking
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     try {
-      const { addBreadcrumb } = require('./monitoring/sentry');
-      addBreadcrumb({
-        category: 'error',
-        message,
-        level: 'error',
-        data: {
-          error: errorMessage,
-          ...context,
-        },
+      // Use dynamic import to avoid loading Sentry module if not needed
+      import('./monitoring/sentry').then(({ addBreadcrumb }) => {
+        addBreadcrumb({
+          category: 'error',
+          message,
+          level: 'error',
+          data: {
+            error: errorMessage,
+            ...context,
+          },
+        });
+      }).catch(() => {
+        // Silently fail if Sentry is not available
       });
     } catch {
       // Silently fail if Sentry is not available

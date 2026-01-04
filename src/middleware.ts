@@ -1,27 +1,24 @@
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/config';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { addSecurityHeaders } from './lib/security-headers';
 
 /**
- * Next.js Internationalization Middleware
+ * Next.js Internationalization Middleware with Security Headers
  * 
- * This middleware handles locale routing for the application using next-intl.
- * It automatically redirects routes to include the locale prefix and validates
- * locale values.
- * 
- * The matcher pattern ensures that:
- * - All routes are processed except:
- *   - API routes (starting with `/api`)
- *   - Next.js internal routes (starting with `/_next`)
- *   - Vercel deployment routes (starting with `/_vercel`)
- *   - Static files (containing a dot, e.g., `favicon.ico`, `robots.txt`)
- * 
- * Pattern explanation: `/((?!api|_next|_vercel|.*\\..*).*)`
- * - `(?!...)` - Negative lookahead (exclude patterns)
- * - `api|_next|_vercel` - Exclude routes starting with these prefixes
- * - `.*\\..*` - Exclude routes containing a dot (static files)
- * - `.*` - Match everything else
+ * This middleware handles locale routing for the application using next-intl
+ * and adds security headers to all responses.
  */
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+export default function middleware(request: NextRequest) {
+  // Apply i18n middleware first
+  const response = intlMiddleware(request);
+  
+  // Add security headers to all responses
+  return addSecurityHeaders(request, response);
+}
 
 export const config = {
   matcher: [

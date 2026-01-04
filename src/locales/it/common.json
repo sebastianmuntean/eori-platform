@@ -397,6 +397,16 @@
   "disposalReason": "Motivo Disposizione",
   "addFixedAsset": "Aggiungi Bene Immobile",
   "editFixedAsset": "Modifica Bene Immobile",
-  "select": "Seleziona"
+  "select": "Seleziona",
+  "saving": "Salvataggio...",
+  "deleting": "Eliminazione...",
+  "analytics": "Analisi e Report",
+  "analyticsDescription": "Visualizza analisi complete, crea report personalizzati e monitora metriche chiave.",
+  "viewAnalytics": "Visualizza Analisi",
+  "pangarProducts": "Prodotti Pangar",
+  "fixedAssets": "Beni Immobili",
+  "inventory": "Inventario",
+  "documents": "Documenti",
+  "selectProduct": "Seleziona Prodotto"
 }
 

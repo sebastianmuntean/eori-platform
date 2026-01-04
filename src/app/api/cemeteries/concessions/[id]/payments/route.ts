@@ -3,13 +3,15 @@ import { db } from '@/database/client';
 import { cemeteryConcessionPayments, cemeteryConcessions, payments } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { 
   normalizePaginationParams, 
   normalizeSortParams, 
   validateUuid,
-  validateDateRange 
+  validateDateRange,
+  generatePaymentNumber
 } from '@/lib/utils/cemetery';
 
 const createPaymentSchema = z.object({
@@ -122,13 +124,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
+    // Require authentication and permission
+    const { userId } = await requireAuth();
+    await requirePermission(CEMETERY_PERMISSIONS.CONCESSION_PAYMENTS_CREATE);
 
     const { id } = await params;
     const body = await request.json();
@@ -218,13 +216,8 @@ export async function POST(
 
       // Create accounting payment if requested
       if (data.createAccountingPayment) {
-        // Generate payment number
-        const paymentCountResult = await tx
-          .select({ count: sql<number>`count(*)` })
-          .from(payments)
-          .where(eq(payments.parishId, concession.parishId));
-        const paymentCount = Number(paymentCountResult[0]?.count || 0);
-        const paymentNumber = `INC-${paymentCount + 1}`;
+        // Generate unique payment number using timestamp to avoid race conditions
+        const paymentNumber = generatePaymentNumber(concession.parishId, 'INC');
 
         await tx.insert(payments).values({
           parishId: concession.parishId,

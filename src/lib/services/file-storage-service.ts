@@ -102,10 +102,33 @@ export async function uploadDocumentFile(
     throw new Error(validation.error || 'File validation failed');
   }
 
-  // Generate unique filename
-  const fileExtension = fileName.split('.').pop() || '';
+  // Sanitize and validate file extension to prevent path traversal
+  function sanitizeFileExtension(fileName: string): string {
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    // Remove any path separators, special characters, and limit length
+    const sanitized = extension.replace(/[^a-z0-9]/g, '').slice(0, 10);
+    return sanitized;
+  }
+
+  // Allowed file extensions (must match ALLOWED_MIME_TYPES)
+  const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'csv'];
+
+  const fileExtension = sanitizeFileExtension(fileName);
+  
+  if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    throw new Error(`File extension not allowed. Allowed extensions: ${ALLOWED_EXTENSIONS.join(', ')}`);
+  }
+
   const uniqueFileName = `${randomUUID()}.${fileExtension}`;
+  // Use path.join to prevent path traversal
   const storagePath = join(UPLOAD_DIR, documentId, uniqueFileName);
+  
+  // Additional security: Ensure the resolved path is within UPLOAD_DIR
+  const resolvedPath = join(process.cwd(), storagePath);
+  const uploadDirResolved = join(process.cwd(), UPLOAD_DIR);
+  if (!resolvedPath.startsWith(uploadDirResolved)) {
+    throw new Error('Invalid file path detected');
+  }
 
   // Ensure upload directory exists
   try {

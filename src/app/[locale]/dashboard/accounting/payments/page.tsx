@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter } from '@/components/ui/FilterGrid';
 import { Autocomplete, AutocompleteOption } from '@/components/ui/Autocomplete';
+import { ClientSelect } from '@/components/ui/ClientSelect';
 import { useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
@@ -647,21 +648,14 @@ export default function PaymentsPage() {
               </select>
             </div>
             <Input label={t('category')} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('parteneri')}</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <ClientSelect
+              value={formData.clientId}
+              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              clients={clients}
+              onlyCompanies={false}
+              label={t('parteneri')}
+              placeholder={t('none') || 'None'}
+            />
             <Input
               type="number"
               step="0.01"
@@ -765,21 +759,14 @@ export default function PaymentsPage() {
               </select>
             </div>
             <Input label={t('category')} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('parteneri')}</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <ClientSelect
+              value={formData.clientId}
+              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              clients={clients}
+              onlyCompanies={false}
+              label={t('parteneri')}
+              placeholder={t('none') || 'None'}
+            />
             <Input
               type="number"
               step="0.01"

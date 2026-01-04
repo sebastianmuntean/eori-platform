@@ -5,6 +5,9 @@ import {
   createConversation,
   getUserConversations,
 } from '@/lib/services/chat-service';
+import { db } from '@/database/client';
+import { users } from '@/database/schema';
+import { inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 const createConversationSchema = z.object({
@@ -71,24 +74,57 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log('Request body:', JSON.stringify(body, null, 2));
     const validation = createConversationSchema.safeParse(body);
 
     if (!validation.success) {
-      console.log('❌ Validation failed:', validation.error.errors);
+      console.log('❌ Validation failed:', JSON.stringify(validation.error.errors, null, 2));
+      const firstError = validation.error.errors[0];
+      const errorMessage = firstError.path.length > 0
+        ? `${firstError.path.join('.')}: ${firstError.message}`
+        : firstError.message;
       return NextResponse.json(
-        { success: false, error: validation.error.errors[0].message },
+        { 
+          success: false, 
+          error: errorMessage,
+          details: validation.error.errors 
+        },
         { status: 400 }
       );
     }
 
-    const { type, participantIds, title } = validation.data;
+    let { type, participantIds, title } = validation.data;
 
-    // Validate title for group conversations
+    // Auto-generate title for group conversations if not provided
     if (type === 'group' && !title) {
-      return NextResponse.json(
-        { success: false, error: 'Title is required for group conversations' },
-        { status: 400 }
-      );
+      try {
+        // Fetch participant names to generate a title
+        const participantUsers = await db
+          .select({
+            id: users.id,
+            name: users.name,
+          })
+          .from(users)
+          .where(inArray(users.id, participantIds));
+
+        if (participantUsers.length > 0) {
+          // Generate title from participant names (limit to first 3 names)
+          const names = participantUsers
+            .slice(0, 3)
+            .map((u) => u.name || 'Unknown')
+            .join(', ');
+          title = participantUsers.length > 3
+            ? `${names} and ${participantUsers.length - 3} more`
+            : names;
+        } else {
+          // Fallback if users not found
+          title = `Group Chat (${participantIds.length} participants)`;
+        }
+      } catch (error) {
+        console.error('Error fetching participant names:', error);
+        // Fallback title
+        title = `Group Chat (${participantIds.length} participants)`;
+      }
     }
 
     const result = await createConversation({

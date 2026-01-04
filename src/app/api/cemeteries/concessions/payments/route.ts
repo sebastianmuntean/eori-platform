@@ -7,7 +7,8 @@ import { eq, desc, asc, and, sql, gte, lte } from 'drizzle-orm';
 import { 
   normalizePaginationParams, 
   normalizeSortParams, 
-  validateUuid 
+  validateUuid,
+  buildWhereClause
 } from '@/lib/utils/cemetery';
 
 export async function GET(request: Request) {
@@ -77,9 +78,7 @@ export async function GET(request: Request) {
       conditions.push(lte(cemeteryConcessionPayments.paymentDate, dateTo));
     }
 
-    const whereClause = conditions.length > 0 
-      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
-      : undefined;
+    const whereClause = buildWhereClause(conditions);
 
     // Get total count
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessionPayments);

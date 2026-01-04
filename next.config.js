@@ -6,10 +6,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable instrumentation hook
-  experimental: {
-    instrumentationHook: true,
-  },
+  // instrumentation.js is available by default, no need for experimental flag
 };
 
 // Sentry webpack plugin configuration

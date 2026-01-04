@@ -4,7 +4,7 @@
  */
 
 export type StatusVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info';
-export type DocumentStatus = 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+export type DocumentStatus = 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
 export type DocumentType = 'incoming' | 'outgoing' | 'internal';
 export type Priority = 'low' | 'normal' | 'high' | 'urgent';
 
@@ -24,11 +24,9 @@ export interface PriorityInfo {
 export function getStatusInfo(status: string): StatusInfo {
   const statusMap: Record<string, StatusInfo> = {
     draft: { label: 'Ciornă', variant: 'info' },
-    registered: { label: 'Înregistrat', variant: 'primary' },
     in_work: { label: 'În lucru', variant: 'warning' },
     distributed: { label: 'Repartizat', variant: 'warning' },
     resolved: { label: 'Rezolvat', variant: 'success' },
-    archived: { label: 'Arhivat', variant: 'info' },
     cancelled: { label: 'Anulat', variant: 'danger' },
   };
 

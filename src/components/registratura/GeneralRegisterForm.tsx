@@ -6,7 +6,7 @@ import { useClients, Client } from '@/hooks/useClients';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { Autocomplete, AutocompleteOption } from '@/components/ui/Autocomplete';
+import { ClientSelect } from '@/components/ui/ClientSelect';
 
 interface GeneralRegisterFormProps {
   onSave: (data: {
@@ -18,7 +18,7 @@ interface GeneralRegisterFormProps {
     to?: string | null;
     description?: string | null;
     filePath?: string | null;
-    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+    status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
   }) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
@@ -30,7 +30,7 @@ interface GeneralRegisterFormProps {
     petitionerClientId?: string | null;
     to?: string | null;
     description?: string | null;
-    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+    status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
   };
 }
 
@@ -45,7 +45,6 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
     from: initialData?.from || '',
     to: initialData?.to || '',
     description: initialData?.description || '',
-    status: (initialData?.status || 'draft') as 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -111,17 +110,7 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.petitionerClientId, clients]);
 
-  // Get client name for sorting: companyName for companies, firstName + lastName for individuals
-  const getClientName = (client: Client): string => {
-    if (client.companyName) {
-      return client.companyName.trim();
-    } else {
-      const fullName = `${client.firstName || ''} ${client.lastName || ''}`.trim();
-      return fullName || 'Client fără nume';
-    }
-  };
-
-  // Convert clients to autocomplete options
+  // Get detailed display name for client (used in ClientSelect)
   const getClientDisplayName = (client: Client): string => {
     const parts: string[] = [];
     
@@ -162,19 +151,6 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
     
     return parts.length > 0 ? parts.join(' | ') : 'Client fără nume';
   };
-
-  // Create and sort client options alphabetically by name (not display name)
-  const clientOptions: AutocompleteOption[] = clients
-    .map((client) => ({
-      value: client.id,
-      label: getClientDisplayName(client),
-      client,
-      sortName: getClientName(client), // Store name for sorting
-    }))
-    .sort((a, b) => {
-      // Sort alphabetically by name (companyName or firstName + lastName)
-      return a.sortName.localeCompare(b.sortName, 'ro', { sensitivity: 'base' });
-    });
 
   // Debounce search to reduce API calls
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -236,7 +212,7 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
         petitionerClientId: selectedClientId || null,
         to: formData.to.trim() || null,
         description: formData.description.trim() || null,
-        status: formData.status,
+        status: 'draft' as const,
       };
 
       console.log('[GeneralRegisterForm] Calling onSave with data:', {
@@ -313,22 +289,6 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
           required
         />
 
-        {/* Status */}
-        <Select
-          label="Status"
-          value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled' })}
-          options={[
-            { value: 'draft', label: 'Ciornă' },
-            { value: 'registered', label: 'Înregistrat' },
-            { value: 'in_work', label: 'În lucru' },
-            { value: 'distributed', label: 'Repartizat' },
-            { value: 'resolved', label: 'Rezolvat' },
-            { value: 'archived', label: 'Arhivat' },
-            { value: 'cancelled', label: 'Anulat' },
-          ]}
-        />
-
         {/* Subject */}
         <div className="md:col-span-2">
           <Input
@@ -342,26 +302,28 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
 
         {/* Petent (for incoming) */}
         {isIncoming && (
-          <Autocomplete
+          <ClientSelect
             label="Petent"
-            value={formData.from}
-            onChange={(value) => {
-              // Find the selected option from clientOptions to get the client ID
-              const selectedOption = clientOptions.find(opt => opt.label === value);
-              if (selectedOption && selectedOption.client) {
-                setSelectedClientId(selectedOption.value); // value is client.id
-                setFormData({ ...formData, from: value });
+            value={selectedClientId || ''}
+            onChange={(clientId) => {
+              const clientIdString = Array.isArray(clientId) ? clientId[0] : clientId;
+              setSelectedClientId(clientIdString || null);
+              if (clientIdString) {
+                const client = clients.find(c => c.id === clientIdString);
+                if (client) {
+                  setFormData({ ...formData, from: getClientDisplayName(client) });
+                }
               } else {
-                // If not found in options, clear selection
-                setSelectedClientId(null);
-                setFormData({ ...formData, from: value });
+                setFormData({ ...formData, from: '' });
               }
             }}
-            options={clientOptions}
+            clients={clients}
+            onlyCompanies={false}
+            allowMultiple={true}
             placeholder="Caută client..."
             loading={clientsLoading}
             onSearch={handleSearch}
-            getOptionLabel={(option) => option.label}
+            getDisplayName={getClientDisplayName}
           />
         )}
 
@@ -394,7 +356,7 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
           Anulează
         </Button>
         <Button type="submit" disabled={loading || externalLoading || !selectedRegisterId}>
-          {loading || externalLoading ? 'Salvează...' : 'Creează Document'}
+          {loading || externalLoading ? 'Salvează...' : 'Continuă'}
         </Button>
       </div>
     </form>

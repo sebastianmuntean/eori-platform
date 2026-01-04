@@ -2,12 +2,18 @@ import { db } from '@/database/client';
 import { generalRegister, generalRegisterWorkflow } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
 
-export type DocumentStatus = 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+export type DocumentStatus = 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
 export type StepStatus = 'pending' | 'completed';
 export type ResolutionStatus = 'approved' | 'rejected' | null;
 
 /**
  * Calculate document status based on workflow steps
+ * New rules:
+ * - draft → if not saved final (only created, without save)
+ * - resolved → if there's solution with approved or rejected
+ * - in_work → if saved without solution and without distributions to users
+ * - distributed → if saved with distributions to users (either through "Redirect" or through direct distributions)
+ * - cancelled → if cancelled from grid (after registration)
  */
 export async function calculateDocumentStatus(documentId: string): Promise<DocumentStatus> {
   const [document] = await db
@@ -20,58 +26,44 @@ export async function calculateDocumentStatus(documentId: string): Promise<Docum
     throw new Error('Document not found');
   }
 
-  // Get all workflow steps
+  // Check if document is cancelled
   const workflowSteps = await db
     .select()
     .from(generalRegisterWorkflow)
     .where(eq(generalRegisterWorkflow.documentId, documentId));
 
-  if (workflowSteps.length === 0) {
-    // No workflow steps, return current status
-    return document.status as DocumentStatus;
-  }
-
-  // Check if all steps are completed
-  const allCompleted = workflowSteps.every(step => step.stepStatus === 'completed');
-  const hasPending = workflowSteps.some(step => step.stepStatus === 'pending');
-  const hasApproved = workflowSteps.some(step => step.resolutionStatus === 'approved');
-  const hasRejected = workflowSteps.some(step => step.resolutionStatus === 'rejected');
-  const allRejected = workflowSteps.filter(step => step.stepStatus === 'completed').every(step => step.resolutionStatus === 'rejected');
-
-  // Check if document is cancelled
   const isCancelled = workflowSteps.some(step => step.action === 'cancelled');
-  if (isCancelled && allCompleted) {
+  if (isCancelled) {
     return 'cancelled';
   }
 
-  // If all steps are completed
-  if (allCompleted) {
-    if (hasApproved) {
-      return 'resolved';
-    }
-    if (allRejected) {
-      // All branches rejected, but document can continue workflow
-      return 'resolved';
-    }
+  // If no workflow steps, document is still in draft (not saved yet)
+  if (workflowSteps.length === 0) {
+    return 'draft';
+  }
+
+  // Check if there's a solution (approved or rejected)
+  const hasApproved = workflowSteps.some(step => step.resolutionStatus === 'approved');
+  const hasRejected = workflowSteps.some(step => step.resolutionStatus === 'rejected');
+  
+  if (hasApproved || hasRejected) {
     return 'resolved';
   }
 
-  // If there are pending steps
+  // Check if there are pending steps (distributed to users)
+  const hasPending = workflowSteps.some(step => step.stepStatus === 'pending' && step.toUserId !== null);
   if (hasPending) {
-    // Check if all pending steps are without resolutions (distributed)
-    const pendingSteps = workflowSteps.filter(step => step.stepStatus === 'pending');
-    const allPendingWithoutResolution = pendingSteps.every(step => !step.resolutionStatus);
-    
-    if (allPendingWithoutResolution && !hasRejected) {
-      return 'distributed';
-    }
-    
-    // Otherwise, document is in work
+    return 'distributed';
+  }
+
+  // If there are workflow steps but no pending steps and no resolution, document is in work
+  // This means the document was saved but not distributed and not resolved
+  if (workflowSteps.length > 0) {
     return 'in_work';
   }
 
-  // Default to current status
-  return document.status as DocumentStatus;
+  // Default to draft (should not reach here, but fallback)
+  return 'draft';
 }
 
 /**

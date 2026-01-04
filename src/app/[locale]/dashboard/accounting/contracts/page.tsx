@@ -7,6 +7,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -688,14 +689,12 @@ export default function ContractsPage() {
           ]}
           required
         />
-        <Select
-          label={`${t('parteneri')} *`}
+        <ClientSelect
+          label={t('parteneri')}
           value={formData.clientId}
-          onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-          options={clients.map(c => ({
-            value: c.id,
-            label: c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.code
-          }))}
+          onChange={(value) => setFormData({ ...formData, clientId: value })}
+          clients={clients}
+          onlyCompanies={false}
           placeholder={t('selectPartner')}
           required
         />

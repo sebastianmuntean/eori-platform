@@ -41,3 +41,42 @@ export function isValidUUID(value: string | null): boolean {
   return uuidRegex.test(value);
 }
 
+/**
+ * Format Zod validation errors for API response
+ * @param errors - Array of Zod validation errors
+ * @returns Formatted error response with message, all errors, and field-level errors
+ */
+export function formatValidationErrors(errors: import('zod').ZodIssue[]): {
+  message: string;
+  errors: string[];
+  fields: Record<string, string>;
+} {
+  const errorMessages = errors.map(err => err.message);
+  const fieldErrors: Record<string, string> = {};
+  
+  errors.forEach(err => {
+    const path = err.path.join('.');
+    if (path) {
+      fieldErrors[path] = err.message;
+    }
+  });
+  
+  return {
+    message: errorMessages[0] || 'Validation failed',
+    errors: errorMessages,
+    fields: fieldErrors,
+  };
+}
+
+/**
+ * Validate date string format (YYYY-MM-DD)
+ */
+export function isValidDateString(value: string | null): boolean {
+  if (!value) return false;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(value)) return false;
+  
+  const date = new Date(value);
+  return !isNaN(date.getTime()) && date.toISOString().startsWith(value);
+}
+

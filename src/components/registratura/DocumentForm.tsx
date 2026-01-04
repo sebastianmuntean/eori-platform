@@ -8,6 +8,7 @@ import { useClients } from '@/hooks/useClients';
 import { useUsers } from '@/hooks/useUsers';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Button } from '@/components/ui/Button';
 import { createDocumentSchema, updateDocumentSchema, CreateDocumentInput, UpdateDocumentInput } from '@/lib/validations/documents';
 import { z } from 'zod';
@@ -188,14 +189,12 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
         {/* Sender fields (for incoming) */}
         {isIncoming && (
           <>
-            <Select
+            <ClientSelect
               label="Expeditor (Partener)"
               value={formData.senderPartnerId || ''}
-              onChange={(e) => setFormData({ ...formData, senderPartnerId: e.target.value || null })}
-              options={clients.map(c => ({
-                value: c.id,
-                label: c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.code
-              }))}
+              onChange={(value) => setFormData({ ...formData, senderPartnerId: value || null })}
+              clients={clients}
+              onlyCompanies={false}
               placeholder="Selectează partener"
             />
             <Input
@@ -220,14 +219,12 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
         {/* Recipient fields (for outgoing) */}
         {isOutgoing && (
           <>
-            <Select
+            <ClientSelect
               label="Destinatar (Partener)"
               value={formData.recipientPartnerId || ''}
-              onChange={(e) => setFormData({ ...formData, recipientPartnerId: e.target.value || null })}
-              options={clients.map(c => ({
-                value: c.id,
-                label: c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.code
-              }))}
+              onChange={(value) => setFormData({ ...formData, recipientPartnerId: value || null })}
+              clients={clients}
+              onlyCompanies={false}
               placeholder="Selectează partener"
             />
             <Input

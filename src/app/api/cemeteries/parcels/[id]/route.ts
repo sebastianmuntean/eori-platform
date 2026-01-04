@@ -3,6 +3,7 @@ import { db } from '@/database/client';
 import { cemeteryParcels, cemeteryRows, cemeteryGraves } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { validateUuid } from '@/lib/utils/cemetery';
@@ -63,7 +64,7 @@ export async function PUT(
   try {
     // Require authentication and permission
     const { userId } = await requireAuth();
-    await requirePermission('cemeteries.parcels.update');
+    await requirePermission(CEMETERY_PERMISSIONS.PARCELS_UPDATE);
 
     const { id } = await params;
     
@@ -169,7 +170,7 @@ export async function DELETE(
   try {
     // Require authentication and permission
     await requireAuth();
-    await requirePermission('cemeteries.parcels.delete');
+    await requirePermission(CEMETERY_PERMISSIONS.PARCELS_DELETE);
 
     const { id } = await params;
     

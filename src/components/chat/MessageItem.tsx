@@ -42,7 +42,7 @@ export function MessageItem({ message, className }: MessageItemProps) {
               {message.attachments.map((attachment) => (
                 <div key={attachment.id} className="max-w-xs">
                   <a
-                    href={`/api/chat/files/${encodeURIComponent(attachment.storagePath.split('/').pop() || '')}`}
+                    href={`/api/chat/files/${encodeURIComponent(attachment.storageName)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
@@ -52,6 +52,7 @@ export function MessageItem({ message, className }: MessageItemProps) {
                       mimeType={attachment.mimeType}
                       fileSize={attachment.fileSize}
                       storagePath={attachment.storagePath}
+                      storageName={attachment.storageName}
                     />
                   </a>
                 </div>

@@ -21,8 +21,10 @@ interface DataStatistics {
     donations: number;
     contracts: number;
     products?: number;
+    pangarProducts?: number;
     fixedAssets?: number;
     inventory?: number;
+    documents?: number;
   };
   breakdown: {
     partners: {
@@ -76,7 +78,7 @@ export default function DataStatisticsPage() {
   const [generating, setGenerating] = useState(false);
   const [generatingSection, setGeneratingSection] = useState<string | null>(null);
   const [showSectionModal, setShowSectionModal] = useState<{
-    type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'fixedAssets' | 'inventory' | null;
+    type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users' | null;
     count: number;
   }>({ type: null, count: 10 });
   const [generateConfig, setGenerateConfig] = useState({
@@ -146,7 +148,7 @@ export default function DataStatisticsPage() {
     }
   };
 
-  const handleOpenSectionModal = (sectionType: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'fixedAssets' | 'inventory') => {
+  const handleOpenSectionModal = (sectionType: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users') => {
     setShowSectionModal({ type: sectionType, count: 10 });
   };
 
@@ -173,6 +175,12 @@ export default function DataStatisticsPage() {
         requestBody.clientsCount = count; // Generate clients directly
       } else if (sectionType === 'fixedAssets') {
         requestBody.fixedAssets = count;
+      } else if (sectionType === 'documents') {
+        requestBody.documents = count;
+      } else if (sectionType === 'users') {
+        requestBody.users = count;
+      } else if (sectionType === 'pangarProducts') {
+        requestBody.pangarProducts = count;
       } else {
         requestBody[sectionType] = count;
       }
@@ -194,14 +202,20 @@ export default function DataStatisticsPage() {
         const sectionName = sectionType === 'clients' ? 'clienți' 
           : sectionType === 'fixedAssets' ? 'mijloace fixe'
           : sectionType === 'products' ? 'produse'
+          : sectionType === 'pangarProducts' ? 'produse pangar'
           : sectionType === 'inventory' ? 'inventar'
+          : sectionType === 'documents' ? 'documente registratură'
+          : sectionType === 'users' ? 'utilizatori'
           : sectionType;
         alert(data.message || `Date ${sectionName} generate cu succes`);
       } else {
         const sectionName = sectionType === 'clients' ? 'clienți'
           : sectionType === 'fixedAssets' ? 'mijloace fixe'
           : sectionType === 'products' ? 'produse'
+          : sectionType === 'pangarProducts' ? 'produse pangar'
           : sectionType === 'inventory' ? 'inventar'
+          : sectionType === 'documents' ? 'documente registratură'
+          : sectionType === 'users' ? 'utilizatori'
           : sectionType;
         alert(data.error || `Eroare la generarea datelor ${sectionName}`);
       }
@@ -643,6 +657,34 @@ export default function DataStatisticsPage() {
           </CardBody>
         </Card>
 
+        {/* Pangar Products Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Produse Pangar</h2>
+              <Button
+                onClick={() => handleOpenSectionModal('pangarProducts')}
+                variant="outline"
+                size="sm"
+                disabled={generatingSection === 'pangarProducts'}
+              >
+                {generatingSection === 'pangarProducts' ? t('generating') : t('generateFakeData')}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
+                <div className="flex items-center gap-3">
+                  <Badge variant="warning" size="sm">Total</Badge>
+                  <span className="text-sm text-text-secondary">Produse pangar</span>
+                </div>
+                <span className="text-lg font-semibold">{statistics.entities.pangarProducts || 0}</span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
         {/* Fixed Assets Section */}
         <Card>
           <CardHeader>
@@ -694,6 +736,62 @@ export default function DataStatisticsPage() {
                   <span className="text-sm text-text-secondary">Sesiuni inventar</span>
                 </div>
                 <span className="text-lg font-semibold">{statistics.entities.inventory || 0}</span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Documents Registry Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Documente Registratură</h2>
+              <Button
+                onClick={() => handleOpenSectionModal('documents')}
+                variant="outline"
+                size="sm"
+                disabled={generatingSection === 'documents'}
+              >
+                {generatingSection === 'documents' ? t('generating') : t('generateFakeData')}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" size="sm">Total</Badge>
+                  <span className="text-sm text-text-secondary">Documente registratură</span>
+                </div>
+                <span className="text-lg font-semibold">{statistics.entities.documents || 0}</span>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Users Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Utilizatori</h2>
+              <Button
+                onClick={() => handleOpenSectionModal('users')}
+                variant="outline"
+                size="sm"
+                disabled={generatingSection === 'users'}
+              >
+                {generatingSection === 'users' ? t('generating') : t('generateFakeData')}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
+                <div className="flex items-center gap-3">
+                  <Badge variant="primary" size="sm">Total</Badge>
+                  <span className="text-sm text-text-secondary">Utilizatori</span>
+                </div>
+                <span className="text-lg font-semibold">{statistics.entities.users || 0}</span>
               </div>
             </div>
           </CardBody>
@@ -854,8 +952,11 @@ export default function DataStatisticsPage() {
             {showSectionModal.type === 'events' && 'Introduceți numărul de evenimente de generat'}
             {showSectionModal.type === 'contracts' && 'Introduceți numărul de contracte de generat'}
             {showSectionModal.type === 'products' && 'Introduceți numărul de produse de generat (se vor genera și mișcări de stoc)'}
+            {showSectionModal.type === 'pangarProducts' && 'Introduceți numărul de produse pangar de generat (se vor genera și mișcări de stoc)'}
             {showSectionModal.type === 'fixedAssets' && 'Introduceți numărul de mijloace fixe de generat'}
             {showSectionModal.type === 'inventory' && 'Introduceți numărul de sesiuni de inventar de generat'}
+            {showSectionModal.type === 'documents' && 'Introduceți numărul de documente registratură de generat'}
+            {showSectionModal.type === 'users' && 'Introduceți numărul de utilizatori de generat'}
           </p>
           <div>
             <label className="block text-sm font-medium mb-1">

@@ -165,6 +165,11 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
+    // CSRF protection
+    const { requireCsrfToken } = await import('@/lib/middleware/csrf');
+    const csrfError = await requireCsrfToken(request);
+    if (csrfError) return csrfError;
+
     const { userId } = await getCurrentUser();
     if (!userId) {
       return NextResponse.json(

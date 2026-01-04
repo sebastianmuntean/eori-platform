@@ -34,13 +34,16 @@ export function MessageComposer({
       await onSend(content, files);
       setContent('');
       setFiles([]);
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-      }
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
       setSending(false);
+      // Set focus after sending is complete and DOM has updated
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }, 0);
     }
   }, [content, files, onSend, sending, disabled]);
 
@@ -60,6 +63,12 @@ export function MessageComposer({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Maintain focus in textarea after file selection
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 0);
   }, []);
 
   const handleRemoveFile = useCallback((index: number) => {

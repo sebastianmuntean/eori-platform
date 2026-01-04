@@ -4,7 +4,7 @@ import { cemeteryGraves, cemeteryConcessions, burials, cemeteries, cemeteryParce
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth } from '@/lib/auth';
 import { eq, and, sql, inArray } from 'drizzle-orm';
-import { validateUuid } from '@/lib/utils/cemetery';
+import { validateUuid, isValidGraveStatus, buildWhereClause } from '@/lib/utils/cemetery';
 
 export async function GET(request: Request) {
   try {
@@ -54,16 +54,11 @@ export async function GET(request: Request) {
       conditions.push(eq(cemeteryGraves.rowId, rowId));
     }
 
-    if (status) {
-      const validStatuses = ['free', 'occupied', 'reserved', 'maintenance'] as const;
-      if (validStatuses.includes(status as any)) {
-        conditions.push(eq(cemeteryGraves.status, status as typeof validStatuses[number]));
-      }
+    if (status && isValidGraveStatus(status)) {
+      conditions.push(eq(cemeteryGraves.status, status));
     }
 
-    const whereClause = conditions.length > 0 
-      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
-      : undefined;
+    const whereClause = buildWhereClause(conditions);
 
     // Query graves with related data
     let query = db

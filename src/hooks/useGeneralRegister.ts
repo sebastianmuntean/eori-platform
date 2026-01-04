@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 
-export type GeneralRegisterDocumentStatus = 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+export type GeneralRegisterDocumentStatus = 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
 export type GeneralRegisterDocumentType = 'incoming' | 'outgoing' | 'internal';
 
 export interface GeneralRegisterDocument {
@@ -258,7 +258,7 @@ export async function createGeneralRegisterDocument(data: {
   to?: string | null;
   description?: string | null;
   filePath?: string | null;
-  status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+  status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
 }): Promise<GeneralRegisterDocument | null> {
   console.log('[createGeneralRegisterDocument] Called with data:', {
     ...data,

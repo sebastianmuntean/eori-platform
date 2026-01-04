@@ -3,6 +3,7 @@ import { db } from '@/database/client';
 import { cemeteryConcessions, cemeteryGraves, cemeteries, clients } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq, desc, asc, and, sql, gte, lte, or, ilike } from 'drizzle-orm';
 import { z } from 'zod';
 import { 
@@ -86,11 +87,8 @@ export async function GET(request: Request) {
       conditions.push(eq(cemeteryConcessions.graveId, graveId));
     }
 
-    if (status) {
-      const validStatuses = ['active', 'expired', 'cancelled', 'pending'] as const;
-      if (validStatuses.includes(status as any)) {
-        conditions.push(eq(cemeteryConcessions.status, status as typeof validStatuses[number]));
-      }
+    if (status && isValidConcessionStatus(status)) {
+      conditions.push(eq(cemeteryConcessions.status, status));
     }
 
     if (clientId) {
@@ -114,9 +112,7 @@ export async function GET(request: Request) {
       conditions.push(searchCondition);
     }
 
-    const whereClause = conditions.length > 0 
-      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
-      : undefined;
+    const whereClause = buildWhereClause(conditions);
 
     // Get total count
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessions);
@@ -177,7 +173,7 @@ export async function POST(request: Request) {
   try {
     // Require authentication and permission
     const { userId } = await requireAuth();
-    await requirePermission('cemeteries.concessions.create');
+    await requirePermission(CEMETERY_PERMISSIONS.CONCESSIONS_CREATE);
 
     const body = await request.json();
     const validation = createConcessionSchema.safeParse(body);

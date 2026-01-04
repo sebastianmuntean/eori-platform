@@ -34,12 +34,25 @@ The following configuration files are automatically loaded by Next.js:
 Add the following environment variables to your `.env.local` file:
 
 ```bash
-# Sentry Configuration
+# Sentry Configuration (REQUIRED)
 NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
+
+# Sentry Source Map Upload Configuration (for CI/CD builds)
 SENTRY_ORG=your_sentry_org
 SENTRY_PROJECT=your_sentry_project
 SENTRY_AUTH_TOKEN=your_sentry_auth_token  # For source map uploads
+
+# Sentry Privacy Configuration (OPTIONAL)
+# Set to 'true' to enable sending Personally Identifiable Information (PII)
+# Default: false (PII is disabled by default for privacy)
+SENTRY_SEND_PII=false
 ```
+
+**Important Security Notes:**
+- `NEXT_PUBLIC_SENTRY_DSN` is **required** - Sentry will not initialize without it
+- **Never commit DSN or auth tokens to version control**
+- `SENTRY_SEND_PII` defaults to `false` - only enable if you need user email/username in error reports
+- All sensitive data (passwords, tokens, API keys) is automatically sanitized before sending to Sentry
 
 ### Getting Your Sentry DSN
 
@@ -132,6 +145,35 @@ function CustomFallback({ error, resetError }) {
 
 - **Development**: Sentry is disabled by default. Errors are only logged to the console.
 - **Production**: Sentry is enabled when `NEXT_PUBLIC_SENTRY_DSN` is set. All errors are sent to Sentry.
+
+## Security & Privacy
+
+### Data Sanitization
+
+The Sentry integration automatically sanitizes sensitive data before sending events:
+
+**Automatically Removed:**
+- Authorization headers (Bearer tokens, API keys)
+- Cookie headers
+- Sensitive URL query parameters (token, password, secret, key, api_key, access_token)
+- Sensitive context fields (password, token, secret, apiKey, accessToken, databaseUrl)
+
+**User Data:**
+- By default, only user ID is sent (email and username are removed)
+- Set `SENTRY_SEND_PII=true` to include email and username (opt-in)
+
+**Example:**
+```typescript
+// This URL: /api/users?token=secret123&id=456
+// Becomes: /api/users?token=[REDACTED]&id=456
+```
+
+### Best Practices
+
+1. **Never commit DSN or auth tokens** - Always use environment variables
+2. **Review Sentry dashboard regularly** - Ensure no sensitive data is being captured
+3. **Use SENTRY_SEND_PII sparingly** - Only enable if necessary for debugging
+4. **Monitor error rates** - High error rates may indicate issues
 
 ## Performance
 

@@ -40,9 +40,12 @@ export function useChat(conversationId: string | null): UseChatReturn {
     const handleMessage = (message: ChatMessage) => {
       setMessages((prev) => {
         // Check if message already exists
-        const exists = prev.some((m) => m.id === message.id);
-        if (exists) {
-          return prev;
+        const existingIndex = prev.findIndex((m) => m.id === message.id);
+        if (existingIndex !== -1) {
+          // Update existing message (e.g., when attachments are added)
+          const updated = [...prev];
+          updated[existingIndex] = message;
+          return updated;
         }
 
         // Add new message

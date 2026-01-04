@@ -3,13 +3,15 @@ import { db } from '@/database/client';
 import { cemeteries } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq, desc, asc, and, sql, ilike, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { 
   buildSearchCondition, 
   normalizePaginationParams, 
   normalizeSortParams,
-  validateUuid 
+  validateUuid,
+  buildWhereClause
 } from '@/lib/utils/cemetery';
 
 const createCemeterySchema = z.object({
@@ -68,9 +70,7 @@ export async function GET(request: Request) {
       conditions.push(searchCondition);
     }
 
-    const whereClause = conditions.length > 0 
-      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
-      : undefined;
+    const whereClause = buildWhereClause(conditions);
 
     // Get total count
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteries);
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
   try {
     // Require authentication and permission
     const { userId } = await requireAuth();
-    await requirePermission('cemeteries.create');
+    await requirePermission(CEMETERY_PERMISSIONS.CEMETERIES_CREATE);
 
     const body = await request.json();
     const validation = createCemeterySchema.safeParse(body);

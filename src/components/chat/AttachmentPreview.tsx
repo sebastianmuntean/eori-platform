@@ -7,6 +7,7 @@ interface AttachmentPreviewProps {
   mimeType: string | null;
   fileSize: number;
   storagePath: string;
+  storageName?: string; // Optional: use this for API URLs instead of extracting from storagePath
   onRemove?: () => void;
   className?: string;
 }
@@ -16,11 +17,20 @@ export function AttachmentPreview({
   mimeType,
   fileSize,
   storagePath,
+  storageName,
   onRemove,
   className,
 }: AttachmentPreviewProps) {
   const isImage = mimeType?.startsWith('image/');
   const fileSizeKB = Math.round(fileSize / 1024);
+  
+  // Use storageName if provided, otherwise extract from storagePath
+  // For blob URLs (preview before upload), storagePath is already the URL
+  const fileUrl = storageName 
+    ? `/api/chat/files/${encodeURIComponent(storageName)}`
+    : storagePath.startsWith('blob:') || storagePath.startsWith('http')
+    ? storagePath
+    : `/api/chat/files/${encodeURIComponent(storagePath.split('/').pop() || '')}`;
 
   return (
     <div
@@ -31,7 +41,7 @@ export function AttachmentPreview({
     >
       {isImage ? (
         <img
-          src={`/api/chat/files/${encodeURIComponent(storagePath.split('/').pop() || '')}`}
+          src={fileUrl}
           alt={fileName}
           className="w-full h-32 object-cover"
         />

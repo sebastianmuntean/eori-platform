@@ -22,10 +22,10 @@
   "documentStatus": "Status",
   "documentStatuses": {
     "draft": "Ciornă",
-    "registered": "Înregistrat",
     "in_work": "În Lucru",
+    "distributed": "Repartizat",
     "resolved": "Rezolvat",
-    "archived": "Arhivat"
+    "cancelled": "Anulat"
   },
   "priority": "Prioritate",
   "priorities": {
@@ -86,6 +86,12 @@
   "fromDepartment": "De La Departament",
   "toDepartment": "Către Departament",
   "resolution": "Rezoluție",
+  "solutionare": "Solutionare",
+  "solutionStatus": "Status Solutionare",
+  "approved": "Aprobă",
+  "rejected": "Respinge",
+  "redirected": "Redirecționează",
+  "noSolution": "Fără solutionare",
   "notes": "Observații",
   "isExpired": "Termen Depășit",
   "connections": "Conexiuni",
@@ -102,8 +108,6 @@
   "archiveIndicator": "Indicativ Arhivare",
   "archiveTerm": "Termen Păstrare",
   "archiveLocation": "Locație Arhivare",
-  "archivedBy": "Arhivat De",
-  "archivedAt": "Arhivat La",
   "search": "Căutare",
   "advancedSearch": "Căutare Avansată",
   "reports": "Rapoarte",
@@ -131,7 +135,6 @@
   "copyDocumentDescription": "Modificați datele documentului copiat și salvați ca document nou.",
   "documentRouted": "Document trimis cu succes",
   "documentResolved": "Document rezolvat cu succes",
-  "documentArchived": "Document arhivat cu succes",
   "attachmentUploaded": "Atașament încărcat cu succes",
   "attachmentDeleted": "Atașament șters cu succes",
   "connectionAdded": "Conexiune adăugată cu succes",
@@ -194,7 +197,8 @@
     "delete": "Șterge",
     "saving": "Salvează...",
     "save": "Salvează",
-    "cancel": "Anulează"
+    "cancel": "Anulează",
+    "continue": "Continuă"
   }
 }
 

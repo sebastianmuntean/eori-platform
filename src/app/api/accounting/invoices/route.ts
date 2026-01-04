@@ -22,7 +22,7 @@ const createInvoiceSchema = z.object({
   parishId: z.string().uuid('Invalid parish ID'),
   series: z.string().min(1, 'Series is required').max(20).optional().default('INV'),
   number: z.number().int().positive().optional(), // Optional - will be auto-generated if not provided
-  invoiceNumber: z.string().min(1, 'Invoice number is required').max(50).optional(), // Optional - will be auto-generated from series+number
+  invoiceNumber: z.string().max(50).optional().or(z.literal('')), // Optional - will be auto-generated from series+number, allow empty string
   type: z.enum(['issued', 'received'], { errorMap: () => ({ message: 'Type must be issued or received' }) }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Due date must be in YYYY-MM-DD format'),
@@ -32,7 +32,11 @@ const createInvoiceSchema = z.object({
   description: z.string().optional().nullable(),
   status: z.enum(['draft', 'sent', 'paid', 'overdue', 'cancelled']).optional().default('draft'),
   warehouseId: z.string().uuid('Invalid warehouse ID').optional().nullable(),
-});
+}).transform((data) => ({
+  ...data,
+  // Convert empty string to undefined for invoiceNumber
+  invoiceNumber: data.invoiceNumber === '' ? undefined : data.invoiceNumber,
+}));
 
 /**
  * GET /api/accounting/invoices - Fetch all invoices with pagination, filtering, and sorting
@@ -299,28 +303,67 @@ export async function POST(request: Request) {
     const total = subtotal + vatTotal;
 
     // Create invoice
+    // Note: Using raw SQL to handle both 'date' and 'issue_date' columns for backward compatibility
+    // The database may still have 'issue_date' as NOT NULL from older migrations
     console.log('Step 6: Creating invoice');
+    const result = await db.execute(sql`
+      INSERT INTO invoices (
+        parish_id, series, number, invoice_number, type,
+        issue_date, date, due_date,
+        client_id,
+        amount, vat, total,
+        currency, status, description, items,
+        warehouse_id, created_by, created_at, updated_at
+      ) VALUES (
+        ${data.parishId}::uuid,
+        ${series},
+        ${invoiceNumber.toString()}::numeric,
+        ${generatedInvoiceNumber},
+        ${data.type}::invoice_type,
+        ${data.date}::date,
+        ${data.date}::date,
+        ${data.dueDate}::date,
+        ${data.clientId}::uuid,
+        ${subtotal.toString()}::numeric,
+        ${vatTotal.toString()}::numeric,
+        ${total.toString()}::numeric,
+        ${data.currency || 'RON'},
+        ${data.status || 'draft'}::invoice_status,
+        ${data.description || null},
+        ${JSON.stringify(data.items)}::jsonb,
+        ${data.warehouseId || null}::uuid,
+        ${userId}::uuid,
+        NOW(),
+        NOW()
+      ) RETURNING id
+    `);
+    
+    // Extract invoice ID from result
+    let invoiceId: string;
+    if (result && typeof result === 'object') {
+      if ('rows' in result && Array.isArray(result.rows) && result.rows.length > 0) {
+        invoiceId = result.rows[0].id;
+      } else if (Array.isArray(result) && result.length > 0) {
+        invoiceId = result[0].id;
+      } else if ('id' in result) {
+        invoiceId = (result as any).id;
+      } else {
+        throw new Error('Failed to get invoice ID from insert result');
+      }
+    } else {
+      throw new Error('Failed to get invoice ID from insert result');
+    }
+    
+    // Fetch the created invoice using Drizzle
     const [newInvoice] = await db
-      .insert(invoices)
-      .values({
-        parishId: data.parishId,
-        series: series,
-        number: invoiceNumber.toString(),
-        invoiceNumber: generatedInvoiceNumber,
-        type: data.type,
-        date: data.date,
-        dueDate: data.dueDate,
-        clientId: data.clientId,
-        amount: subtotal.toString(),
-        vat: vatTotal.toString(),
-        total: total.toString(),
-        currency: data.currency || 'RON',
-        description: data.description || null,
-        status: data.status || 'draft',
-        items: data.items as any,
-        createdBy: userId,
-      })
-      .returning();
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId))
+      .limit(1);
+    
+    if (!newInvoice) {
+      throw new Error('Failed to retrieve created invoice');
+    }
 
     console.log(`✓ Invoice created successfully: ${newInvoice.id}`);
 

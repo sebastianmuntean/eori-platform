@@ -14,9 +14,12 @@ import { useInvoices, Invoice, InvoiceItem } from '@/hooks/useInvoices';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
 import { useWarehouses } from '@/hooks/useWarehouses';
+import { useProducts, Product } from '@/hooks/useProducts';
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter, ClientFilter } from '@/components/ui/FilterGrid';
+import { ClientSelect } from '@/components/ui/ClientSelect';
+import { Select } from '@/components/ui/Select';
 
 export default function InvoicesPage() {
   const params = useParams();
@@ -40,6 +43,7 @@ export default function InvoicesPage() {
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
   const { warehouses, fetchWarehouses } = useWarehouses();
+  const { products, fetchProducts } = useProducts();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
@@ -62,7 +66,7 @@ export default function InvoicesPage() {
     invoiceNumber: '',
     type: 'issued' as 'issued' | 'received',
     date: new Date().toISOString().split('T')[0],
-    dueDate: '',
+    dueDate: new Date().toISOString().split('T')[0],
     clientId: '',
     currency: 'RON',
     description: '',
@@ -74,6 +78,13 @@ export default function InvoicesPage() {
     fetchParishes({ all: true });
     fetchClients({ all: true });
   }, [fetchParishes, fetchClients]);
+
+  // Fetch products when parish is selected (for received invoices)
+  useEffect(() => {
+    if (formData.parishId && formData.type === 'received') {
+      fetchProducts({ parishId: formData.parishId, isActive: true, pageSize: 1000 });
+    }
+  }, [formData.parishId, formData.type, fetchProducts]);
 
   // Fetch warehouses when parish is selected
   useEffect(() => {
@@ -131,7 +142,16 @@ export default function InvoicesPage() {
       amount: calculateTotals().subtotal.toString(),
       vat: vat.toString(),
       total: total.toString(),
-      items: formData.items.map(item => ({ ...item, total: calculateItemTotal(item) })),
+      items: formData.items.map(item => {
+        const extendedItem = item as ExtendedInvoiceItem;
+        return {
+          ...item,
+          total: calculateItemTotal(item),
+          productId: extendedItem.productId || null,
+          warehouseId: extendedItem.warehouseId || formData.warehouseId || null,
+          unitCost: extendedItem.unitCost || null,
+        };
+      }),
     });
 
     if (result) {
@@ -156,7 +176,16 @@ export default function InvoicesPage() {
       amount: calculateTotals().subtotal.toString(),
       vat: vat.toString(),
       total: total.toString(),
-      items: formData.items.map(item => ({ ...item, total: calculateItemTotal(item) })),
+      items: formData.items.map(item => {
+        const extendedItem = item as ExtendedInvoiceItem;
+        return {
+          ...item,
+          total: calculateItemTotal(item),
+          productId: extendedItem.productId || null,
+          warehouseId: extendedItem.warehouseId || formData.warehouseId || null,
+          unitCost: extendedItem.unitCost || null,
+        };
+      }),
     });
 
     if (result) {
@@ -176,7 +205,7 @@ export default function InvoicesPage() {
     await markAsPaid(id);
   };
 
-  const handleEdit = (invoice: Invoice) => {
+  const handleEdit = async (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setFormData({
       parishId: invoice.parishId,
@@ -193,6 +222,10 @@ export default function InvoicesPage() {
       status: invoice.status,
       items: invoice.items || [],
     });
+    // Fetch products if it's a received invoice
+    if (invoice.type === 'received' && invoice.parishId) {
+      await fetchProducts({ parishId: invoice.parishId, isActive: true, pageSize: 1000 });
+    }
     setShowEditModal(true);
   };
 
@@ -210,7 +243,7 @@ export default function InvoicesPage() {
       invoiceNumber: '',
       type: 'issued',
       date: new Date().toISOString().split('T')[0],
-      dueDate: '',
+      dueDate: new Date().toISOString().split('T')[0],
       clientId: '',
       currency: 'RON',
       description: '',
@@ -266,13 +299,54 @@ export default function InvoicesPage() {
     });
   };
 
+  // Extended InvoiceItem interface for local use
+  interface ExtendedInvoiceItem extends InvoiceItem {
+    productId?: string | null;
+    warehouseId?: string | null;
+    unitCost?: number | null;
+  }
+
   const addLineItem = () => {
+    if (formData.type === 'received') {
+      // For received invoices, add empty product item
+      setFormData({
+        ...formData,
+        items: [
+          ...formData.items,
+          { description: '', quantity: 1, unitPrice: 0, unitCost: 0, vat: 0, total: 0, productId: null, warehouseId: formData.warehouseId || null },
+        ] as ExtendedInvoiceItem[],
+      });
+    } else {
+      // For issued invoices, add regular line item
+      setFormData({
+        ...formData,
+        items: [
+          ...formData.items,
+          { description: '', quantity: 1, unitPrice: 0, vat: 0, total: 0 },
+        ],
+      });
+    }
+  };
+
+  const addProductItem = (product: Product) => {
+    const purchasePrice = parseFloat(product.purchasePrice || '0');
+    const salePrice = parseFloat(product.salePrice || '0');
+    const vatRate = parseFloat(product.vatRate || '19');
+    
+    const newItem: ExtendedInvoiceItem = {
+      description: product.name,
+      quantity: 1,
+      unitPrice: salePrice, // Preț de ieșire
+      unitCost: purchasePrice, // Preț de intrare
+      vat: (salePrice * vatRate) / 100,
+      total: salePrice + (salePrice * vatRate) / 100,
+      productId: product.id,
+      warehouseId: formData.warehouseId || null,
+    };
+
     setFormData({
       ...formData,
-      items: [
-        ...formData.items,
-        { description: '', quantity: 1, unitPrice: 0, vat: 0, total: 0 },
-      ],
+      items: [...formData.items, newItem] as ExtendedInvoiceItem[],
     });
   };
 
@@ -283,15 +357,29 @@ export default function InvoicesPage() {
     });
   };
 
-  const updateLineItem = (index: number, field: keyof InvoiceItem, value: any) => {
-    const newItems = [...formData.items];
+  const updateLineItem = (index: number, field: keyof ExtendedInvoiceItem, value: any) => {
+    const newItems = [...formData.items] as ExtendedInvoiceItem[];
     newItems[index] = { ...newItems[index], [field]: value };
-    if (field === 'quantity' || field === 'unitPrice') {
+    
+    // If product is selected, update description
+    if (field === 'productId' && value) {
+      const product = products.find(p => p.id === value);
+      if (product) {
+        newItems[index].description = product.name;
+        newItems[index].unitPrice = parseFloat(product.salePrice || '0');
+        newItems[index].unitCost = parseFloat(product.purchasePrice || '0');
+        const vatRate = parseFloat(product.vatRate || '19');
+        newItems[index].vat = (newItems[index].unitPrice * vatRate) / 100;
+      }
+    }
+    
+    if (field === 'quantity' || field === 'unitPrice' || field === 'unitCost') {
       const subtotal = newItems[index].quantity * newItems[index].unitPrice;
       const vatAmount = newItems[index].vat || 0;
       newItems[index].total = subtotal + vatAmount;
     }
-    setFormData({ ...formData, items: newItems });
+    
+    setFormData({ ...formData, items: newItems as InvoiceItem[] });
   };
 
   const formatCurrency = (amount: string | number, currency: string = 'RON') => {
@@ -647,10 +735,15 @@ export default function InvoicesPage() {
                     newType,
                     formData.warehouseId || undefined
                   );
+                  // Fetch products if switching to received type
+                  if (newType === 'received' && formData.parishId) {
+                    await fetchProducts({ parishId: formData.parishId, isActive: true, pageSize: 1000 });
+                  }
                   setFormData({
                     ...formData,
                     type: newType,
                     number: nextNumber || formData.number,
+                    items: [], // Reset items when changing type
                   });
                 }}
                 className="w-full px-3 py-2 border rounded"
@@ -674,24 +767,14 @@ export default function InvoicesPage() {
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               required
             />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('clients')} *</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="">{t('selectClient') || 'Select Client'}</option>
-                {clients
-                  .filter((c) => c.parishId === formData.parishId)
-                  .map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <ClientSelect
+              value={formData.clientId}
+              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              clients={clients}
+              onlyCompanies={true}
+              required
+              label={t('clients')}
+            />
             <Input label={t('currency')} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -702,63 +785,138 @@ export default function InvoicesPage() {
             />
           </div>
           
-          {/* Line Items */}
+          {/* Line Items - Different interface for received vs issued invoices */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-lg font-semibold">{t('lineItems')} *</label>
-              <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
-                {t('add')} {t('lineItems')}
-              </Button>
+              <label className="block text-lg font-semibold">
+                {formData.type === 'received' ? (t('products') || 'Produse') : (t('lineItems') || 'Linii Factură')} *
+              </label>
+              {formData.type === 'received' ? (
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const product = products.find(p => p.id === e.target.value);
+                    if (product) addProductItem(product);
+                  }}
+                  options={[
+                    { value: '', label: t('selectProduct') || 'Selectează Produs' },
+                    ...products
+                      .filter(p => !formData.items.some((item: ExtendedInvoiceItem) => item.productId === p.id))
+                      .map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
+                  ]}
+                  placeholder={t('selectProduct') || 'Selectează Produs'}
+                />
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+                  {t('add')} {t('lineItems')}
+                </Button>
+              )}
             </div>
             <div className="space-y-2 border rounded p-2">
               {formData.items.length === 0 ? (
                 <p className="text-sm text-text-secondary">{t('noData')}</p>
               ) : (
-                formData.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-end p-2 border rounded">
-                    <div className="col-span-4">
-                      <Input
-                        label={t('description')}
-                        value={item.description}
-                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                      />
+                formData.items.map((item, index) => {
+                  const extendedItem = item as ExtendedInvoiceItem;
+                  return (
+                    <div key={index} className="grid grid-cols-12 gap-2 items-end p-2 border rounded">
+                      {formData.type === 'received' ? (
+                        <>
+                          <div className="col-span-3">
+                            <Select
+                              label={t('product') || 'Produs'}
+                              value={extendedItem.productId || ''}
+                              onChange={(e) => updateLineItem(index, 'productId', e.target.value || null)}
+                              options={[
+                                { value: '', label: t('selectProduct') || 'Selectează Produs' },
+                                ...products.map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
+                              ]}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              label={t('quantity') || 'Cantitate'}
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('purchasePrice') || 'Preț Intrare'}
+                              value={extendedItem.unitCost || 0}
+                              onChange={(e) => updateLineItem(index, 'unitCost', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('salePrice') || 'Preț Ieșire'}
+                              value={item.unitPrice}
+                              onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-sm font-medium pt-6">{formatCurrency(item.total, formData.currency)}</div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
+                              ×
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="col-span-4">
+                            <Input
+                              label={t('description')}
+                              value={item.description}
+                              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              label={t('quantity')}
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('unitPrice')}
+                              value={item.unitPrice}
+                              onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('vat')}
+                              value={item.vat || 0}
+                              onChange={(e) => updateLineItem(index, 'vat', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <div className="text-sm font-medium pt-6">{formatCurrency(item.total, formData.currency)}</div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
+                              ×
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        label={t('quantity')}
-                        value={item.quantity}
-                        onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        label={t('unitPrice')}
-                        value={item.unitPrice}
-                        onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        label={t('vat')}
-                        value={item.vat || 0}
-                        onChange={(e) => updateLineItem(index, 'vat', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <div className="text-sm font-medium">{formatCurrency(item.total, formData.currency)}</div>
-                    </div>
-                    <div className="col-span-1">
-                      <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
-                        ×
-                      </Button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
             {formData.items.length > 0 && (
@@ -887,24 +1045,14 @@ export default function InvoicesPage() {
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               required
             />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('clients')} *</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="">{t('selectClient') || 'Select Client'}</option>
-                {clients
-                  .filter((c) => c.parishId === formData.parishId)
-                  .map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <ClientSelect
+              value={formData.clientId}
+              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              clients={clients}
+              onlyCompanies={true}
+              required
+              label={t('clients')}
+            />
             <Input label={t('currency')} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -915,63 +1063,138 @@ export default function InvoicesPage() {
             />
           </div>
           
-          {/* Line Items */}
+          {/* Line Items - Different interface for received vs issued invoices */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-lg font-semibold">{t('lineItems')} *</label>
-              <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
-                {t('add')} {t('lineItems')}
-              </Button>
+              <label className="block text-lg font-semibold">
+                {formData.type === 'received' ? (t('products') || 'Produse') : (t('lineItems') || 'Linii Factură')} *
+              </label>
+              {formData.type === 'received' ? (
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const product = products.find(p => p.id === e.target.value);
+                    if (product) addProductItem(product);
+                  }}
+                  options={[
+                    { value: '', label: t('selectProduct') || 'Selectează Produs' },
+                    ...products
+                      .filter(p => !formData.items.some((item: ExtendedInvoiceItem) => item.productId === p.id))
+                      .map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
+                  ]}
+                  placeholder={t('selectProduct') || 'Selectează Produs'}
+                />
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+                  {t('add')} {t('lineItems')}
+                </Button>
+              )}
             </div>
             <div className="space-y-2 border rounded p-2">
               {formData.items.length === 0 ? (
                 <p className="text-sm text-text-secondary">{t('noData')}</p>
               ) : (
-                formData.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-end p-2 border rounded">
-                    <div className="col-span-4">
-                      <Input
-                        label={t('description')}
-                        value={item.description}
-                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                      />
+                formData.items.map((item, index) => {
+                  const extendedItem = item as ExtendedInvoiceItem;
+                  return (
+                    <div key={index} className="grid grid-cols-12 gap-2 items-end p-2 border rounded">
+                      {formData.type === 'received' ? (
+                        <>
+                          <div className="col-span-3">
+                            <Select
+                              label={t('product') || 'Produs'}
+                              value={extendedItem.productId || ''}
+                              onChange={(e) => updateLineItem(index, 'productId', e.target.value || null)}
+                              options={[
+                                { value: '', label: t('selectProduct') || 'Selectează Produs' },
+                                ...products.map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
+                              ]}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              label={t('quantity') || 'Cantitate'}
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('purchasePrice') || 'Preț Intrare'}
+                              value={extendedItem.unitCost || 0}
+                              onChange={(e) => updateLineItem(index, 'unitCost', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('salePrice') || 'Preț Ieșire'}
+                              value={item.unitPrice}
+                              onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-sm font-medium pt-6">{formatCurrency(item.total, formData.currency)}</div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
+                              ×
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="col-span-4">
+                            <Input
+                              label={t('description')}
+                              value={item.description}
+                              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              label={t('quantity')}
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('unitPrice')}
+                              value={item.unitPrice}
+                              onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              label={t('vat')}
+                              value={item.vat || 0}
+                              onChange={(e) => updateLineItem(index, 'vat', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <div className="text-sm font-medium pt-6">{formatCurrency(item.total, formData.currency)}</div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
+                              ×
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        label={t('quantity')}
-                        value={item.quantity}
-                        onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        label={t('unitPrice')}
-                        value={item.unitPrice}
-                        onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        label={t('vat')}
-                        value={item.vat || 0}
-                        onChange={(e) => updateLineItem(index, 'vat', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <div className="text-sm font-medium">{formatCurrency(item.total, formData.currency)}</div>
-                    </div>
-                    <div className="col-span-1">
-                      <Button type="button" variant="danger" size="sm" onClick={() => removeLineItem(index)}>
-                        ×
-                      </Button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
             {formData.items.length > 0 && (

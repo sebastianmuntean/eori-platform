@@ -8,9 +8,8 @@ const CSRF_HEADER_NAME = 'x-csrf-token';
  * Generate a CSRF token
  */
 export function generateCsrfToken(): string {
-  console.log('Step 1: Generating CSRF token');
+  // Don't log token details for security
   const token = randomBytes(32).toString('hex');
-  console.log(`✓ CSRF token generated: ${token.substring(0, 8)}...`);
   return token;
 }
 
@@ -41,11 +40,7 @@ export async function getCsrfTokenFromCookie(): Promise<string | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
 
-  if (token) {
-    console.log(`✓ CSRF token found: ${token.substring(0, 8)}...`);
-  } else {
-    console.log('❌ No CSRF token found');
-  }
+  // Don't log token details for security
 
   return token;
 }

@@ -12,11 +12,21 @@ import {
   inventorySessions,
   inventoryItems,
   warehouses,
-  stockMovements
+  stockMovements,
+  documentRegistry,
+  users
 } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, hashPassword } from '@/lib/auth';
+import { generateVerificationToken } from '@/lib/auth/tokens';
 import { eq, sql } from 'drizzle-orm';
+import { randomBytes } from 'crypto';
+
+// Constants for generation limits
+const MAX_GENERATION_LIMIT = 1000;
+const STOCK_MOVEMENT_PERCENTAGE = 0.7; // 70% of products get stock movements
+const MISSING_ASSET_PROBABILITY = 0.02; // 2% chance for fixed assets to be missing in inventory
+const INVENTARY_ITEM_LIMIT = 500; // Maximum items to fetch for inventory generation
 
 // Romanian names and company names for generating fake data
 const firstNames = [
@@ -54,6 +64,55 @@ const streets = [
   'Str. Nicolae Bălcescu', 'Bd. Carol I', 'Str. Avram Iancu'
 ];
 
+// Product generation constants
+const PRODUCT_NAMES = [
+  'Lumânări', 'Vin liturgic', 'Pâine pentru euharistie', 'Tămâie', 'Ulei sfânt',
+  'Cărți religioase', 'Icoane', 'Cruce', 'Cădelniță', 'Potir',
+  'Patenă', 'Cingătoare', 'Vestmânt liturgic', 'Covor bisericesc', 'Candelabru',
+  'Lampă ulei', 'Călimară', 'Clopoțel', 'Sfeșnic', 'Evanghelie'
+] as const;
+
+const PRODUCT_CATEGORIES = ['pangar', 'material', 'service', 'fixed', 'other'] as const;
+type ProductCategory = typeof PRODUCT_CATEGORIES[number];
+
+const PRODUCT_UNITS = ['buc', 'kg', 'l', 'm', 'pachet'] as const;
+const VAT_RATES = ['9', '19', '24'] as const;
+
+// Fixed asset generation constants
+const FIXED_ASSET_NAMES = [
+  'Organ bisericesc', 'Clopot', 'Altar', 'Amvon', 'Iconostas',
+  'Candelabru mare', 'Cruce procesională', 'Covor mare', 'Scaun episcopal',
+  'Masă liturgică', 'Sticlărie', 'Lustră', 'Fereastră vitraliu', 'Ușă principală',
+  'Podea', 'Tavan', 'Zidărie', 'Acoperiș', 'Turn bisericesc'
+] as const;
+
+const FIXED_ASSET_CATEGORIES = ['Mobilier', 'Construcție', 'Decorațiuni', 'Instrumente', 'Altele'] as const;
+const FIXED_ASSET_LOCATIONS = ['Biserică principală', 'Capelă', 'Sala parohială', 'Depozit', 'Curte'] as const;
+const FIXED_ASSET_STATUSES = ['active', 'active', 'active', 'inactive', 'damaged'] as const;
+type FixedAssetStatus = typeof FIXED_ASSET_STATUSES[number];
+
+// Warehouse constants
+const DEFAULT_WAREHOUSE_CODE = 'DEP-001';
+const DEFAULT_WAREHOUSE_NAME = 'Depozit Principal';
+
+// Document registry generation constants
+const DOCUMENT_SUBJECTS = [
+  'Cerere de aprobare', 'Notificare', 'Raport activitate', 'Solicitare informații',
+  'Răspuns la cerere', 'Aprobare proiect', 'Respingere cerere', 'Informare',
+  'Decizie administrativă', 'Contract de prestări servicii', 'Factură', 'Chitanță',
+  'Scrisoare oficială', 'Memorandum', 'Circulară', 'Hotărâre', 'Ordin de serviciu',
+  'Raport financiar', 'Planificare activități', 'Evaluare proiect'
+] as const;
+
+const DOCUMENT_TYPES = ['incoming', 'outgoing', 'internal'] as const;
+type DocumentType = typeof DOCUMENT_TYPES[number];
+
+const DOCUMENT_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
+type DocumentPriority = typeof DOCUMENT_PRIORITIES[number];
+
+const DOCUMENT_STATUSES = ['draft', 'registered', 'in_work', 'distributed', 'resolved', 'archived'] as const;
+type DocumentStatus = typeof DOCUMENT_STATUSES[number];
+
 interface GenerateFakeDataRequest {
   clients?: number;
   clientsCount?: number; // For direct clients generation
@@ -63,8 +122,11 @@ interface GenerateFakeDataRequest {
   events?: number;
   contracts?: number;
   products?: number;
+  pangarProducts?: number; // Products with category 'pangar'
   fixedAssets?: number;
   inventory?: number;
+  documents?: number;
+  users?: number;
 }
 
 function randomElement<T>(array: T[]): T {
@@ -109,6 +171,131 @@ function generateDateInFuture(days: number = 0): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
+}
+
+/**
+ * Ensures a warehouse exists for a given parish, creating one if needed
+ * @param parishId - The parish ID
+ * @param userId - The user ID creating the warehouse
+ * @returns The warehouse ID or null if creation failed
+ */
+async function ensureWarehouseForParish(
+  parishId: string,
+  userId: string
+): Promise<string | null> {
+  try {
+    // Check if warehouse already exists
+    const existingWarehouses = await db
+      .select({ id: warehouses.id })
+      .from(warehouses)
+      .where(eq(warehouses.parishId, parishId))
+      .limit(1);
+
+    if (existingWarehouses.length > 0) {
+      return existingWarehouses[0].id as string;
+    }
+
+    // Create new warehouse
+    try {
+      const [newWarehouse] = await db
+        .insert(warehouses)
+        .values({
+          parishId,
+          code: DEFAULT_WAREHOUSE_CODE,
+          name: DEFAULT_WAREHOUSE_NAME,
+          type: 'general',
+          isActive: true,
+          createdBy: userId,
+        })
+        .returning({ id: warehouses.id });
+
+      return newWarehouse?.id as string || null;
+    } catch (error: any) {
+      // If warehouse already exists (race condition), fetch it
+      if (error.code === '23505') {
+        const [existingWarehouse] = await db
+          .select({ id: warehouses.id })
+          .from(warehouses)
+          .where(eq(warehouses.parishId, parishId))
+          .limit(1);
+        return existingWarehouse?.id as string || null;
+      }
+      throw error;
+    }
+  } catch (error: any) {
+    logError(`Error ensuring warehouse for parish ${parishId}`, error);
+    return null;
+  }
+}
+
+/**
+ * Ensures warehouses exist for all parishes in parallel
+ * @param allParishes - Array of parish objects with id
+ * @param userId - The user ID creating the warehouses
+ * @returns Map of parishId to warehouseId
+ */
+async function ensureWarehousesForAllParishes(
+  allParishes: { id: string }[],
+  userId: string
+): Promise<Map<string, string>> {
+  const warehousesByParish = new Map<string, string>();
+  
+  // Create warehouses in parallel
+  const warehousePromises = allParishes.map(async (parish) => {
+    const warehouseId = await ensureWarehouseForParish(parish.id, userId);
+    if (warehouseId) {
+      warehousesByParish.set(parish.id, warehouseId);
+    }
+    return { parishId: parish.id, warehouseId };
+  });
+
+  await Promise.all(warehousePromises);
+  return warehousesByParish;
+}
+
+/**
+ * Generates a unique product code with timestamp to avoid duplicates
+ * @param index - The index of the product
+ * @returns Unique product code
+ */
+function generateUniqueProductCode(index: number): string {
+  const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+  return `PROD-${timestamp}-${String(index + 1).padStart(6, '0')}`;
+}
+
+/**
+ * Generates a unique inventory number with timestamp to avoid duplicates
+ * @param index - The index of the fixed asset
+ * @returns Unique inventory number
+ */
+function generateUniqueInventoryNumber(index: number): string {
+  const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+  return `INV-${timestamp}-${String(index + 1).padStart(6, '0')}`;
+}
+
+/**
+ * Validates generation limits to prevent excessive data generation
+ */
+function validateGenerationLimits(request: GenerateFakeDataRequest): string | null {
+  if (request.products && request.products > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} products can be generated at once`;
+  }
+  if (request.pangarProducts && request.pangarProducts > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} pangar products can be generated at once`;
+  }
+  if (request.fixedAssets && request.fixedAssets > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} fixed assets can be generated at once`;
+  }
+  if (request.inventory && request.inventory > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} inventory sessions can be generated at once`;
+  }
+  if (request.documents && request.documents > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} documents can be generated at once`;
+  }
+  if (request.users && request.users > MAX_GENERATION_LIMIT) {
+    return `Maximum ${MAX_GENERATION_LIMIT} users can be generated at once`;
+  }
+  return null;
 }
 
 async function ensurePartnersExist(
@@ -254,6 +441,16 @@ export async function POST(request: Request) {
     }
 
     const body: GenerateFakeDataRequest = await request.json();
+    
+    // Validate generation limits
+    const validationError = validateGenerationLimits(body);
+    if (validationError) {
+      return NextResponse.json({
+        success: false,
+        error: validationError,
+      }, { status: 400 });
+    }
+
     const clientsCount = body.clients || 0;
     const directClientsCount = body.clientsCount || 0; // Direct clients generation
     const suppliersCount = body.suppliers || 0;
@@ -262,8 +459,11 @@ export async function POST(request: Request) {
     const eventsCount = body.events || 0;
     const contractsCount = body.contracts || 0;
     const productsCount = body.products || 0;
+    const pangarProductsCount = body.pangarProducts || 0;
     const fixedAssetsCount = body.fixedAssets || 0;
     const inventoryCount = body.inventory || 0;
+    const documentsCount = body.documents || 0;
+    const usersCount = body.users || 0;
 
     // Get all active parishes
     const allParishes = await db
@@ -287,8 +487,11 @@ export async function POST(request: Request) {
       events: 0,
       contracts: 0,
       products: 0,
+      pangarProducts: 0,
       fixedAssets: 0,
       inventory: 0,
+      documents: 0,
+      users: 0,
       errors: [] as string[],
     };
 
@@ -815,125 +1018,98 @@ export async function POST(request: Request) {
     // Generate products with stock
     if (productsCount > 0) {
       try {
-        // Ensure warehouses exist
-        const existingWarehouses = await db
-          .select({ id: warehouses.id, parishId: warehouses.parishId })
-          .from(warehouses)
-          .where(eq(warehouses.isActive, true));
+        // Ensure warehouses exist for all parishes (parallel execution)
+        const warehousesByParish = await ensureWarehousesForAllParishes(allParishes, userId);
 
-        // Create warehouses if they don't exist
-        const warehousesByParish = new Map<string, string>();
-        for (const parish of allParishes) {
-          const parishWarehouses = existingWarehouses.filter(w => w.parishId === parish.id);
-          if (parishWarehouses.length === 0) {
-            // Create a default warehouse for this parish
-            try {
-              const [newWarehouse] = await db.insert(warehouses).values({
-                parishId: parish.id,
-                code: 'DEP-001',
-                name: 'Depozit Principal',
-                type: 'general',
-                isActive: true,
-                createdBy: userId,
-              }).returning({ id: warehouses.id });
-              if (newWarehouse) {
-                warehousesByParish.set(parish.id, newWarehouse.id);
-              }
-            } catch (error: any) {
-              // If warehouse already exists, fetch it
-              if (error.code === '23505') {
-                const [existingWarehouse] = await db
-                  .select({ id: warehouses.id })
-                  .from(warehouses)
-                  .where(eq(warehouses.parishId, parish.id))
-                  .limit(1);
-                if (existingWarehouse) {
-                  warehousesByParish.set(parish.id, existingWarehouse.id);
-                }
-              } else {
-                throw error;
-              }
-            }
-          } else {
-            warehousesByParish.set(parish.id, parishWarehouses[0].id);
-          }
-        }
+        if (warehousesByParish.size === 0) {
+          results.errors.push('No warehouses available. Cannot generate products.');
+        } else {
+          const productsToCreate = [];
+          let skippedProducts = 0;
 
-        const productNames = [
-          'Lumânări', 'Vin liturgic', 'Pâine pentru euharistie', 'Tămâie', 'Ulei sfânt',
-          'Cărți religioase', 'Icoane', 'Cruce', 'Cădelniță', 'Potir',
-          'Patenă', 'Cingătoare', 'Vestmânt liturgic', 'Covor bisericesc', 'Candelabru',
-          'Lampă ulei', 'Călimară', 'Clopoțel', 'Sfeșnic', 'Evanghelie'
-        ];
-        // Use valid enum values: 'pangar', 'material', 'service', 'fixed', 'other'
-        const categories = ['pangar', 'material', 'service', 'fixed', 'other'] as const;
-        const units = ['buc', 'kg', 'l', 'm', 'pachet'];
-
-        const productsToCreate = [];
-        for (let i = 0; i < productsCount; i++) {
-          const parishId = randomElement(allParishes).id as string;
-          const warehouseId = warehousesByParish.get(parishId);
-          if (!warehouseId) continue;
-
-          const productName = randomElement(productNames);
-          const category = randomElement(categories);
-          const unit = randomElement(units);
-          const purchasePrice = randomInt(10, 500);
-          const salePrice = Math.round(purchasePrice * (1 + randomInt(10, 50) / 100));
-          const vatRate = randomElement(['9', '19', '24']);
-          const minStock = randomInt(5, 50);
-
-          productsToCreate.push({
-            parishId,
-            code: `PROD-${String(i + 1).padStart(6, '0')}`,
-            name: `${productName} ${i + 1}`,
-            description: `Produs ${category}`,
-            category: category as 'pangar' | 'material' | 'service' | 'fixed' | 'other',
-            unit,
-            purchasePrice: purchasePrice.toString(),
-            salePrice: salePrice.toString(),
-            vatRate: vatRate,
-            trackStock: true,
-            minStock: minStock.toString(),
-            isActive: true,
-            createdBy: userId,
-          });
-        }
-
-        if (productsToCreate.length > 0) {
-          const insertedProducts = await db.insert(products).values(productsToCreate).returning({ id: products.id, parishId: products.parishId });
-          results.products = insertedProducts.length;
-
-          // Generate stock movements for some products
-          const movementsToCreate = [];
-          for (const product of insertedProducts.slice(0, Math.floor(insertedProducts.length * 0.7))) {
-            const parishId = product.parishId as string;
+          for (let i = 0; i < productsCount; i++) {
+            const parishId = randomElement(allParishes).id as string;
             const warehouseId = warehousesByParish.get(parishId);
-            if (!warehouseId) continue;
+            
+            if (!warehouseId) {
+              skippedProducts++;
+              results.errors.push(`No warehouse found for parish ${parishId}, skipping product ${i + 1}`);
+              continue;
+            }
 
-            const quantity = randomInt(10, 100);
-            const unitCost = randomInt(5, 200);
-            const totalValue = quantity * unitCost;
-            const movementDate = generateDate(randomInt(0, 90));
+            const productName = randomElement(PRODUCT_NAMES);
+            const category = randomElement(PRODUCT_CATEGORIES);
+            const unit = randomElement(PRODUCT_UNITS);
+            const purchasePrice = randomInt(10, 500);
+            const salePrice = Math.round(purchasePrice * (1 + randomInt(10, 50) / 100));
+            const vatRate = randomElement(VAT_RATES);
+            const minStock = randomInt(5, 50);
 
-            movementsToCreate.push({
-              warehouseId,
-              productId: product.id as string,
+            productsToCreate.push({
               parishId,
-              type: 'in',
-              movementDate,
-              quantity: quantity.toString(),
-              unitCost: unitCost.toString(),
-              totalValue: totalValue.toString(),
-              documentType: 'Intrare',
-              documentNumber: `IN-${randomInt(1000, 9999)}`,
-              documentDate: movementDate,
+              code: generateUniqueProductCode(i),
+              name: `${productName} ${i + 1}`,
+              description: `Produs ${category}`,
+              category: category as ProductCategory,
+              unit,
+              purchasePrice: purchasePrice.toString(),
+              salePrice: salePrice.toString(),
+              vatRate: vatRate,
+              trackStock: true,
+              minStock: minStock.toString(),
+              isActive: true,
               createdBy: userId,
             });
           }
 
-          if (movementsToCreate.length > 0) {
-            await db.insert(stockMovements).values(movementsToCreate);
+          if (productsToCreate.length > 0) {
+            const insertedProducts = await db
+              .insert(products)
+              .values(productsToCreate)
+              .returning({ id: products.id, parishId: products.parishId });
+            
+            results.products = insertedProducts.length;
+
+            // Generate stock movements for a percentage of products
+            const productsWithStock = Math.floor(insertedProducts.length * STOCK_MOVEMENT_PERCENTAGE);
+            const movementsToCreate = [];
+
+            for (const product of insertedProducts.slice(0, productsWithStock)) {
+              const parishId = product.parishId as string;
+              const warehouseId = warehousesByParish.get(parishId);
+              
+              if (!warehouseId) continue;
+
+              const quantity = randomInt(10, 100);
+              const unitCost = randomInt(5, 200);
+              const totalValue = quantity * unitCost;
+              const movementDate = generateDate(randomInt(0, 90));
+
+              movementsToCreate.push({
+                warehouseId,
+                productId: product.id as string,
+                parishId,
+                type: 'in',
+                movementDate,
+                quantity: quantity.toString(),
+                unitCost: unitCost.toString(),
+                totalValue: totalValue.toString(),
+                documentType: 'Intrare',
+                documentNumber: `IN-${randomInt(1000, 9999)}`,
+                documentDate: movementDate,
+                createdBy: userId,
+              });
+            }
+
+            if (movementsToCreate.length > 0) {
+              await db.insert(stockMovements).values(movementsToCreate);
+            }
+
+            if (skippedProducts > 0) {
+              results.errors.push(`${skippedProducts} products were skipped due to missing warehouses`);
+            }
+          } else if (skippedProducts === productsCount) {
+            results.errors.push('All products were skipped due to missing warehouses');
           }
         }
       } catch (error: any) {
@@ -942,34 +1118,133 @@ export async function POST(request: Request) {
       }
     }
 
+    // Generate pangar products (products with category 'pangar')
+    if (pangarProductsCount > 0) {
+      try {
+        // Ensure warehouses exist for all parishes (parallel execution)
+        const warehousesByParish = await ensureWarehousesForAllParishes(allParishes, userId);
+
+        if (warehousesByParish.size === 0) {
+          results.errors.push('No warehouses available. Cannot generate pangar products.');
+        } else {
+          const pangarProductsToCreate = [];
+          let skippedProducts = 0;
+
+          // Pangar-specific product names
+          const pangarProductNames = [
+            'Lumânări', 'Vin liturgic', 'Pâine pentru euharistie', 'Tămâie', 'Ulei sfânt',
+            'Cărți religioase', 'Icoane', 'Cruce', 'Cădelniță', 'Potir',
+            'Patenă', 'Cingătoare', 'Vestmânt liturgic', 'Covor bisericesc', 'Candelabru'
+          ];
+
+          for (let i = 0; i < pangarProductsCount; i++) {
+            const parishId = randomElement(allParishes).id as string;
+            const warehouseId = warehousesByParish.get(parishId);
+            
+            if (!warehouseId) {
+              skippedProducts++;
+              results.errors.push(`No warehouse found for parish ${parishId}, skipping pangar product ${i + 1}`);
+              continue;
+            }
+
+            const productName = randomElement(pangarProductNames);
+            const unit = randomElement(PRODUCT_UNITS);
+            const purchasePrice = randomInt(10, 500);
+            const salePrice = Math.round(purchasePrice * (1 + randomInt(10, 50) / 100));
+            const vatRate = randomElement(VAT_RATES);
+            const minStock = randomInt(5, 50);
+
+            pangarProductsToCreate.push({
+              parishId,
+              code: generateUniqueProductCode(i + 100000), // Use offset to avoid conflicts
+              name: `${productName} ${i + 1}`,
+              description: `Produs pangar`,
+              category: 'pangar' as ProductCategory,
+              unit,
+              purchasePrice: purchasePrice.toString(),
+              salePrice: salePrice.toString(),
+              vatRate: vatRate,
+              trackStock: true,
+              minStock: minStock.toString(),
+              isActive: true,
+              createdBy: userId,
+            });
+          }
+
+          if (pangarProductsToCreate.length > 0) {
+            const insertedProducts = await db
+              .insert(products)
+              .values(pangarProductsToCreate)
+              .returning({ id: products.id, parishId: products.parishId });
+            
+            results.pangarProducts = insertedProducts.length;
+
+            // Generate stock movements for a percentage of pangar products
+            const productsWithStock = Math.floor(insertedProducts.length * STOCK_MOVEMENT_PERCENTAGE);
+            const movementsToCreate = [];
+
+            for (const product of insertedProducts.slice(0, productsWithStock)) {
+              const parishId = product.parishId as string;
+              const warehouseId = warehousesByParish.get(parishId);
+              
+              if (!warehouseId) continue;
+
+              const quantity = randomInt(10, 100);
+              const unitCost = randomInt(5, 200);
+              const totalValue = quantity * unitCost;
+              const movementDate = generateDate(randomInt(0, 90));
+
+              movementsToCreate.push({
+                warehouseId,
+                productId: product.id as string,
+                parishId,
+                type: 'in',
+                movementDate,
+                quantity: quantity.toString(),
+                unitCost: unitCost.toString(),
+                totalValue: totalValue.toString(),
+                documentType: 'Intrare',
+                documentNumber: `IN-PANGAR-${randomInt(1000, 9999)}`,
+                documentDate: movementDate,
+                createdBy: userId,
+              });
+            }
+
+            if (movementsToCreate.length > 0) {
+              await db.insert(stockMovements).values(movementsToCreate);
+            }
+
+            if (skippedProducts > 0) {
+              results.errors.push(`${skippedProducts} pangar products were skipped due to missing warehouses`);
+            }
+          } else if (skippedProducts === pangarProductsCount) {
+            results.errors.push('All pangar products were skipped due to missing warehouses');
+          }
+        }
+      } catch (error: any) {
+        results.errors.push(`Error creating pangar products: ${error.message}`);
+        logError('Error creating fake pangar products', error);
+      }
+    }
+
     // Generate fixed assets
     if (fixedAssetsCount > 0) {
       try {
-        const assetNames = [
-          'Organ bisericesc', 'Clopot', 'Altar', 'Amvon', 'Iconostas',
-          'Candelabru mare', 'Cruce procesională', 'Covor mare', 'Scaun episcopal',
-          'Masă liturgică', 'Sticlărie', 'Lustră', 'Fereastră vitraliu', 'Ușă principală',
-          'Podea', 'Tavan', 'Zidărie', 'Acoperiș', 'Turn bisericesc'
-        ];
-        const categories = ['Mobilier', 'Construcție', 'Decorațiuni', 'Instrumente', 'Altele'];
-        const locations = ['Biserică principală', 'Capelă', 'Sala parohială', 'Depozit', 'Curte'];
-        const statuses = ['active', 'active', 'active', 'inactive', 'damaged'] as const;
-
         const assetsToCreate = [];
+        
         for (let i = 0; i < fixedAssetsCount; i++) {
           const parishId = randomElement(allParishes).id as string;
-          const assetName = randomElement(assetNames);
-          const category = randomElement(categories);
-          const location = randomElement(locations);
+          const assetName = randomElement(FIXED_ASSET_NAMES);
+          const category = randomElement(FIXED_ASSET_CATEGORIES);
+          const location = randomElement(FIXED_ASSET_LOCATIONS);
           const acquisitionDate = generateDate(randomInt(30, 3650)); // Last 10 years
           const acquisitionValue = randomInt(500, 50000);
           const currentValue = Math.round(acquisitionValue * (randomInt(50, 100) / 100));
-          const status = randomElement(statuses);
-          const inventoryNumber = `INV-${String(i + 1).padStart(6, '0')}`;
+          const status = randomElement(FIXED_ASSET_STATUSES);
 
           assetsToCreate.push({
             parishId,
-            inventoryNumber,
+            inventoryNumber: generateUniqueInventoryNumber(i),
             name: `${assetName} ${i + 1}`,
             description: `Mijloc fix ${category.toLowerCase()}`,
             category,
@@ -980,7 +1255,7 @@ export async function POST(request: Request) {
             currentValue: currentValue.toString(),
             depreciationMethod: 'linear',
             usefulLifeYears: randomInt(5, 20),
-            status,
+            status: status as FixedAssetStatus,
           });
         }
 
@@ -997,24 +1272,26 @@ export async function POST(request: Request) {
     // Generate inventory sessions
     if (inventoryCount > 0) {
       try {
-        // Get existing products and fixed assets
-        const existingProducts = await db
-          .select({ id: products.id, parishId: products.parishId })
-          .from(products)
-          .where(eq(products.isActive, true))
-          .limit(100);
-
-        const existingFixedAssets = await db
-          .select({ id: fixedAssets.id, parishId: fixedAssets.parishId })
-          .from(fixedAssets)
-          .limit(100);
+        // Get existing products and fixed assets (with reasonable limit)
+        const [existingProducts, existingFixedAssets] = await Promise.all([
+          db
+            .select({ id: products.id, parishId: products.parishId })
+            .from(products)
+            .where(eq(products.isActive, true))
+            .limit(INVENTARY_ITEM_LIMIT),
+          db
+            .select({ id: fixedAssets.id, parishId: fixedAssets.parishId })
+            .from(fixedAssets)
+            .limit(INVENTARY_ITEM_LIMIT),
+        ]);
 
         const sessionsToCreate = [];
+        const inventoryStatuses = ['draft', 'in_progress', 'completed'] as const;
+        
         for (let i = 0; i < inventoryCount; i++) {
           const parishId = randomElement(allParishes).id as string;
           const sessionDate = generateDate(randomInt(0, 180));
-          const statuses = ['draft', 'in_progress', 'completed'] as const;
-          const status = randomElement(statuses);
+          const status = randomElement(inventoryStatuses);
 
           sessionsToCreate.push({
             parishId,
@@ -1026,17 +1303,21 @@ export async function POST(request: Request) {
         }
 
         if (sessionsToCreate.length > 0) {
-          const insertedSessions = await db.insert(inventorySessions).values(sessionsToCreate).returning({ 
-            id: inventorySessions.id,
-            parishId: inventorySessions.parishId 
-          });
+          const insertedSessions = await db
+            .insert(inventorySessions)
+            .values(sessionsToCreate)
+            .returning({ 
+              id: inventorySessions.id,
+              parishId: inventorySessions.parishId 
+            });
 
           // Generate inventory items for each session
           const itemsToCreate = [];
+          
           for (const session of insertedSessions) {
             const parishId = session.parishId as string;
             
-            // Add some products
+            // Add products for this parish
             const sessionProducts = existingProducts
               .filter(p => p.parishId === parishId)
               .slice(0, randomInt(3, 10));
@@ -1057,14 +1338,15 @@ export async function POST(request: Request) {
               });
             }
 
-            // Add some fixed assets
+            // Add fixed assets for this parish
             const sessionAssets = existingFixedAssets
               .filter(a => a.parishId === parishId)
               .slice(0, randomInt(2, 8));
             
             for (const asset of sessionAssets) {
               const bookQuantity = 1;
-              const physicalQuantity = Math.random() > 0.9 ? 0 : 1; // Sometimes missing
+              // Reduced probability of missing assets (2% instead of 10%)
+              const physicalQuantity = Math.random() < MISSING_ASSET_PROBABILITY ? 0 : 1;
               const difference = physicalQuantity - bookQuantity;
 
               itemsToCreate.push({
@@ -1091,6 +1373,164 @@ export async function POST(request: Request) {
       }
     }
 
+    // Generate documents registry
+    if (documentsCount > 0) {
+      try {
+        // Get existing clients for sender/recipient
+        const existingClients = await db
+          .select({ id: clients.id })
+          .from(clients)
+          .where(eq(clients.isActive, true))
+          .limit(100);
+
+        const currentYear = new Date().getFullYear();
+        const documentsToCreate = [];
+
+        for (let i = 0; i < documentsCount; i++) {
+          const parishId = randomElement(allParishes).id as string;
+          const documentType = randomElement(DOCUMENT_TYPES);
+          const priority = randomElement(DOCUMENT_PRIORITIES);
+          const status = randomElement(DOCUMENT_STATUSES);
+          const registrationDate = generateDate(randomInt(0, 365));
+          const registrationYear = new Date(registrationDate).getFullYear();
+          const registrationNumber = randomInt(1, 9999);
+          const formattedNumber = `${registrationNumber}/${registrationYear}`;
+          
+          // For incoming documents, set sender; for outgoing, set recipient
+          const senderClientId = (documentType === 'incoming' && existingClients.length > 0 && Math.random() > 0.3)
+            ? randomElement(existingClients).id as string
+            : null;
+          
+          const recipientClientId = (documentType === 'outgoing' && existingClients.length > 0 && Math.random() > 0.3)
+            ? randomElement(existingClients).id as string
+            : null;
+
+          const senderName = senderClientId 
+            ? null 
+            : (Math.random() > 0.5 ? `${randomElement(firstNames)} ${randomElement(lastNames)}` : randomElement(companyNames));
+          
+          const recipientName = recipientClientId
+            ? null
+            : (documentType === 'outgoing' && Math.random() > 0.5 
+              ? `${randomElement(firstNames)} ${randomElement(lastNames)}` 
+              : null);
+
+          const subject = randomElement(DOCUMENT_SUBJECTS);
+          const dueDate = status !== 'resolved' && status !== 'archived' && Math.random() > 0.5
+            ? generateDateInFuture(randomInt(7, 90))
+            : null;
+          
+          const resolvedDate = (status === 'resolved' || status === 'archived')
+            ? generateDate(randomInt(0, 30))
+            : null;
+
+          documentsToCreate.push({
+            parishId,
+            registrationNumber,
+            registrationYear,
+            formattedNumber,
+            documentType: documentType as DocumentType,
+            registrationDate,
+            externalNumber: Math.random() > 0.5 ? `EXT-${randomInt(1000, 9999)}` : null,
+            externalDate: Math.random() > 0.5 ? generateDate(randomInt(0, 180)) : null,
+            senderClientId,
+            senderName,
+            senderDocNumber: Math.random() > 0.6 ? `DOC-${randomInt(100, 999)}` : null,
+            senderDocDate: Math.random() > 0.6 ? generateDate(randomInt(0, 90)) : null,
+            recipientClientId,
+            recipientName,
+            subject: `${subject} ${i + 1}`,
+            content: `Conținut document ${documentType === 'incoming' ? 'primit' : documentType === 'outgoing' ? 'trimis' : 'intern'} pentru ${subject.toLowerCase()}.`,
+            priority: priority as DocumentPriority,
+            status: status as DocumentStatus,
+            dueDate,
+            resolvedDate,
+            isSecret: Math.random() > 0.95, // 5% chance of secret documents
+            createdBy: userId,
+          });
+        }
+
+        if (documentsToCreate.length > 0) {
+          await db.insert(documentRegistry).values(documentsToCreate);
+          results.documents = documentsToCreate.length;
+        }
+      } catch (error: any) {
+        results.errors.push(`Error creating documents: ${error.message}`);
+        logError('Error creating fake documents', error);
+      }
+    }
+
+    // Generate users
+    if (usersCount > 0) {
+      try {
+        const userRoles = ['episcop', 'vicar', 'paroh', 'secretar', 'contabil'] as const;
+        const approvalStatuses = ['pending', 'approved', 'rejected'] as const;
+        
+        const usersToCreate = [];
+        const existingEmails = new Set<string>();
+
+        // Get existing emails to avoid duplicates
+        const existingUsers = await db
+          .select({ email: users.email })
+          .from(users)
+          .limit(1000);
+        existingUsers.forEach(u => existingEmails.add(u.email));
+
+        for (let i = 0; i < usersCount; i++) {
+          const firstName = randomElement(firstNames);
+          const lastName = randomElement(lastNames);
+          const name = `${firstName} ${lastName}`;
+          
+          // Generate unique email
+          let email = generateEmail(firstName, lastName);
+          let emailIndex = 1;
+          while (existingEmails.has(email)) {
+            email = `${firstName.toLowerCase()}${lastName.toLowerCase()}${emailIndex}@example.com`;
+            emailIndex++;
+          }
+          existingEmails.add(email);
+
+          const role = randomElement(userRoles);
+          const approvalStatus = randomElement(approvalStatuses);
+          const isActive = Math.random() > 0.1; // 90% active
+          const address = Math.random() > 0.4 ? `${randomElement(streets)} ${randomInt(1, 200)}` : null;
+          const city = Math.random() > 0.4 ? randomElement(cities) : null;
+          const phone = Math.random() > 0.4 ? generatePhone() : null;
+
+          // Generate verification token
+          const verificationToken = generateVerificationToken();
+          const verificationExpiry = new Date();
+          verificationExpiry.setDate(verificationExpiry.getDate() + 7); // 7 days
+
+          // Create temporary password hash
+          const tempPassword = randomBytes(16).toString('hex');
+          const tempPasswordHash = await hashPassword(tempPassword);
+
+          usersToCreate.push({
+            email,
+            name,
+            role,
+            passwordHash: tempPasswordHash,
+            address,
+            city,
+            phone,
+            isActive,
+            approvalStatus,
+            verificationCode: verificationToken,
+            verificationCodeExpiry: verificationExpiry,
+          });
+        }
+
+        if (usersToCreate.length > 0) {
+          await db.insert(users).values(usersToCreate);
+          results.users = usersToCreate.length;
+        }
+      } catch (error: any) {
+        results.errors.push(`Error creating users: ${error.message}`);
+        logError('Error creating fake users', error);
+      }
+    }
+
     // Build success message
     const messages = [];
     if (results.clients > 0) messages.push(`${results.clients} clienți (parteneri)`);
@@ -1101,8 +1541,11 @@ export async function POST(request: Request) {
     if (results.events > 0) messages.push(`${results.events} evenimente`);
     if (results.contracts > 0) messages.push(`${results.contracts} contracte`);
     if (results.products > 0) messages.push(`${results.products} produse`);
+    if (results.pangarProducts > 0) messages.push(`${results.pangarProducts} produse pangar`);
     if (results.fixedAssets > 0) messages.push(`${results.fixedAssets} mijloace fixe`);
     if (results.inventory > 0) messages.push(`${results.inventory} sesiuni inventar`);
+    if (results.documents > 0) messages.push(`${results.documents} documente registratură`);
+    if (results.users > 0) messages.push(`${results.users} utilizatori`);
     
     // Add note about auto-generated dependencies
     const autoGenerated = [];
@@ -1112,7 +1555,7 @@ export async function POST(request: Request) {
     }
 
     // Check if any data was generated
-    const totalGenerated = results.clients + results.directClients + results.suppliers + results.invoices + results.payments + results.events + results.contracts + results.products + results.fixedAssets + results.inventory;
+    const totalGenerated = results.clients + results.directClients + results.suppliers + results.invoices + results.payments + results.events + results.contracts + results.products + results.pangarProducts + results.fixedAssets + results.inventory + results.documents + results.users;
 
     if (totalGenerated === 0) {
       return NextResponse.json({

@@ -16,7 +16,7 @@ const createDocumentSchema = z.object({
   to: z.string().max(255).optional().nullable(),
   description: z.string().optional().nullable(),
   filePath: z.string().optional().nullable(),
-  status: z.enum(['draft', 'registered', 'in_work', 'distributed', 'resolved', 'archived', 'cancelled']).optional().default('draft'),
+  status: z.enum(['draft', 'in_work', 'distributed', 'resolved', 'cancelled']).optional().default('draft'),
 });
 
 /**
@@ -59,9 +59,9 @@ export async function GET(request: Request) {
       }
     }
     if (status) {
-      const validStatuses = ['draft', 'registered', 'in_work', 'distributed', 'resolved', 'archived', 'cancelled'];
+      const validStatuses = ['draft', 'in_work', 'distributed', 'resolved', 'cancelled'];
       if (validStatuses.includes(status)) {
-        conditions.push(eq(generalRegister.status, status as 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled'));
+        conditions.push(eq(generalRegister.status, status as 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled'));
       }
     }
     if (search) {

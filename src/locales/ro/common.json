@@ -554,6 +554,18 @@
   "disposalReason": "Motiv Scos din Gestiune",
   "addFixedAsset": "Adaugă Mijloc Fix",
   "editFixedAsset": "Editează Mijloc Fix",
-  "select": "Selectează"
+  "select": "Selectează",
+  "saving": "Salvează...",
+  "deleting": "Șterge...",
+  "analytics": "Analiză și Rapoarte",
+  "analyticsDescription": "Vizualizează analize complete, creează rapoarte personalizate și urmărește indicatorii cheie.",
+  "viewAnalytics": "Vezi Analize",
+  "pangarProducts": "Produse Pangar",
+  "fixedAssets": "Mijloace Fixe",
+  "inventory": "Inventar",
+  "documents": "Documente",
+  "inventoryDisplay": "Afișare inventar produse stocate în pangare",
+  "selectFiltersToViewInventory": "Selectați parohia sau gestiunea pentru a afișa inventarul",
+  "selectProduct": "Selectează Produs"
 }
 

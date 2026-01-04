@@ -3,6 +3,7 @@ import { db } from '@/database/client';
 import { cemeteryConcessionPayments, cemeteryConcessions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { requireAuth, requirePermission } from '@/lib/auth';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { validateUuid, validateDateRange } from '@/lib/utils/cemetery';
@@ -69,7 +70,7 @@ export async function PUT(
   try {
     // Require authentication and permission
     const { userId } = await requireAuth();
-    await requirePermission('cemeteries.concessions.payments.update');
+    await requirePermission(CEMETERY_PERMISSIONS.CONCESSION_PAYMENTS_UPDATE);
 
     const { id } = await params;
     
@@ -197,7 +198,7 @@ export async function DELETE(
   try {
     // Require authentication and permission
     await requireAuth();
-    await requirePermission('cemeteries.concessions.payments.delete');
+    await requirePermission(CEMETERY_PERMISSIONS.CONCESSION_PAYMENTS_DELETE);
 
     const { id } = await params;
     

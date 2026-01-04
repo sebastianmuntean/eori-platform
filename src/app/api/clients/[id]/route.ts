@@ -3,15 +3,23 @@ import { db } from '@/database/client';
 import { clients } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
+import { formatValidationErrors, isValidUUID } from '@/lib/api-utils/validation';
 import { eq, and, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
+// Validation schemas
 const updateClientSchema = z.object({
   code: z.string().min(1, 'Code is required').max(50).optional(),
   firstName: z.string().max(100).optional(),
   lastName: z.string().max(100).optional(),
-  cnp: z.string().length(13, 'CNP must be exactly 13 digits').regex(/^\d{13}$/, 'CNP must contain only digits').optional(),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format').optional().nullable(),
+  cnp: z.string()
+    .refine((val) => !val || val.length === 13, 'CNP must be exactly 13 digits')
+    .refine((val) => !val || /^\d{13}$/.test(val), 'CNP must contain only digits')
+    .optional(),
+  birthDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format')
+    .optional()
+    .nullable(),
   companyName: z.string().max(255).optional(),
   cui: z.string().max(20).optional(),
   regCom: z.string().max(50).optional(),
@@ -22,38 +30,37 @@ const updateClientSchema = z.object({
   phone: z.string().max(50).optional(),
   email: z.string().email('Invalid email format').optional().nullable(),
   bankName: z.string().max(255).optional(),
-  iban: z.string().max(34).regex(/^[A-Z]{2}\d{2}[A-Z0-9]+$/, 'Invalid IBAN format').optional(),
+  iban: z.string()
+    .max(34)
+    .regex(/^[A-Z]{2}\d{2}[A-Z0-9]+$/i, 'Invalid IBAN format')
+    .transform((val) => val.toUpperCase())
+    .optional(),
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
 });
 
 /**
- * Format validation errors for response
+ * GET /api/clients/[id] - Get a single client by ID
+ * 
+ * @param request - Next.js request object
+ * @param params - Route parameters containing client ID
+ * @returns Client object or 404 if not found
  */
-function formatValidationErrors(errors: z.ZodIssue[]) {
-  const errorMessages = errors.map(err => err.message);
-  const fieldErrors: Record<string, string> = {};
-  
-  errors.forEach(err => {
-    const path = err.path.join('.');
-    if (path) {
-      fieldErrors[path] = err.message;
-    }
-  });
-  
-  return {
-    message: errorMessages[0] || 'Validation failed',
-    errors: errorMessages,
-    fields: fieldErrors,
-  };
-}
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid client ID format' },
+        { status: 400 }
+      );
+    }
+
     const [client] = await db
       .select()
       .from(clients)
@@ -84,6 +91,15 @@ export async function GET(
   }
 }
 
+/**
+ * PUT /api/clients/[id] - Update an existing client
+ * 
+ * Requires authentication. Validates input and checks for duplicate codes.
+ * 
+ * @param request - Next.js request object with updated client data in body
+ * @param params - Route parameters containing client ID
+ * @returns Updated client object or 404 if not found
+ */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -100,8 +116,16 @@ export async function PUT(
 
     const { id } = await params;
     
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid client ID format' },
+        { status: 400 }
+      );
+    }
+    
     // Parse and validate request body
-    let body;
+    let body: unknown;
     try {
       body = await request.json();
     } catch (error) {
@@ -168,6 +192,7 @@ export async function PUT(
       }
     }
 
+    // Update client
     const [updatedClient] = await db
       .update(clients)
       .set({
@@ -197,6 +222,15 @@ export async function PUT(
   }
 }
 
+/**
+ * DELETE /api/clients/[id] - Soft delete a client
+ * 
+ * Requires authentication. Performs soft delete by setting deletedAt timestamp.
+ * 
+ * @param request - Next.js request object
+ * @param params - Route parameters containing client ID
+ * @returns Soft-deleted client object or 404 if not found
+ */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -212,6 +246,14 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid client ID format' },
+        { status: 400 }
+      );
+    }
     
     // Check if client exists and is not already deleted
     const [currentClient] = await db

@@ -109,34 +109,28 @@ function classifyErrorType(errorMessage: string): ErrorType {
 
 /**
  * Formats error message based on error type and environment
+ * SECURITY: Never expose sensitive information, even in development
  */
 function formatErrorMessage(
   errorType: ErrorType,
   originalMessage: string
 ): string {
-  const isProduction = process.env.NODE_ENV === 'production';
+  // Log full details server-side only (handled by logError)
+  // Never expose internal details to client, even in development
 
   switch (errorType) {
     case ErrorType.DATABASE_TABLE_NOT_FOUND:
-      return isProduction
-        ? 'Database table not found. Please ensure migrations have been run.'
-        : `Database error: ${originalMessage}. This usually means the table or column doesn't exist. Please run database migrations.`;
+      return 'A database error occurred. Please contact support if this persists.';
 
     case ErrorType.DATABASE_CONNECTION:
-      return isProduction
-        ? 'Database connection failed'
-        : `Database connection error: ${originalMessage}. Please check your DATABASE_URL.`;
+      return 'Service temporarily unavailable. Please try again later.';
 
     case ErrorType.DATABASE_OPERATION:
-      return isProduction
-        ? 'Database operation failed'
-        : originalMessage;
+      return 'A database error occurred. Please try again.';
 
     case ErrorType.GENERIC:
     default:
-      return isProduction
-        ? 'An error occurred'
-        : originalMessage;
+      return 'An unexpected error occurred. Please try again.';
   }
 }
 
@@ -201,13 +195,13 @@ export function formatErrorResponse(error: unknown): {
   }
 
   // Handle unknown error types
-  console.error('❌ Unknown error type:', error);
+  // Log full error server-side only
   const errorMessage = getErrorMessage(error);
+  logError(error, { type: 'unknown_error' });
+  
   return {
     success: false,
-    error: process.env.NODE_ENV === 'production'
-      ? 'An unexpected error occurred'
-      : `An unexpected error occurred: ${errorMessage}`,
+    error: 'An unexpected error occurred. Please try again.',
     statusCode: 500,
   };
 }
@@ -222,16 +216,21 @@ export function logError(error: unknown, context?: Record<string, any>): void {
     context,
   });
 
-  // Send to Sentry in production
-  if (process.env.NODE_ENV === 'production') {
+  // Send to Sentry in production if DSN is configured
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     try {
-      // Dynamic import to avoid loading Sentry in development
-      const { captureException } = require('./monitoring/sentry');
-      const errorToCapture = error instanceof Error ? error : new Error(String(error));
-      captureException(errorToCapture, context);
+      // Use dynamic import to avoid loading Sentry module if not needed
+      // This prevents errors if Sentry is not properly initialized
+      import('./monitoring/sentry').then(({ captureException }) => {
+        const errorToCapture = error instanceof Error ? error : new Error(String(error));
+        captureException(errorToCapture, context);
+      }).catch((sentryError) => {
+        // Silently fail if Sentry is not available
+        console.warn('Failed to send error to Sentry:', sentryError);
+      });
     } catch (sentryError) {
       // Silently fail if Sentry is not available
-      console.warn('Failed to send error to Sentry:', sentryError);
+      console.warn('Failed to load Sentry module:', sentryError);
     }
   }
 }

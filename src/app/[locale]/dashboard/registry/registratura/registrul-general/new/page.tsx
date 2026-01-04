@@ -28,7 +28,7 @@ export default function CreateDocumentPage() {
     to?: string | null;
     description?: string | null;
     filePath?: string | null;
-    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+    status?: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled';
   }) => {
     setLoading(true);
     try {

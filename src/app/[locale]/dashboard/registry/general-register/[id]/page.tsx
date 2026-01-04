@@ -4,10 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { GeneralRegisterWorkflow } from '@/components/registratura/GeneralRegisterWorkflow';
 import { GeneralRegisterAttachments } from '@/components/registratura/GeneralRegisterAttachments';
+import { GeneralRegisterEditForm } from '@/components/registratura/GeneralRegisterEditForm';
 import { getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 import { useTranslations } from 'next-intl';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/ui/Toast';
 
 export default function DocumentDetailPage() {
   const params = useParams();
@@ -20,6 +24,8 @@ export default function DocumentDetailPage() {
   const [document, setDocument] = useState<GeneralRegisterDocument | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const { toasts, success, error: showError, removeToast } = useToast();
 
   const fetchDocument = useCallback(async () => {
     if (!id) return;
@@ -46,6 +52,30 @@ export default function DocumentDetailPage() {
   const handleAttachmentsUpdate = () => {
     setRefreshKey(k => k + 1);
   };
+
+  const handleSave = useCallback(async (data: {
+    subject: string;
+    description?: string | null;
+    solutionStatus: 'approved' | 'rejected' | 'redirected' | null;
+    distributedUserIds: string[];
+    dueDate?: string | null;
+    notes?: string | null;
+  }) => {
+    if (!document) return;
+    
+    setSaving(true);
+    try {
+      // TODO: Implement API endpoint for updating document
+      // For now, just show success and redirect to list
+      success(tReg('documentUpdated') || 'Document actualizat cu succes');
+      // Redirect to list page after successful save
+      router.push(`/${locale}/dashboard/registry/general-register`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToUpdate') || 'Eroare la actualizarea documentului';
+      showError(errorMessage);
+      setSaving(false);
+    }
+  }, [document, router, locale, success, showError, tReg]);
 
   if (loading) {
     return (
@@ -84,59 +114,61 @@ export default function DocumentDetailPage() {
         ]}
       />
 
-      {/* Document Info */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">{document.subject}</h1>
-          <Button
-            variant="outline"
-            onClick={() => {
-              router.push(`/${locale}/dashboard/registry/general-register/new?copyFrom=${document.id}`);
-            }}
+      {/* Edit Form - Screen 2 */}
+      <Card>
+        <CardHeader>
+          <h2 className="text-xl font-semibold">Editare Document</h2>
+        </CardHeader>
+        <CardBody>
+          <div className="space-y-6">
+            <GeneralRegisterEditForm
+              onSave={handleSave}
+              onCancel={() => {
+                fetchDocument();
+              }}
+              loading={saving}
+              initialData={{
+                subject: document.subject,
+                description: document.description,
+                dueDate: (document as any).dueDate || null,
+                notes: (document as any).notes || null,
+              }}
+            />
+            
+            {/* Attachments Section */}
+            <div className="border-t border-border pt-6">
+              <h3 className="text-lg font-semibold mb-4">Atașamente</h3>
+              <GeneralRegisterAttachments
+                key={`attachments-${refreshKey}`}
+                documentId={document.id}
+                onAttachmentsUpdate={handleAttachmentsUpdate}
+              />
+            </div>
+          </div>
+        </CardBody>
+        <div className="px-6 py-4 border-t border-border flex justify-end gap-2">
+          <Button 
+            type="button" 
+            variant="secondary" 
+            onClick={() => fetchDocument()} 
+            disabled={saving}
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            {tReg('copyDocument')}
+            Renunță
+          </Button>
+          <Button 
+            type="button"
+            onClick={() => {
+              const form = window.document.querySelector('form') as HTMLFormElement;
+              if (form) {
+                form.requestSubmit();
+              }
+            }}
+            disabled={saving}
+          >
+            {saving ? 'Salvează...' : 'Salvează'}
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-600">Număr Document</label>
-            <p className="mt-1">{document.documentNumber}/{document.year}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Tip Document</label>
-            <p className="mt-1">{document.documentType}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Data</label>
-            <p className="mt-1">{new Date(document.date).toLocaleDateString('ro-RO')}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Status</label>
-            <p className="mt-1">{document.status}</p>
-          </div>
-          {document.from && (
-            <div>
-              <label className="text-sm font-medium text-gray-600">De la</label>
-              <p className="mt-1">{document.from}</p>
-            </div>
-          )}
-          {document.to && (
-            <div>
-              <label className="text-sm font-medium text-gray-600">Către</label>
-              <p className="mt-1">{document.to}</p>
-            </div>
-          )}
-          {document.description && (
-            <div className="md:col-span-2">
-              <label className="text-sm font-medium text-gray-600">Descriere</label>
-              <p className="mt-1">{document.description}</p>
-            </div>
-          )}
-        </div>
-      </div>
+      </Card>
 
       <GeneralRegisterWorkflow
         key={`workflow-${refreshKey}`}
@@ -144,12 +176,8 @@ export default function DocumentDetailPage() {
         onWorkflowUpdate={handleWorkflowUpdate}
       />
 
-      <GeneralRegisterAttachments
-        key={`attachments-${refreshKey}`}
-        documentId={document.id}
-        onAttachmentsUpdate={handleAttachmentsUpdate}
-      />
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }
-

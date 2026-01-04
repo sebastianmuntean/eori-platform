@@ -520,6 +520,16 @@
   "disposalReason": "Disposal Reason",
   "addFixedAsset": "Add Fixed Asset",
   "editFixedAsset": "Edit Fixed Asset",
-  "select": "Select"
+  "select": "Select",
+  "saving": "Saving...",
+  "deleting": "Deleting...",
+  "analytics": "Analytics & Reports",
+  "analyticsDescription": "View comprehensive analytics, create custom reports, and track key metrics.",
+  "viewAnalytics": "View Analytics",
+  "pangarProducts": "Pangar Products",
+  "fixedAssets": "Fixed Assets",
+  "inventory": "Inventory",
+  "documents": "Documents",
+  "selectProduct": "Select Product"
 }
 
