@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 interface MenuGroup {
   label: string;
@@ -176,8 +177,15 @@ export function Sidebar() {
             <h2 className="text-lg font-semibold text-text-primary">{t('menu')}</h2>
           )}
           {isCollapsed && (
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
+            <div className="w-8 h-8 relative flex items-center justify-center">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
             </div>
           )}
           <button

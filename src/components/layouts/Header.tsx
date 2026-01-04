@@ -10,6 +10,41 @@ import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { useTranslations } from 'next-intl';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+<<<<<<< Updated upstream
+=======
+import { useChatContext } from '@/contexts/ChatContext';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
+
+function ChatButton() {
+  const { toggleChat, isOpen } = useChatContext();
+
+  return (
+    <button
+      onClick={toggleChat}
+      className={cn(
+        'relative p-2 rounded-md hover:bg-bg-secondary transition-colors',
+        isOpen && 'bg-bg-secondary'
+      )}
+      aria-label="Chat"
+    >
+      <svg
+        className="w-6 h-6 text-text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+      </svg>
+    </button>
+  );
+}
+>>>>>>> Stashed changes
 
 export function Header() {
   console.log('Step 1: Rendering Header component');
@@ -114,8 +149,15 @@ export function Header() {
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
+            <div className="w-8 h-8 relative flex items-center justify-center">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
             </div>
             <span className="text-xl font-semibold text-text-primary hidden sm:block">
               {t('appName')}
