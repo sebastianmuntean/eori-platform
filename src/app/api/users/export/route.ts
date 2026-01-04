@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { eq, like, or, desc, asc } from 'drizzle-orm';
+import { requireAuth } from '@/lib/auth';
+import { eq, like, or, desc, and } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 
 /**
@@ -12,6 +13,8 @@ export async function GET(request: Request) {
   console.log('Step 1: GET /api/users/export - Exporting users to Excel');
 
   try {
+    // Require authentication
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status');
@@ -34,14 +37,23 @@ export async function GET(request: Request) {
       );
     }
 
-    // Note: Schema limitations - see users/route.ts comments
-    // For now, we'll export all users matching search criteria
+    // Filter by status (active/inactive)
+    if (status === 'active') {
+      conditions.push(eq(users.isActive, true));
+    } else if (status === 'inactive') {
+      conditions.push(eq(users.isActive, false));
+    }
+
+    // Filter by approval status
+    if (approvalStatus) {
+      conditions.push(eq(users.approvalStatus, approvalStatus as 'pending' | 'approved' | 'rejected'));
+    }
 
     console.log('Step 3: Fetching users from database');
     let query = db.select().from(users);
 
     if (conditions.length > 0) {
-      query = query.where(conditions[0] as any);
+      query = query.where(and(...conditions)!);
     }
 
     query = query.orderBy(desc(users.createdAt));
@@ -58,9 +70,11 @@ export async function GET(request: Request) {
       Adresă: user.address || '',
       Oraș: user.city || '',
       Telefon: user.phone || '',
-      Rol: 'N/A', // Schema doesn't have role field yet
-      Status: 'N/A', // Schema doesn't have isActive field yet
-      'Status Aprobare': 'N/A', // Schema doesn't have approvalStatus field yet
+      Rol: user.role || 'N/A',
+      Status: user.isActive ? 'Activ' : 'Inactiv',
+      'Status Aprobare': user.approvalStatus === 'pending' ? 'În așteptare' : 
+                        user.approvalStatus === 'approved' ? 'Aprobat' : 
+                        user.approvalStatus === 'rejected' ? 'Respins' : 'N/A',
       'Data Creării': user.createdAt ? new Date(user.createdAt).toLocaleDateString('ro-RO') : '',
     }));
 

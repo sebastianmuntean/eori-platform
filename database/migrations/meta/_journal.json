@@ -36,6 +36,13 @@
       "when": 1767101591407,
       "tag": "0004_fixed_steve_rogers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767202730612,
+      "tag": "0005_marvelous_pride",
+      "breakpoints": true
     }
   ]
 }

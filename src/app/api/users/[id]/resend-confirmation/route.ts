@@ -2,31 +2,24 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireAuth } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
+import { generateVerificationToken } from '@/lib/auth/tokens';
 import { eq } from 'drizzle-orm';
-import { randomBytes } from 'crypto';
-
-/**
- * Generate a secure verification token
- */
-function generateVerificationToken(): string {
-  console.log('Step 1: Generating verification token');
-  const token = randomBytes(32).toString('hex');
-  console.log(`✓ Verification token generated: ${token.substring(0, 8)}...`);
-  return token;
-}
 
 /**
  * POST /api/users/[id]/resend-confirmation - Resend confirmation email to user
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   console.log('Step 1: POST /api/users/[id]/resend-confirmation - Resending confirmation email');
 
   try {
-    const userId = params.id;
+    // Require authentication
+    await requireAuth();
+    const { id: userId } = await params;
 
     if (!userId) {
       console.log('❌ Missing user ID');
@@ -93,8 +86,6 @@ export async function POST(
       data: {
         userId: user.id,
         email: user.email,
-        // Return token for testing (remove in production)
-        verificationToken,
       },
     });
   } catch (error) {

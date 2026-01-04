@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword, requireAuth } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
-import { eq, like, or, desc, asc } from 'drizzle-orm';
+import { generateVerificationToken } from '@/lib/auth/tokens';
+import { eq, like, or, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
 
@@ -22,6 +23,7 @@ const createUserSchema = z.object({
 const updateUserSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   email: z.string().email('Invalid email address').optional(),
+  role: z.enum(['episcop', 'vicar', 'paroh', 'secretar', 'contabil']).optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   phone: z.string().optional(),
@@ -30,22 +32,14 @@ const updateUserSchema = z.object({
 });
 
 /**
- * Generate a secure verification token
- */
-function generateVerificationToken(): string {
-  console.log('Step 1: Generating verification token');
-  const token = randomBytes(32).toString('hex');
-  console.log(`✓ Verification token generated: ${token.substring(0, 8)}...`);
-  return token;
-}
-
-/**
  * GET /api/users - Fetch all users with pagination, filtering, and sorting
  */
 export async function GET(request: Request) {
   console.log('Step 1: GET /api/users - Fetching users');
 
   try {
+    // Require authentication
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
@@ -64,7 +58,7 @@ export async function GET(request: Request) {
       conditions.push(
         or(
           like(users.email, `%${search}%`),
-          like(users.name || '', `%${search}%`),
+          like(users.name, `%${search}%`),
           like(users.address || '', `%${search}%`),
           like(users.city || '', `%${search}%`),
           like(users.phone || '', `%${search}%`)
@@ -72,22 +66,40 @@ export async function GET(request: Request) {
       );
     }
 
-    // Note: Since the current schema doesn't have isActive and approvalStatus,
-    // we'll skip those filters for now. In production, you'd add these fields to the schema.
-    // For now, we'll return all users and filter can be added later when schema is updated.
+    // Filter by status (active/inactive)
+    if (status === 'active') {
+      conditions.push(eq(users.isActive, true));
+    } else if (status === 'inactive') {
+      conditions.push(eq(users.isActive, false));
+    }
+
+    // Filter by approval status
+    if (approvalStatus) {
+      conditions.push(eq(users.approvalStatus, approvalStatus as 'pending' | 'approved' | 'rejected'));
+    }
 
     console.log(`Step 3: Building query with ${conditions.length} conditions`);
 
-    // Get total count
-    const totalCountResult = await db.select({ count: users.id }).from(users);
-    const totalCount = totalCountResult.length;
+    // Build where clause
+    const whereClause = conditions.length > 0 
+      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
+      : undefined;
+
+    // Get total count with conditions
+    let countQuery: any = db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
+    if (whereClause) {
+      countQuery = countQuery.where(whereClause);
+    }
+    const totalCountResult = await countQuery;
+    const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(users);
-
-    if (conditions.length > 0) {
-      query = query.where(conditions[0] as any);
+    let query: any = db.select().from(users);
+    if (whereClause) {
+      query = query.where(whereClause);
     }
 
     // Apply sorting
@@ -104,7 +116,10 @@ export async function GET(request: Request) {
     const allUsers = await query.limit(pageSize).offset(offset);
 
     // Remove password hashes from response
-    const usersWithoutPasswords = allUsers.map(({ passwordHash, ...user }) => user);
+    const usersWithoutPasswords = allUsers.map((user: typeof users.$inferSelect) => {
+      const { passwordHash, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
 
     console.log(`✓ Found ${allUsers.length} users (total: ${totalCount})`);
 
@@ -134,6 +149,8 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/users - Creating new user');
 
   try {
+    // Require authentication
+    await requireAuth();
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createUserSchema.safeParse(body);
@@ -174,17 +191,33 @@ export async function POST(request: Request) {
     const tempPasswordHash = await hashPassword(tempPassword);
 
     console.log('Step 6: Inserting user into database');
-    // Insert user with all fields including address, city, and phone
+    // Insert user with all fields including role, address, city, phone, isActive, and approvalStatus
+    const insertValues: {
+      email: string;
+      name: string;
+      role: 'episcop' | 'vicar' | 'paroh' | 'secretar' | 'contabil';
+      passwordHash: string;
+      address?: string | null;
+      city?: string | null;
+      phone?: string | null;
+      isActive: boolean;
+      approvalStatus: 'pending' | 'approved' | 'rejected';
+    } = {
+      email,
+      name: name || '',
+      role: role || 'paroh',
+      passwordHash: tempPasswordHash, // Temporary, will be changed via confirmation
+      isActive: isActive ?? true,
+      approvalStatus: approvalStatus || 'pending',
+    };
+    
+    if (address) insertValues.address = address;
+    if (city) insertValues.city = city;
+    if (phone) insertValues.phone = phone;
+    
     const [newUser] = await db
       .insert(users)
-      .values({
-        email,
-        name: name || null,
-        passwordHash: tempPasswordHash, // Temporary, will be changed via confirmation
-        address: address || null,
-        city: city || null,
-        phone: phone || null,
-      })
+      .values(insertValues)
       .returning();
 
     console.log(`✓ User created with ID: ${newUser.id}`);
@@ -215,10 +248,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        data: {
-          ...userWithoutPassword,
-          verificationToken, // Return token for testing (remove in production)
-        },
+        data: userWithoutPassword,
       },
       { status: 201 }
     );
@@ -238,6 +268,8 @@ export async function PUT(request: Request) {
   console.log('Step 1: PUT /api/users - Updating user');
 
   try {
+    // Require authentication
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -295,7 +327,17 @@ export async function PUT(request: Request) {
     }
 
     console.log('Step 5: Updating user');
-    const updateData: any = {
+    const updateData: {
+      updatedAt: Date;
+      name?: string;
+      email?: string;
+      role?: 'episcop' | 'vicar' | 'paroh' | 'secretar' | 'contabil';
+      address?: string | null;
+      city?: string | null;
+      phone?: string | null;
+      isActive?: boolean;
+      approvalStatus?: 'pending' | 'approved' | 'rejected';
+    } = {
       updatedAt: new Date(),
     };
 
@@ -304,6 +346,9 @@ export async function PUT(request: Request) {
     }
     if (validation.data.email !== undefined) {
       updateData.email = validation.data.email;
+    }
+    if (validation.data.role !== undefined) {
+      updateData.role = validation.data.role;
     }
     if (validation.data.address !== undefined) {
       updateData.address = validation.data.address || null;
@@ -314,8 +359,12 @@ export async function PUT(request: Request) {
     if (validation.data.phone !== undefined) {
       updateData.phone = validation.data.phone || null;
     }
-
-    // Note: isActive and approvalStatus would be added here when schema is updated
+    if (validation.data.isActive !== undefined) {
+      updateData.isActive = validation.data.isActive;
+    }
+    if (validation.data.approvalStatus !== undefined) {
+      updateData.approvalStatus = validation.data.approvalStatus;
+    }
 
     const [updatedUser] = await db
       .update(users)
@@ -346,6 +395,8 @@ export async function DELETE(request: Request) {
   console.log('Step 1: DELETE /api/users - Deleting user');
 
   try {
+    // Require authentication
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -373,9 +424,14 @@ export async function DELETE(request: Request) {
     }
 
     console.log('Step 3: Soft deleting user (setting isActive to false)');
-    // Note: Since schema doesn't have isActive, we'll actually delete the user
-    // In production, you'd set isActive to false instead
-    await db.delete(users).where(eq(users.id, userId));
+    // Perform soft delete by setting isActive to false
+    await db
+      .update(users)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
 
     console.log(`✓ User deleted successfully: ${userId}`);
     return NextResponse.json({
