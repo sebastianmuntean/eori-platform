@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
+import { logRequest, logResponse, logWarn } from '@/lib/logger';
 
 /**
- * API endpoint to skip authentication - DISABLED
- * Mock authentication has been removed. Please use the normal login flow.
+ * POST /api/auth/skip-auth - Skip authentication (DISABLED)
+ * 
+ * This endpoint has been disabled. Mock authentication has been removed.
+ * Please use the normal login flow at /api/auth/login.
+ * 
+ * @returns { success: false, error: string }
+ * @throws 410 - Gone (endpoint no longer available)
  */
 export async function POST() {
-  console.log('❌ Skip-auth endpoint called - mock authentication is disabled');
+  logRequest('/api/auth/skip-auth', 'POST');
+  logWarn('Skip-auth endpoint called - mock authentication is disabled', {
+    endpoint: '/api/auth/skip-auth',
+  });
   
+  logResponse('/api/auth/skip-auth', 'POST', 410);
   return NextResponse.json(
     { 
       success: false, 

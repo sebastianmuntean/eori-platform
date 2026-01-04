@@ -1,0 +1,32 @@
+# Cursor Rules for EORI Platform
+
+## Database Migrations
+
+**IMPORTANT**: Database migrations are managed through SQL scripts that must be run manually by the user.
+
+- Migrations are located in `database/migrations/`
+- Migration files follow the pattern: `000X_description.sql`
+- **DO NOT** use `drizzle-kit push` or `drizzle-kit migrate` to apply migrations automatically
+- **DO** use `drizzle-kit generate` to generate migration files from schema changes
+- **DO** run SQL migration scripts manually using your preferred PostgreSQL client (psql, pgAdmin, etc.)
+- Always test migrations on a development database before applying to production
+
+## Schema Changes Workflow
+
+1. Modify schema files in `database/schema/`
+2. Run `npm run db:generate` to generate migration SQL
+3. Review the generated migration file
+4. Run the migration SQL script manually against the database
+5. Verify the changes were applied correctly
+
+## Code Style
+
+- Use TypeScript for all code
+- Follow existing patterns for API routes, hooks, and components
+- Use snake_case for database column names
+- Use camelCase for TypeScript variables and functions
+- Use PascalCase for component names
+
+
+
+

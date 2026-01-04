@@ -28,15 +28,12 @@ export function Table<T extends Record<string, any>>({
   className,
   emptyMessage = 'No data available',
 }: TableProps<T>) {
-  console.log('Step 1: Rendering Table component');
-  console.log('Step 1.1: Data count:', data.length);
-  console.log('Step 1.2: Columns count:', columns.length);
+  // Handle undefined or null data
+  const safeData = data ?? [];
 
   const handleSort = (key: keyof T) => {
-    console.log('Step 2: Sort requested for column:', key);
     if (onSort) {
       onSort(key);
-      console.log('✓ Sort handler called');
     }
   };
 
@@ -64,7 +61,6 @@ export function Table<T extends Record<string, any>>({
     );
   };
 
-  console.log('✓ Rendering table');
   return (
     <div className={cn('overflow-x-auto', className)}>
       <table className="min-w-full divide-y divide-border">
@@ -88,14 +84,14 @@ export function Table<T extends Record<string, any>>({
           </tr>
         </thead>
         <tbody className="bg-bg-primary divide-y divide-border">
-          {data.length === 0 ? (
+          {safeData.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-6 py-12 text-center text-text-secondary">
                 {emptyMessage}
               </td>
             </tr>
           ) : (
-            data.map((row, rowIndex) => (
+            safeData.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
                 className="hover:bg-bg-secondary transition-colors"

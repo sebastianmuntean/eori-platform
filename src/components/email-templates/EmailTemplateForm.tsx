@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { VariableHelper } from './VariableHelper';
+import { HtmlEditor } from './HtmlEditor';
 import { EmailTemplate } from '@/hooks/useEmailTemplates';
 import { extractTemplateVariables } from '@/lib/utils/email';
 import { useTranslations } from 'next-intl';
@@ -28,9 +29,6 @@ export function EmailTemplateForm({
   onCancel,
   isLoading = false,
 }: EmailTemplateFormProps) {
-  console.log('Step 1: Rendering EmailTemplateForm');
-  console.log(`  Template: ${template ? template.name : 'new'}`);
-
   const t = useTranslations('common');
   const [name, setName] = useState(template?.name || '');
   const [subject, setSubject] = useState(template?.subject || '');
@@ -51,10 +49,8 @@ export function EmailTemplateForm({
   }, [template]);
 
   useEffect(() => {
-    console.log('Step 2: Detecting variables from content');
     const variables = extractTemplateVariables(htmlContent + textContent);
     setDetectedVariables(variables);
-    console.log(`  Detected variables: ${variables.join(', ')}`);
   }, [htmlContent, textContent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +70,6 @@ export function EmailTemplateForm({
     }
 
     setErrors({});
-    console.log('Step 4: Calling onSubmit');
     await onSubmit({
       name: name.trim(),
       subject: subject.trim(),
@@ -85,9 +80,8 @@ export function EmailTemplateForm({
     });
   };
 
-  console.log('✓ Rendering form');
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-h-[calc(98vh-200px)] overflow-y-auto">
       <div>
         <Input
           label={t('templateName')}
@@ -118,15 +112,13 @@ export function EmailTemplateForm({
         <label className="block text-sm font-medium text-text-primary mb-1">
           {t('htmlContent')}
         </label>
-        <textarea
+        <HtmlEditor
           value={htmlContent}
-          onChange={(e) => setHtmlContent(e.target.value)}
-          className="w-full px-4 py-2 border border-border rounded-md bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary min-h-[300px] font-mono text-sm"
+          onChange={setHtmlContent}
           placeholder="<html>...</html>"
+          error={errors.htmlContent}
+          minHeight="500px"
         />
-        {errors.htmlContent && (
-          <p className="mt-1 text-sm text-danger">{errors.htmlContent}</p>
-        )}
       </div>
 
       <div>
@@ -136,7 +128,7 @@ export function EmailTemplateForm({
         <textarea
           value={textContent}
           onChange={(e) => setTextContent(e.target.value)}
-          className="w-full px-4 py-2 border border-border rounded-md bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary min-h-[150px] font-mono text-sm"
+          className="w-full px-4 py-2 border border-border rounded-md bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary min-h-[200px] font-mono text-sm"
           placeholder="Versiunea text a emailului..."
         />
       </div>

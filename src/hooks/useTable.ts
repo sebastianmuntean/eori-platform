@@ -19,9 +19,6 @@ export function useTable<T extends Record<string, any>>(
   initialData: T[] = [],
   initialPageSize: number = 10
 ) {
-  console.log('Step 1: Initializing useTable hook');
-  console.log('Step 1.1: Initial data count:', initialData.length);
-  console.log('Step 1.2: Initial page size:', initialPageSize);
 
   const [state, setState] = useState<TableState<T>>({
     page: 1,
@@ -150,7 +147,6 @@ export function useTable<T extends Record<string, any>>(
   const totalPages = Math.ceil(processedData.length / state.pageSize);
   const totalItems = processedData.length;
 
-  console.log('✓ useTable hook initialized');
   return {
     data: paginatedData,
     page: state.page,

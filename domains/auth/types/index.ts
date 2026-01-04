@@ -1,5 +1,0 @@
-// Auth domain types
-
-
-
-

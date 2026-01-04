@@ -105,13 +105,6 @@ export async function validateSession(token: string): Promise<string | null> {
       return null;
     }
 
-    // Update last_used_at
-    await db
-      .update(sessions)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(sessions.id, session.id));
-
-    console.log(`✓ Session validated for user ${session.userId}`);
     return session.userId;
   } catch (error) {
     console.error(`❌ Failed to validate session: ${error}`);

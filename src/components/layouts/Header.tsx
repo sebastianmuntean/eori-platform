@@ -10,10 +10,39 @@ import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { useTranslations } from 'next-intl';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useChatContext } from '@/contexts/ChatContext';
+import { cn } from '@/lib/utils';
+
+function ChatButton() {
+  const { toggleChat, isOpen } = useChatContext();
+
+  return (
+    <button
+      onClick={toggleChat}
+      className={cn(
+        'relative p-2 rounded-md hover:bg-bg-secondary transition-colors',
+        isOpen && 'bg-bg-secondary'
+      )}
+      aria-label="Chat"
+    >
+      <svg
+        className="w-6 h-6 text-text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+      </svg>
+    </button>
+  );
+}
 
 export function Header() {
-  console.log('Step 1: Rendering Header component');
-  
   const { toggleMobile } = useSidebar();
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
@@ -88,7 +117,6 @@ export function Header() {
     },
   ];
 
-  console.log('✓ Rendering header');
   return (
     <header className="bg-bg-primary border-b border-border shadow-sm h-header">
       <div className="flex items-center justify-between px-4 h-full">
@@ -156,6 +184,9 @@ export function Header() {
 
           {/* Language Switcher */}
           <LanguageSwitcher />
+
+          {/* Chat */}
+          <ChatButton />
 
           {/* Notifications */}
           <button

@@ -1,9 +1,11 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
 
 export default function DashboardPage() {
@@ -111,6 +113,27 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      {/* Analytics Quick Link */}
+      <Card variant="elevated" className="mb-8">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary mb-2">
+                {t('analytics') || 'Analytics & Reports'}
+              </h2>
+              <p className="text-sm text-text-secondary">
+                {t('analyticsDescription') || 'View comprehensive analytics, create custom reports, and track key metrics.'}
+              </p>
+            </div>
+            <Link href={`/${locale}/dashboard/analytics`}>
+              <Button variant="primary">
+                {t('viewAnalytics') || 'View Analytics'}
+              </Button>
+            </Link>
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Recent Activity and Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

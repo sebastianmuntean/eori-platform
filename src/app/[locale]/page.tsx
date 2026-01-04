@@ -1,14 +1,11 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  console.log('Step 1: Rendering Home page');
-  
-  return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Welcome</h1>
-        <p className="text-gray-500">Home page</p>
-      </div>
-    </main>
-  );
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  console.log(`Step 1: Home page accessed for locale ${locale}, redirecting to /${locale}/dashboard`);
+  redirect(`/${locale}/dashboard`);
 }

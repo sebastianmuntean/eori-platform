@@ -1,0 +1,1 @@
+ALTER TABLE "contracts" ADD COLUMN "invoice_item_template" jsonb;

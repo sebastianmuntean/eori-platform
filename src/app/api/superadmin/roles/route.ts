@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { roles } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -14,6 +15,7 @@ export async function GET() {
   console.log('Step 1: GET /api/superadmin/roles - Fetching all roles');
 
   try {
+    await requireRole('superadmin');
     console.log('Step 2: Querying database for roles');
     const allRoles = await db.select().from(roles);
     console.log(`✓ Found ${allRoles.length} roles in database`);
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/superadmin/roles - Creating new role');
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createRoleSchema.safeParse(body);

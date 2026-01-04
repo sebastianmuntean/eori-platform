@@ -1,5 +1,0 @@
-// Cimitire API route handlers
-
-
-
-

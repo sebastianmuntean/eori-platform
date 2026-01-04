@@ -16,6 +16,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
       common: (await import(`../locales/${locale}/common.json`)).default,
       menu: (await import(`../locales/${locale}/menu.json`)).default,
       auth: (await import(`../locales/${locale}/auth.json`)).default,
+      'online-forms': (await import(`../locales/${locale}/online-forms.json`)).default,
+      registratura: (await import(`../locales/${locale}/registratura.json`)).default,
     },
   };
 });

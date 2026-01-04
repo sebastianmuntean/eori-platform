@@ -110,9 +110,12 @@ export async function login(
   password: string,
   ipAddress?: string,
   userAgent?: string
-): Promise<{ success: boolean; userId?: string; error?: string }> {
-  console.log(`Step 1: Login attempt for email: ${email}`);
-
+): Promise<{ 
+  success: boolean; 
+  userId?: string; 
+  user?: { id: string; email: string; name: string };
+  error?: string 
+}> {
   try {
     // Find user by email
     const [user] = await db
@@ -122,14 +125,22 @@ export async function login(
       .limit(1);
 
     if (!user) {
-      console.log(`❌ User not found: ${email}`);
       return { success: false, error: 'Invalid credentials' };
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      return { success: false, error: 'Account is inactive' };
+    }
+
+    // Check if account is approved
+    if (user.approvalStatus !== 'approved') {
+      return { success: false, error: 'Account pending approval' };
     }
 
     // Verify password
     const isValidPassword = await verifyPassword(password, user.passwordHash);
     if (!isValidPassword) {
-      console.log(`❌ Invalid password for user: ${email}`);
       return { success: false, error: 'Invalid credentials' };
     }
 
@@ -137,10 +148,16 @@ export async function login(
     const token = await createSession(user.id, ipAddress, userAgent);
     await setSessionCookie(token);
 
-    console.log(`✓ Login successful for user: ${user.id}`);
-    return { success: true, userId: user.id };
+    return { 
+      success: true, 
+      userId: user.id,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
   } catch (error) {
-    console.error(`❌ Login failed: ${error}`);
     return { success: false, error: 'Login failed' };
   }
 }
@@ -193,7 +210,6 @@ export async function getCurrentUser(): Promise<{
       return { userId: null, user: null };
     }
 
-    console.log(`✓ Current user retrieved: ${user.id}`);
     return { userId, user };
   } catch (error) {
     console.error(`❌ Failed to get current user: ${error}`);

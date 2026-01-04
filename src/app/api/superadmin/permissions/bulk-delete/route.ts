@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { permissions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -13,6 +14,7 @@ export async function DELETE(request: Request) {
   console.log('Step 1: DELETE /api/superadmin/permissions/bulk-delete - Bulk deleting permissions');
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = bulkDeleteSchema.safeParse(body);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { permissions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -16,6 +17,7 @@ export async function GET() {
   console.log('Step 1: GET /api/superadmin/permissions - Fetching all permissions');
 
   try {
+    await requireRole('superadmin');
     console.log('Step 2: Querying database for permissions');
     const allPermissions = await db.select().from(permissions);
     console.log(`✓ Found ${allPermissions.length} permissions in database`);
@@ -37,6 +39,7 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/superadmin/permissions - Creating new permission');
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createPermissionSchema.safeParse(body);

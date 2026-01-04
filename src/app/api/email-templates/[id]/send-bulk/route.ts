@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { sendEmailWithTemplate } from '@/lib/email';
+import { getCurrentUser } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-utils/error-handling';
 
 const sendBulkEmailSchema = z.object({
   recipients: z.array(
@@ -9,7 +12,7 @@ const sendBulkEmailSchema = z.object({
       email: z.string().email('Invalid email address'),
       name: z.string().min(1, 'Recipient name is required'),
     })
-  ).min(1, 'At least one recipient is required'),
+  ).min(1, 'At least one recipient is required').max(100, 'Maximum 100 recipients allowed per request'),
   variables: z.record(z.any()).optional().default({}),
 });
 
@@ -18,28 +21,29 @@ const sendBulkEmailSchema = z.object({
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log(`Step 1: POST /api/email-templates/${params.id}/send-bulk - Sending bulk emails`);
+  const { id } = await params;
 
   try {
+    // Require authentication
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
+      return createErrorResponse('Not authenticated', 401);
+    }
+
     const body = await request.json();
-    console.log('Step 2: Validating request body');
     const validation = sendBulkEmailSchema.safeParse(body);
 
     if (!validation.success) {
-      console.log('❌ Validation failed:', validation.error.errors);
-      return NextResponse.json(
-        { success: false, error: validation.error.errors[0].message },
-        { status: 400 }
-      );
+      logger.warn('Send bulk email validation failed', { errors: validation.error.errors, templateId: id, userId });
+      const firstError = validation.error.errors[0];
+      return createErrorResponse(firstError.message, 400);
     }
 
     const { recipients, variables } = validation.data;
 
-    console.log(`Step 3: Sending emails to ${recipients.length} recipients`);
-    console.log(`  Template ID: ${params.id}`);
-    console.log(`  Variables: ${JSON.stringify(variables)}`);
+    logger.info('Starting bulk email send', { templateId: id, recipientCount: recipients.length, userId });
 
     const results = {
       total: recipients.length,
@@ -51,40 +55,47 @@ export async function POST(
     // Send emails sequentially to avoid rate limiting
     for (const recipient of recipients) {
       try {
-        console.log(`Step 3.${results.successful + results.failed + 1}: Sending to ${recipient.email}`);
         await sendEmailWithTemplate(
-          params.id,
+          id,
           recipient.email,
           recipient.name,
           variables
         );
         results.successful++;
-        console.log(`✓ Email sent successfully to ${recipient.email}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         results.failed++;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         results.errors.push({
           email: recipient.email,
           error: errorMessage,
         });
-        console.error(`❌ Failed to send email to ${recipient.email}: ${errorMessage}`);
+        logger.warn('Failed to send email to recipient', { 
+          templateId: id, 
+          email: recipient.email, 
+          error: errorMessage,
+          userId 
+        });
       }
     }
 
-    console.log(`✓ Bulk email send completed: ${results.successful} successful, ${results.failed} failed`);
+    logger.info('Bulk email send completed', { 
+      templateId: id, 
+      successful: results.successful, 
+      failed: results.failed, 
+      userId 
+    });
 
-    return NextResponse.json({
-      success: true,
-      message: `Email-uri trimise: ${results.successful} cu succes, ${results.failed} eșuate`,
-      data: results,
-    });
+    return createSuccessResponse(results, `Emails sent: ${results.successful} successful, ${results.failed} failed`);
   } catch (error) {
-    console.error('❌ Error sending bulk emails:', error);
-    logError(error, { endpoint: `/api/email-templates/${params.id}/send-bulk`, method: 'POST' });
-    return NextResponse.json(formatErrorResponse(error), {
-      status: formatErrorResponse(error).statusCode,
-    });
+    logger.error('Error sending bulk emails', error, { endpoint: `/api/email-templates/${id}/send-bulk`, method: 'POST' });
+    logError(error, { endpoint: `/api/email-templates/${id}/send-bulk`, method: 'POST' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
-
-

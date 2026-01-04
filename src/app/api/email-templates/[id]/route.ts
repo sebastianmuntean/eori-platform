@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { emailTemplates } from '@/database/schema';
-import { formatErrorResponse, logError } from '@/lib/errors';
+import { formatErrorResponse, logError, ValidationError, NotFoundError } from '@/lib/errors';
 import { extractTemplateVariables } from '@/lib/email';
+import { getCurrentUser } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-utils/error-handling';
 
 const updateTemplateSchema = z.object({
-  name: z.string().min(1, 'Name is required').optional(),
-  subject: z.string().min(1, 'Subject is required').optional(),
-  htmlContent: z.string().min(1, 'HTML content is required').optional(),
-  textContent: z.string().optional(),
+  name: z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or less').optional(),
+  subject: z.string().min(1, 'Subject is required').max(500, 'Subject must be 500 characters or less').optional(),
+  htmlContent: z.string().min(1, 'HTML content is required').max(50000, 'HTML content must be 50000 characters or less').optional(),
+  textContent: z.string().max(50000, 'Text content must be 50000 characters or less').optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -19,36 +22,41 @@ const updateTemplateSchema = z.object({
  */
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log(`Step 1: GET /api/email-templates/${params.id} - Fetching template`);
+  const { id } = await params;
 
   try {
+    // Require authentication
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
+      return createErrorResponse('Not authenticated', 401);
+    }
+
     const [template] = await db
       .select()
       .from(emailTemplates)
-      .where(eq(emailTemplates.id, params.id))
+      .where(eq(emailTemplates.id, id))
       .limit(1);
 
     if (!template) {
-      console.log(`❌ Template not found: ${params.id}`);
-      return NextResponse.json(
-        { success: false, error: 'Template not found' },
-        { status: 404 }
-      );
+      logger.warn('Template not found', { templateId: id, userId });
+      return createErrorResponse('Template not found', 404);
     }
 
-    console.log(`✓ Template found: ${template.name}`);
-    return NextResponse.json({
-      success: true,
-      data: template,
-    });
+    logger.info('Fetched email template', { templateId: id, userId });
+    return createSuccessResponse(template);
   } catch (error) {
-    console.error('❌ Error fetching email template:', error);
-    logError(error, { endpoint: `/api/email-templates/${params.id}`, method: 'GET' });
-    return NextResponse.json(formatErrorResponse(error), {
-      status: formatErrorResponse(error).statusCode,
-    });
+    logger.error('Error fetching email template', error, { endpoint: `/api/email-templates/${id}`, method: 'GET' });
+    logError(error, { endpoint: `/api/email-templates/${id}`, method: 'GET' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
@@ -57,58 +65,62 @@ export async function GET(
  */
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log(`Step 1: PUT /api/email-templates/${params.id} - Updating template`);
+  const { id } = await params;
 
   try {
+    // Require authentication
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
+      return createErrorResponse('Not authenticated', 401);
+    }
+
     const body = await request.json();
-    console.log('Step 2: Validating request body');
     const validation = updateTemplateSchema.safeParse(body);
 
     if (!validation.success) {
-      console.log('❌ Validation failed:', validation.error.errors);
-      return NextResponse.json(
-        { success: false, error: validation.error.errors[0].message },
-        { status: 400 }
-      );
+      logger.warn('Template update validation failed', { errors: validation.error.errors, templateId: id, userId });
+      const firstError = validation.error.errors[0];
+      return createErrorResponse(firstError.message, 400);
     }
 
-    console.log(`Step 3: Checking if template ${params.id} exists`);
+    // Check if template exists
     const [existingTemplate] = await db
       .select()
       .from(emailTemplates)
-      .where(eq(emailTemplates.id, params.id))
+      .where(eq(emailTemplates.id, id))
       .limit(1);
 
     if (!existingTemplate) {
-      console.log(`❌ Template with id ${params.id} not found`);
-      return NextResponse.json(
-        { success: false, error: 'Template not found' },
-        { status: 404 }
-      );
+      logger.warn('Template not found for update', { templateId: id, userId });
+      return createErrorResponse('Template not found', 404);
     }
 
     // Check if name is being changed and if it's already taken
     if (validation.data.name && validation.data.name !== existingTemplate.name) {
-      console.log(`Step 4: Checking if name "${validation.data.name}" is available`);
       const [nameTemplate] = await db
         .select()
         .from(emailTemplates)
         .where(eq(emailTemplates.name, validation.data.name))
         .limit(1);
 
-      if (nameTemplate && nameTemplate.id !== params.id) {
-        console.log(`❌ Name "${validation.data.name}" is already taken`);
-        return NextResponse.json(
-          { success: false, error: 'Template name is already taken' },
-          { status: 400 }
-        );
+      if (nameTemplate && nameTemplate.id !== id) {
+        logger.warn('Template name already taken', { name: validation.data.name, templateId: id, userId });
+        return createErrorResponse('Template name is already taken', 400);
       }
     }
 
-    console.log('Step 5: Preparing update data');
-    const updateData: any = {
+    // Prepare update data with proper types
+    const updateData: {
+      updatedAt: Date;
+      name?: string;
+      subject?: string;
+      htmlContent?: string;
+      textContent?: string | null;
+      variables?: string[];
+      isActive?: boolean;
+    } = {
       updatedAt: new Date(),
     };
 
@@ -120,45 +132,41 @@ export async function PUT(
     }
     if (validation.data.htmlContent !== undefined) {
       updateData.htmlContent = validation.data.htmlContent;
-      // Re-extract variables if HTML content changed
-      const htmlContent = validation.data.htmlContent;
-      const textContent = validation.data.textContent || existingTemplate.textContent || '';
-      updateData.variables = extractTemplateVariables(htmlContent + textContent);
-      console.log(`  Updated variables: ${updateData.variables.join(', ')}`);
     }
     if (validation.data.textContent !== undefined) {
-      updateData.textContent = validation.data.textContent;
-      // Re-extract variables if text content changed
-      if (!validation.data.htmlContent) {
-        const htmlContent = existingTemplate.htmlContent;
-        const textContent = validation.data.textContent;
-        updateData.variables = extractTemplateVariables(htmlContent + textContent);
-        console.log(`  Updated variables: ${updateData.variables.join(', ')}`);
-      }
+      updateData.textContent = validation.data.textContent || null;
     }
     if (validation.data.isActive !== undefined) {
       updateData.isActive = validation.data.isActive;
     }
 
-    console.log('Step 6: Updating template');
+    // Re-extract variables if content changed (handle both htmlContent and textContent updates)
+    if (validation.data.htmlContent !== undefined || validation.data.textContent !== undefined) {
+      const htmlContent = validation.data.htmlContent ?? existingTemplate.htmlContent;
+      const textContent = validation.data.textContent ?? existingTemplate.textContent ?? '';
+      updateData.variables = extractTemplateVariables(htmlContent + textContent);
+    }
+
+    // Update template
     const [updatedTemplate] = await db
       .update(emailTemplates)
       .set(updateData)
-      .where(eq(emailTemplates.id, params.id))
+      .where(eq(emailTemplates.id, id))
       .returning();
 
-    console.log(`✓ Template updated successfully: ${params.id}`);
-
-    return NextResponse.json({
-      success: true,
-      data: updatedTemplate,
-    });
+    logger.info('Email template updated', { templateId: id, userId });
+    return createSuccessResponse(updatedTemplate);
   } catch (error) {
-    console.error('❌ Error updating email template:', error);
-    logError(error, { endpoint: `/api/email-templates/${params.id}`, method: 'PUT' });
-    return NextResponse.json(formatErrorResponse(error), {
-      status: formatErrorResponse(error).statusCode,
-    });
+    logger.error('Error updating email template', error, { endpoint: `/api/email-templates/${id}`, method: 'PUT' });
+    logError(error, { endpoint: `/api/email-templates/${id}`, method: 'PUT' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
@@ -167,50 +175,50 @@ export async function PUT(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log(`Step 1: DELETE /api/email-templates/${params.id} - Deleting template`);
+  const { id } = await params;
 
   try {
-    console.log(`Step 2: Checking if template ${params.id} exists`);
+    // Require authentication
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
+      return createErrorResponse('Not authenticated', 401);
+    }
+
+    // Check if template exists
     const [existingTemplate] = await db
       .select()
       .from(emailTemplates)
-      .where(eq(emailTemplates.id, params.id))
+      .where(eq(emailTemplates.id, id))
       .limit(1);
 
     if (!existingTemplate) {
-      console.log(`❌ Template with id ${params.id} not found`);
-      return NextResponse.json(
-        { success: false, error: 'Template not found' },
-        { status: 404 }
-      );
+      logger.warn('Template not found for deletion', { templateId: id, userId });
+      return createErrorResponse('Template not found', 404);
     }
 
     // Prevent deletion of predefined templates
     if (existingTemplate.category === 'predefined') {
-      console.log(`❌ Cannot delete predefined template: ${params.id}`);
-      return NextResponse.json(
-        { success: false, error: 'Cannot delete predefined templates' },
-        { status: 400 }
-      );
+      logger.warn('Attempt to delete predefined template', { templateId: id, userId });
+      return createErrorResponse('Cannot delete predefined templates', 400);
     }
 
-    console.log('Step 3: Deleting template');
-    await db.delete(emailTemplates).where(eq(emailTemplates.id, params.id));
+    // Delete template
+    await db.delete(emailTemplates).where(eq(emailTemplates.id, id));
 
-    console.log(`✓ Template deleted successfully: ${params.id}`);
-    return NextResponse.json({
-      success: true,
-      message: 'Template deleted successfully',
-    });
+    logger.info('Email template deleted', { templateId: id, userId });
+    return createSuccessResponse({ message: 'Template deleted successfully' });
   } catch (error) {
-    console.error('❌ Error deleting email template:', error);
-    logError(error, { endpoint: `/api/email-templates/${params.id}`, method: 'DELETE' });
-    return NextResponse.json(formatErrorResponse(error), {
-      status: formatErrorResponse(error).statusCode,
-    });
+    logger.error('Error deleting email template', error, { endpoint: `/api/email-templates/${id}`, method: 'DELETE' });
+    logError(error, { endpoint: `/api/email-templates/${id}`, method: 'DELETE' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
-
-

@@ -29,6 +29,7 @@ export default function RolePermissionsPage() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -45,15 +46,22 @@ export default function RolePermissionsPage() {
         fetch('/api/superadmin/permissions'),
       ]);
 
+      if (!rolesRes.ok || !permsRes.ok) {
+        throw new Error('Failed to fetch data from server');
+      }
+
       const rolesData = await rolesRes.json();
       const permsData = await permsRes.json();
 
-      if (rolesData.success) {
-        setRoles(rolesData.data);
+      if (!rolesData.success) {
+        throw new Error(rolesData.error || 'Failed to load roles');
       }
-      if (permsData.success) {
-        setPermissions(permsData.data);
+      if (!permsData.success) {
+        throw new Error(permsData.error || 'Failed to load permissions');
       }
+
+      setRoles(rolesData.data);
+      setPermissions(permsData.data);
       console.log('✓ Data loaded');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -82,30 +90,59 @@ export default function RolePermissionsPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedRole) return;
+    if (!selectedRole || isSaving) return;
     console.log('Step 2: Saving role permissions');
 
     const currentPermissionIds = new Set(selectedRole.permissions.map((p) => p.id));
     const toAdd = Array.from(selectedPermissionIds).filter((id) => !currentPermissionIds.has(id));
     const toRemove = Array.from(currentPermissionIds).filter((id) => !selectedPermissionIds.has(id));
 
+    setIsSaving(true);
+    setError(null);
+
     try {
-      // Add new permissions
-      for (const permissionId of toAdd) {
-        await fetch('/api/superadmin/role-permissions', {
+      // Execute all add and remove operations in parallel
+      const addPromises = toAdd.map(async (permissionId) => {
+        const response = await fetch('/api/superadmin/role-permissions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roleId: selectedRole.id, permissionId }),
         });
-      }
 
-      // Remove permissions
-      for (const permissionId of toRemove) {
-        await fetch(
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to add permission ${permissionId}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || `Failed to add permission ${permissionId}`);
+        }
+
+        return data;
+      });
+
+      const removePromises = toRemove.map(async (permissionId) => {
+        const response = await fetch(
           `/api/superadmin/role-permissions?roleId=${selectedRole.id}&permissionId=${permissionId}`,
           { method: 'DELETE' }
         );
-      }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to remove permission ${permissionId}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || `Failed to remove permission ${permissionId}`);
+        }
+
+        return data;
+      });
+
+      // Wait for all operations to complete
+      await Promise.all([...addPromises, ...removePromises]);
 
       await fetchData();
       setIsModalOpen(false);
@@ -115,6 +152,8 @@ export default function RolePermissionsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update permissions');
       console.error('❌ Error updating permissions:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -231,10 +270,13 @@ export default function RolePermissionsPage() {
               setSelectedRole(null);
               setSelectedPermissionIds(new Set());
             }}
+            disabled={isSaving}
           >
             Anulează
           </Button>
-          <Button onClick={handleSave}>Salvează</Button>
+          <Button onClick={handleSave} isLoading={isSaving} disabled={isSaving}>
+            Salvează
+          </Button>
         </div>
       </Modal>
     </div>

@@ -1,0 +1,138 @@
+'use client';
+
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
+import { createGeneralRegisterDocument, getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/ui/Toast';
+import { useTranslations } from 'next-intl';
+
+export default function CreateDocumentPage() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const locale = params.locale as string;
+  const t = useTranslations('common');
+  const tReg = useTranslations('registratura');
+
+  const [loading, setLoading] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    registerConfigurationId?: string;
+    documentType?: 'incoming' | 'outgoing' | 'internal';
+    subject?: string;
+    from?: string | null;
+    petitionerClientId?: string | null;
+    to?: string | null;
+    description?: string | null;
+    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+  } | undefined>(undefined);
+  const [loadingCopy, setLoadingCopy] = useState(false);
+  const { toasts, success, error: showError, removeToast } = useToast();
+
+  // Handle copyFrom query parameter
+  useEffect(() => {
+    const copyFromId = searchParams.get('copyFrom');
+    if (copyFromId) {
+      setLoadingCopy(true);
+      getGeneralRegisterDocument(copyFromId)
+        .then((doc: GeneralRegisterDocument | null) => {
+          if (doc) {
+            // Get petitionerClientId from document
+            const petitionerClientId = doc.petitionerClientId || null;
+            setInitialData({
+              registerConfigurationId: doc.registerConfigurationId,
+              documentType: doc.documentType,
+              subject: doc.subject,
+              from: doc.from,
+              petitionerClientId: petitionerClientId,
+              to: doc.to,
+              description: doc.description,
+              status: 'draft', // Always set to draft when copying
+            });
+          }
+        })
+        .catch((err) => {
+          const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToCreate') || 'Eroare la încărcarea documentului';
+          showError(errorMessage);
+        })
+        .finally(() => {
+          setLoadingCopy(false);
+        });
+    }
+  }, [searchParams, showError, tReg]);
+
+  const handleSave = useCallback(async (data: {
+    registerConfigurationId: string;
+    documentType: 'incoming' | 'outgoing' | 'internal';
+    subject: string;
+    from?: string | null;
+    to?: string | null;
+    description?: string | null;
+    filePath?: string | null;
+    status?: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled';
+  }) => {
+    setLoading(true);
+    try {
+      const document = await createGeneralRegisterDocument(data);
+      
+      if (document) {
+        success(tReg('documentCreated'));
+        router.push(`/${locale}/dashboard/registry/general-register/${document.id}`);
+      } else {
+        showError(tReg('errors.failedToCreate') || 'Eroare la crearea documentului');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToCreate') || 'Eroare la crearea documentului';
+      showError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [locale, router, success, showError, tReg]);
+
+  const handleCancel = () => {
+    router.push(`/${locale}/dashboard/registry/general-register`);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+          { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/general-register` },
+          { label: tReg('newDocument'), href: '#' },
+        ]}
+      />
+
+      <Card>
+        <CardHeader>
+          <h1 className="text-2xl font-bold">{initialData ? tReg('copyDocument') : tReg('newDocument')}</h1>
+          <p className="text-gray-600">
+            {initialData ? tReg('copyDocumentDescription') : tReg('newDocumentDescription')}
+          </p>
+        </CardHeader>
+        <CardBody>
+          {loadingCopy ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-center">{tReg('loading')}</div>
+            </div>
+          ) : (
+            <GeneralRegisterForm
+              onSave={handleSave}
+              onCancel={handleCancel}
+              loading={loading}
+              initialData={initialData}
+            />
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+    </div>
+  );
+}
+

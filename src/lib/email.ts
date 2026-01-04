@@ -1,22 +1,18 @@
 import * as brevo from '@getbrevo/brevo';
 import { db } from '@/database/client';
 import { emailTemplates } from '@/database/schema';
-import { eq } from 'drizzle-orm';
-
-console.log('Step 1: Initializing email service');
+import { eq, and } from 'drizzle-orm';
 
 // Use BREVO_VERIFIED_SENDER from .env (the verified sender email from Brevo)
-const SENDER_EMAIL = process.env.BREVO_VERIFIED_SENDER || process.env.BREVO_SENDER_EMAIL || 'noreply@example.com';
-const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Platform';
+export const SENDER_EMAIL = process.env.BREVO_VERIFIED_SENDER || process.env.BREVO_SENDER_EMAIL || 'noreply@example.com';
+export const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Platform';
 const APP_URL = process.env.APP_URL || 'http://localhost:4058';
 
 /**
  * Initialize Brevo API client
  * This function is called lazily to avoid issues with Next.js module loading
  */
-function getBrevoApiInstance(): brevo.TransactionalEmailsApi | null {
-  console.log('Step 1.1: Getting Brevo API instance');
-  
+export function getBrevoApiInstance(): brevo.TransactionalEmailsApi | null {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) {
     console.warn('⚠️ BREVO_API_KEY not set - email functionality will be disabled');
@@ -24,17 +20,11 @@ function getBrevoApiInstance(): brevo.TransactionalEmailsApi | null {
   }
 
   try {
-    console.log('Step 1.2: Configuring Brevo API client');
-    
     // Create TransactionalEmailsApi instance directly (Brevo v3+)
     const instance = new brevo.TransactionalEmailsApi();
     
     // Set API key using the setApiKey method with the apiKey enum value
     instance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
-    
-    console.log('✓ Brevo API client initialized');
-    console.log(`  API Key: ${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)}`);
-    console.log(`  Sender Email: ${SENDER_EMAIL}`);
     
     return instance;
   } catch (error) {
@@ -49,7 +39,7 @@ function getBrevoApiInstance(): brevo.TransactionalEmailsApi | null {
 
 // Lazy initialization - will be created on first use
 let apiInstance: brevo.TransactionalEmailsApi | null = null;
-const apiKey = process.env.BREVO_API_KEY;
+export const apiKey = process.env.BREVO_API_KEY;
 
 /**
  * Generate HTML email template for user confirmation
@@ -110,13 +100,13 @@ function generateConfirmationEmailHTML(
 
 /**
  * Send user confirmation email with password setup link
+ * Uses email template from database if available, falls back to hardcoded HTML
  */
 export async function sendUserConfirmationEmail(
   userEmail: string,
   userName: string,
   confirmationLink: string
 ): Promise<void> {
-  console.log(`Step 1: Sending confirmation email to ${userEmail}`);
 
   // Initialize API instance if not already done
   if (!apiInstance) {
@@ -130,10 +120,31 @@ export async function sendUserConfirmationEmail(
   }
 
   try {
-    console.log(`Step 2: Preparing email data for ${userEmail}`);
-    console.log(`  Sender: ${SENDER_EMAIL} (${SENDER_NAME})`);
-    console.log(`  Recipient: ${userEmail} (${userName})`);
+    // Try to use email template from database
+    const template = await getTemplateByName('Confirmare Cont');
     
+    if (template) {
+      await sendEmailWithTemplate(
+        template.id,
+        userEmail,
+        userName,
+        {
+          user: {
+            name: userName,
+            email: userEmail,
+          },
+          link: {
+            confirmation: confirmationLink,
+          },
+          app: {
+            name: SENDER_NAME,
+          },
+        }
+      );
+      return;
+    }
+
+    // Fallback to hardcoded HTML if template not found
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.subject = 'Bun venit în platformă - Confirmă contul tău';
     sendSmtpEmail.htmlContent = generateConfirmationEmailHTML(userName, confirmationLink);
@@ -148,17 +159,7 @@ export async function sendUserConfirmationEmail(
       },
     ];
 
-    console.log(`Step 3: Sending email via Brevo API`);
-    console.log(`  API Key: ${apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET'}`);
-    
     const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    
-    console.log(`✓ Confirmation email sent successfully to ${userEmail}`);
-    console.log(`  Message ID: ${result.messageId}`);
-    
-    if (result.response) {
-      console.log(`  Response status: ${result.response.statusCode || 'N/A'}`);
-    }
   } catch (error: any) {
     console.error(`❌ Failed to send confirmation email to ${userEmail}:`, error);
     
@@ -186,7 +187,6 @@ export async function sendUserCreatedEmail(
   userName: string,
   confirmationLink: string
 ): Promise<void> {
-  console.log(`Step 1: Sending user created email to ${userEmail}`);
   return sendUserConfirmationEmail(userEmail, userName, confirmationLink);
 }
 
@@ -198,17 +198,12 @@ function replaceTemplateVariables(
   content: string,
   variables: Record<string, any>
 ): string {
-  console.log('Step 1: Replacing template variables');
-  console.log(`  Variables provided: ${Object.keys(variables).join(', ')}`);
-  
   let result = content;
   
   // Replace all {{variable}} patterns
   const variablePattern = /\{\{(\w+(?:\.\w+)*)\}\}/g;
   
   result = result.replace(variablePattern, (match, variablePath) => {
-    console.log(`  Replacing: ${match} with path: ${variablePath}`);
-    
     // Handle nested properties like user.name
     const parts = variablePath.split('.');
     let value: any = variables;
@@ -223,11 +218,9 @@ function replaceTemplateVariables(
     }
     
     const replaced = String(value ?? match);
-    console.log(`  ✓ Replaced ${match} with: ${replaced.substring(0, 50)}...`);
     return replaced;
   });
   
-  console.log('✓ Template variables replaced');
   return result;
 }
 
@@ -235,7 +228,6 @@ function replaceTemplateVariables(
  * Extract variable names from template content
  */
 export function extractTemplateVariables(content: string): string[] {
-  console.log('Step 1: Extracting template variables');
   const variablePattern = /\{\{(\w+(?:\.\w+)*)\}\}/g;
   const variables = new Set<string>();
   let match;
@@ -256,7 +248,6 @@ export async function renderTemplate(
   templateId: string,
   variables: Record<string, any>
 ): Promise<{ subject: string; htmlContent: string; textContent?: string }> {
-  console.log(`Step 1: Rendering template ${templateId}`);
   console.log(`  Variables: ${Object.keys(variables).join(', ')}`);
   
   const [template] = await db
@@ -274,10 +265,6 @@ export async function renderTemplate(
     console.error(`❌ Template is inactive: ${templateId}`);
     throw new Error(`Email template is inactive: ${templateId}`);
   }
-  
-  console.log(`Step 2: Template found - ${template.name}`);
-  console.log(`  Category: ${template.category}`);
-  console.log(`  Variables in template: ${template.variables.join(', ')}`);
   
   const subject = replaceTemplateVariables(template.subject, variables);
   const htmlContent = replaceTemplateVariables(template.htmlContent, variables);
@@ -298,7 +285,6 @@ export async function sendEmailWithTemplate(
   recipientName: string,
   variables: Record<string, any>
 ): Promise<void> {
-  console.log(`Step 1: Sending email with template ${templateId} to ${recipientEmail}`);
   
   // Initialize API instance if not already done
   if (!apiInstance) {
@@ -315,7 +301,6 @@ export async function sendEmailWithTemplate(
     console.log(`Step 2: Rendering template`);
     const { subject, htmlContent, textContent } = await renderTemplate(templateId, variables);
     
-    console.log(`Step 3: Preparing email data`);
     console.log(`  Sender: ${SENDER_EMAIL} (${SENDER_NAME})`);
     console.log(`  Recipient: ${recipientEmail} (${recipientName})`);
     console.log(`  Subject: ${subject}`);
@@ -337,11 +322,11 @@ export async function sendEmailWithTemplate(
       },
     ];
     
-    console.log(`Step 4: Sending email via Brevo API`);
     const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
     
-    console.log(`✓ Email sent successfully to ${recipientEmail}`);
-    console.log(`  Message ID: ${result.messageId}`);
+    if (result.body?.messageId) {
+      console.log(`  Message ID: ${result.body.messageId}`);
+    }
     
     if (result.response) {
       console.log(`  Response status: ${result.response.statusCode || 'N/A'}`);
@@ -360,6 +345,238 @@ export async function sendEmailWithTemplate(
     }
     
     throw error; // Re-throw for caller to handle
+  }
+}
+
+/**
+ * Get template by name
+ */
+export async function getTemplateByName(name: string): Promise<typeof emailTemplates.$inferSelect | null> {
+  
+  const [template] = await db
+    .select()
+    .from(emailTemplates)
+    .where(
+      and(
+        eq(emailTemplates.name, name),
+        eq(emailTemplates.isActive, true)
+      )
+    )
+    .limit(1);
+  
+  if (!template) {
+    console.log(`❌ Template "${name}" not found or inactive`);
+    return null;
+  }
+  
+  console.log(`✓ Template found: ${template.name} (${template.id})`);
+  return template;
+}
+
+/**
+ * Send email using template name (convenience function)
+ */
+export async function sendEmailWithTemplateName(
+  templateName: string,
+  recipientEmail: string,
+  recipientName: string,
+  variables: Record<string, any>
+): Promise<void> {
+  
+  const template = await getTemplateByName(templateName);
+  if (!template) {
+    throw new Error(`Email template "${templateName}" not found or inactive`);
+  }
+  
+  return sendEmailWithTemplate(template.id, recipientEmail, recipientName, variables);
+}
+
+/**
+ * Send event confirmation email to participants
+ */
+export async function sendEventConfirmationEmail(
+  recipientEmail: string,
+  recipientName: string,
+  event: {
+    type: 'wedding' | 'baptism' | 'funeral';
+    date: string | null;
+    location: string | null;
+    priestName: string | null;
+    parishName: string;
+    notes: string | null;
+  }
+): Promise<void> {
+  
+  const typeLabels: Record<'wedding' | 'baptism' | 'funeral', string> = {
+    wedding: 'Nuntă',
+    baptism: 'Botez',
+    funeral: 'Înmormântare',
+  };
+  
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Nespecificat';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ro-RO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+  
+  try {
+    await sendEmailWithTemplateName(
+      'Confirmare Eveniment',
+      recipientEmail,
+      recipientName,
+      {
+        recipient: {
+          name: recipientName,
+          email: recipientEmail,
+        },
+        event: {
+          typeLabel: typeLabels[event.type],
+          date: formatDate(event.date),
+          location: event.location || 'Nespecificat',
+          priestName: event.priestName || 'Nespecificat',
+          parishName: event.parishName,
+          notes: event.notes || 'Fără observații',
+        },
+      }
+    );
+    console.log(`✓ Event confirmation email sent to ${recipientEmail}`);
+  } catch (error) {
+    console.error(`❌ Failed to send event confirmation email:`, error);
+    // Don't throw - email failures shouldn't break event updates
+  }
+}
+
+/**
+ * Send event reminder email to participants
+ */
+export async function sendEventReminderEmail(
+  recipientEmail: string,
+  recipientName: string,
+  event: {
+    type: 'wedding' | 'baptism' | 'funeral';
+    date: string | null;
+    location: string | null;
+    priestName: string | null;
+    parishName: string;
+    notes: string | null;
+  },
+  daysUntil: number
+): Promise<void> {
+  
+  const typeLabels: Record<'wedding' | 'baptism' | 'funeral', string> = {
+    wedding: 'Nuntă',
+    baptism: 'Botez',
+    funeral: 'Înmormântare',
+  };
+  
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Nespecificat';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ro-RO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+  
+  try {
+    await sendEmailWithTemplateName(
+      'Reminder Eveniment',
+      recipientEmail,
+      recipientName,
+      {
+        recipient: {
+          name: recipientName,
+          email: recipientEmail,
+        },
+        event: {
+          typeLabel: typeLabels[event.type],
+          date: formatDate(event.date),
+          location: event.location || 'Nespecificat',
+          priestName: event.priestName || 'Nespecificat',
+          parishName: event.parishName,
+          notes: event.notes || 'Fără observații',
+          daysUntil: daysUntil.toString(),
+        },
+      }
+    );
+    console.log(`✓ Event reminder email sent to ${recipientEmail}`);
+  } catch (error) {
+    console.error(`❌ Failed to send event reminder email:`, error);
+    // Don't throw - email failures shouldn't break event updates
+  }
+}
+
+/**
+ * Send event cancellation email to participants
+ */
+export async function sendEventCancellationEmail(
+  recipientEmail: string,
+  recipientName: string,
+  event: {
+    type: 'wedding' | 'baptism' | 'funeral';
+    date: string | null;
+    location: string | null;
+    parishName: string;
+  },
+  cancellationReason?: string
+): Promise<void> {
+  
+  const typeLabels: Record<'wedding' | 'baptism' | 'funeral', string> = {
+    wedding: 'Nuntă',
+    baptism: 'Botez',
+    funeral: 'Înmormântare',
+  };
+  
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Nespecificat';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ro-RO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+  
+  try {
+    await sendEmailWithTemplateName(
+      'Anulare Eveniment',
+      recipientEmail,
+      recipientName,
+      {
+        recipient: {
+          name: recipientName,
+          email: recipientEmail,
+        },
+        event: {
+          typeLabel: typeLabels[event.type],
+          date: formatDate(event.date),
+          location: event.location || 'Nespecificat',
+          parishName: event.parishName,
+        },
+        cancellationReason: cancellationReason || 'Nespecificat',
+      }
+    );
+    console.log(`✓ Event cancellation email sent to ${recipientEmail}`);
+  } catch (error) {
+    console.error(`❌ Failed to send event cancellation email:`, error);
+    // Don't throw - email failures shouldn't break event updates
   }
 }
 

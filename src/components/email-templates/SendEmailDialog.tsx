@@ -26,9 +26,6 @@ export function SendEmailDialog({
   template,
   onSend,
 }: SendEmailDialogProps) {
-  console.log('Step 1: Rendering SendEmailDialog');
-  console.log(`  IsOpen: ${isOpen}, Template: ${template?.name || 'none'}`);
-
   const [recipients, setRecipients] = useState<Array<{ email: string; name: string }>>([
     { email: '', name: '' },
   ]);
@@ -41,7 +38,6 @@ export function SendEmailDialog({
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (isOpen) {
-      console.log('Step 2: Resetting form');
       setRecipients([{ email: '', name: '' }]);
       setVariables({});
       setError(null);
@@ -51,19 +47,16 @@ export function SendEmailDialog({
   }, [isOpen]);
 
   const addRecipient = () => {
-    console.log('Step 3: Adding new recipient');
     setRecipients([...recipients, { email: '', name: '' }]);
   };
 
   const removeRecipient = (index: number) => {
-    console.log(`Step 4: Removing recipient at index ${index}`);
     if (recipients.length > 1) {
       setRecipients(recipients.filter((_, i) => i !== index));
     }
   };
 
   const updateRecipient = (index: number, field: 'email' | 'name', value: string) => {
-    console.log(`Step 5: Updating recipient ${index} ${field}`);
     const updated = [...recipients];
     updated[index] = { ...updated[index], [field]: value };
     setRecipients(updated);
@@ -72,7 +65,6 @@ export function SendEmailDialog({
   const handleSend = async () => {
     if (!template) return;
 
-    console.log('Step 6: Validating recipients');
     // Validate recipients
     const validRecipients = recipients.filter((r) => r.email.trim() !== '');
     if (validRecipients.length === 0) {
@@ -89,7 +81,6 @@ export function SendEmailDialog({
       }
     }
 
-    console.log(`Step 7: Sending emails to ${validRecipients.length} recipients`);
     setError(null);
     setSuccess(null);
     setSendResult(null);
@@ -99,7 +90,6 @@ export function SendEmailDialog({
       const result = await onSend(validRecipients, variables);
       
       if (result) {
-        console.log(`✓ Send completed: ${result.successful} successful, ${result.failed} failed`);
         setSendResult(result);
         
         if (result.failed === 0) {
@@ -123,7 +113,6 @@ export function SendEmailDialog({
 
   if (!template) return null;
 
-  console.log('✓ Rendering dialog');
   return (
     <Modal
       isOpen={isOpen}

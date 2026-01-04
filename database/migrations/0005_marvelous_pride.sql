@@ -1448,14 +1448,20 @@ ALTER TABLE "role_permissions" ALTER COLUMN "created_at" SET DATA TYPE timestamp
 ALTER TABLE "role_permissions" ALTER COLUMN "created_at" SET DEFAULT now();--> statement-breakpoint
 ALTER TABLE "user_roles" ALTER COLUMN "created_at" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "user_roles" ALTER COLUMN "created_at" SET DEFAULT now();--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "role" "user_role" NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "role" "user_role" DEFAULT 'paroh';
+UPDATE "users" SET "role" = 'paroh' WHERE "role" IS NULL;
+ALTER TABLE "users" ALTER COLUMN "role" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "users" ADD COLUMN "parohie_id" uuid;--> statement-breakpoint
 ALTER TABLE "users" ADD COLUMN "permissions" text[] DEFAULT '{}' NOT NULL;--> statement-breakpoint
 ALTER TABLE "users" ADD COLUMN "admin_notes" text;--> statement-breakpoint
-ALTER TABLE "roles" ADD COLUMN "display_name" varchar(255) NOT NULL;--> statement-breakpoint
+ALTER TABLE "roles" ADD COLUMN "display_name" varchar(255);
+UPDATE "roles" SET "display_name" = "name" WHERE "display_name" IS NULL;
+ALTER TABLE "roles" ALTER COLUMN "display_name" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "roles" ADD COLUMN "is_system" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "roles" ADD COLUMN "is_active" boolean DEFAULT true NOT NULL;--> statement-breakpoint
-ALTER TABLE "permissions" ADD COLUMN "display_name" varchar(255) NOT NULL;--> statement-breakpoint
+ALTER TABLE "permissions" ADD COLUMN "display_name" varchar(255);
+UPDATE "permissions" SET "display_name" = "name" WHERE "display_name" IS NULL;
+ALTER TABLE "permissions" ALTER COLUMN "display_name" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "permissions" ADD COLUMN "is_system" boolean DEFAULT true NOT NULL;--> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_parish_id_parishes_id_fk" FOREIGN KEY ("parish_id") REFERENCES "public"."parishes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_parish_id_parishes_id_fk" FOREIGN KEY ("parish_id") REFERENCES "public"."parishes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -1479,10 +1485,10 @@ ALTER TABLE "user_parishes" ADD CONSTRAINT "user_parishes_user_id_users_id_fk" F
 ALTER TABLE "user_parishes" ADD CONSTRAINT "user_parishes_parish_id_parishes_id_fk" FOREIGN KEY ("parish_id") REFERENCES "public"."parishes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_permission_overrides" ADD CONSTRAINT "user_permission_overrides_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_permission_overrides" ADD CONSTRAINT "user_permission_overrides_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "auto_asigurari" ADD CONSTRAINT "auto_asigurari_nr_inmatriculare_auto_vehicule_nr_inmatriculare_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "auto_itp" ADD CONSTRAINT "auto_itp_nr_inmatriculare_auto_vehicule_nr_inmatriculare_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auto_asigurari" ADD CONSTRAINT "auto_asigurari_vehicle_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auto_itp" ADD CONSTRAINT "auto_itp_vehicle_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "auto_modele" ADD CONSTRAINT "auto_modele_id_marca_auto_marci_cod_fk" FOREIGN KEY ("id_marca") REFERENCES "public"."auto_marci"("cod") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "auto_reparatii" ADD CONSTRAINT "auto_reparatii_nr_inmatriculare_auto_vehicule_nr_inmatriculare_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auto_reparatii" ADD CONSTRAINT "auto_reparatii_vehicle_fk" FOREIGN KEY ("nr_inmatriculare") REFERENCES "public"."auto_vehicule"("nr_inmatriculare") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "biblioteca_carti" ADD CONSTRAINT "biblioteca_carti_cods_biblioteca_sali_cods_fk" FOREIGN KEY ("cods") REFERENCES "public"."biblioteca_sali"("cods") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "biblioteca_imprumuturi" ADD CONSTRAINT "biblioteca_imprumuturi_codc_biblioteca_carti_codc_fk" FOREIGN KEY ("codc") REFERENCES "public"."biblioteca_carti"("codc") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "biblioteca_rafturi" ADD CONSTRAINT "biblioteca_rafturi_cods_biblioteca_sali_cods_fk" FOREIGN KEY ("cods") REFERENCES "public"."biblioteca_sali"("cods") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1748,9 +1754,9 @@ CREATE INDEX "idx_notifications_type" ON "notifications" USING btree ("parish_id
 CREATE INDEX "idx_sessions_token" ON "sessions" USING btree ("token");--> statement-breakpoint
 CREATE INDEX "idx_sessions_user" ON "sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_sessions_expires" ON "sessions" USING btree ("expires_at");--> statement-breakpoint
-ALTER TABLE "users" DROP COLUMN "address";--> statement-breakpoint
-ALTER TABLE "users" DROP COLUMN "city";--> statement-breakpoint
-ALTER TABLE "users" DROP COLUMN "phone";--> statement-breakpoint
+-- ALTER TABLE "users" DROP COLUMN "address";--> statement-breakpoint
+-- ALTER TABLE "users" DROP COLUMN "city";--> statement-breakpoint
+-- ALTER TABLE "users" DROP COLUMN "phone";--> statement-breakpoint
 ALTER TABLE "sessions" DROP COLUMN "last_used_at";--> statement-breakpoint
 ALTER TABLE "permissions" DROP COLUMN "updated_at";--> statement-breakpoint
 DROP TYPE "public"."template_category";

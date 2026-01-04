@@ -1,5 +1,0 @@
-// Parohii API route handlers
-
-
-
-

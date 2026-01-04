@@ -12,8 +12,6 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
-  console.log('Step 1: Rendering Breadcrumbs component with', items.length, 'items');
-  
   return (
     <nav aria-label="Breadcrumb" className={cn('flex items-center space-x-2', className)}>
       <ol className="flex items-center space-x-2">

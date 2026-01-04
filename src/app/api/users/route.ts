@@ -5,6 +5,7 @@ import { formatErrorResponse, logError } from '@/lib/errors';
 import { hashPassword, requireAuth } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
 import { generateVerificationToken } from '@/lib/auth/tokens';
+import { logCreate, logUpdate, logDelete, extractIpAddress, extractUserAgent } from '@/lib/audit/audit-logger';
 import { eq, like, or, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
@@ -32,7 +33,103 @@ const updateUserSchema = z.object({
 });
 
 /**
- * GET /api/users - Fetch all users with pagination, filtering, and sorting
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: Fetch all users with pagination, filtering, and sorting
+ *     description: |
+ *       Retrieves a paginated list of users with optional filtering and sorting.
+ *       Requires authentication.
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: Page number (1-indexed)
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - name: pageSize
+ *         in: query
+ *         description: Number of items per page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - name: search
+ *         in: query
+ *         description: Search query (searches email, name, address, city, phone)
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: status
+ *         in: query
+ *         description: Filter by active status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *       - name: approvalStatus
+ *         in: query
+ *         description: Filter by approval status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *       - name: sortBy
+ *         in: query
+ *         description: Field to sort by
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, email]
+ *           default: createdAt
+ *       - name: sortOrder
+ *         in: query
+ *         description: Sort order
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedResponse'
+ *             example:
+ *               success: true
+ *               data:
+ *                 - id: "123e4567-e89b-12d3-a456-426614174000"
+ *                   email: "user@example.com"
+ *                   name: "John Doe"
+ *                   role: "paroh"
+ *                   isActive: true
+ *                   approvalStatus: "approved"
+ *               pagination:
+ *                 page: 1
+ *                 pageSize: 10
+ *                 total: 100
+ *                 totalPages: 10
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function GET(request: Request) {
   console.log('Step 1: GET /api/users - Fetching users');
@@ -143,14 +240,106 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST /api/users - Create a new user
+ * @openapi
+ * /api/users:
+ *   post:
+ *     summary: Create a new user
+ *     description: |
+ *       Creates a new user account. The user will receive a confirmation email
+ *       to set their password. Requires authentication.
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 example: John Doe
+ *               role:
+ *                 type: string
+ *                 enum: [episcop, vicar, paroh, secretar, contabil]
+ *                 example: paroh
+ *               address:
+ *                 type: string
+ *                 example: "123 Main St"
+ *               city:
+ *                 type: string
+ *                 example: "Bucharest"
+ *               phone:
+ *                 type: string
+ *                 example: "+40123456789"
+ *               isActive:
+ *                 type: boolean
+ *                 default: true
+ *               approvalStatus:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *                 default: pending
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                 message:
+ *                   type: string
+ *                   example: "User created successfully. Confirmation email sent."
+ *       400:
+ *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               success: false
+ *               error: "User with this email already exists"
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function POST(request: Request) {
   console.log('Step 1: POST /api/users - Creating new user');
 
   try {
     // Require authentication
-    await requireAuth();
+    const { userId } = await requireAuth();
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createUserSchema.safeParse(body);
@@ -243,6 +432,22 @@ export async function POST(request: Request) {
       .where(eq(users.id, newUser.id));
 
     console.log(`✓ User created successfully: ${newUser.id}`);
+    
+    // Log audit event for user creation
+    logCreate(
+      userId,
+      'user',
+      newUser.id,
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'POST',
+        endpoint: '/api/users',
+      }
+    ).catch((err) => {
+      console.error('Failed to log user creation audit event:', err);
+    });
+    
     const { passwordHash, ...userWithoutPassword } = newUser;
 
     return NextResponse.json(
@@ -269,7 +474,7 @@ export async function PUT(request: Request) {
 
   try {
     // Require authentication
-    await requireAuth();
+    const { userId: currentUserId } = await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -327,6 +532,19 @@ export async function PUT(request: Request) {
     }
 
     console.log('Step 5: Updating user');
+    
+    // Capture before state for audit log
+    const beforeState = {
+      name: existingUser.name,
+      email: existingUser.email,
+      role: existingUser.role,
+      address: existingUser.address,
+      city: existingUser.city,
+      phone: existingUser.phone,
+      isActive: existingUser.isActive,
+      approvalStatus: existingUser.approvalStatus,
+    };
+    
     const updateData: {
       updatedAt: Date;
       name?: string;
@@ -373,6 +591,34 @@ export async function PUT(request: Request) {
       .returning();
 
     console.log(`✓ User updated successfully: ${userId}`);
+    
+    // Log audit event for user update with before/after state
+    const afterState = {
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      address: updatedUser.address,
+      city: updatedUser.city,
+      phone: updatedUser.phone,
+      isActive: updatedUser.isActive,
+      approvalStatus: updatedUser.approvalStatus,
+    };
+    
+    logUpdate(
+      currentUserId,
+      'user',
+      userId,
+      { before: beforeState, after: afterState },
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'PUT',
+        endpoint: '/api/users',
+      }
+    ).catch((err) => {
+      console.error('Failed to log user update audit event:', err);
+    });
+    
     const { passwordHash, ...userWithoutPassword } = updatedUser;
 
     return NextResponse.json({
@@ -396,7 +642,7 @@ export async function DELETE(request: Request) {
 
   try {
     // Require authentication
-    await requireAuth();
+    const { userId: currentUserId } = await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -434,6 +680,28 @@ export async function DELETE(request: Request) {
       .where(eq(users.id, userId));
 
     console.log(`✓ User deleted successfully: ${userId}`);
+    
+    // Log audit event for user deletion
+    logDelete(
+      currentUserId,
+      'user',
+      userId,
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'DELETE',
+        endpoint: '/api/users',
+        metadata: {
+          softDelete: true,
+          previousState: {
+            isActive: existingUser.isActive,
+          },
+        },
+      }
+    ).catch((err) => {
+      console.error('Failed to log user deletion audit event:', err);
+    });
+    
     return NextResponse.json({
       success: true,
       message: 'User deleted successfully',

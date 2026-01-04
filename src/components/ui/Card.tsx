@@ -10,8 +10,6 @@ interface CardBodyProps extends React.HTMLAttributes<HTMLDivElement> {}
 interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function Card({ className, variant = 'default', ...props }: CardProps) {
-  console.log('Step 1: Rendering Card component with variant:', variant);
-  
   const baseStyles = 'rounded-lg bg-bg-primary';
   const variantStyles = {
     default: 'border border-border shadow-sm',
@@ -28,7 +26,6 @@ export function Card({ className, variant = 'default', ...props }: CardProps) {
 }
 
 export function CardHeader({ className, ...props }: CardHeaderProps) {
-  console.log('Step 2: Rendering CardHeader');
   return (
     <div
       className={cn('px-6 py-4 border-b border-border', className)}
@@ -38,7 +35,6 @@ export function CardHeader({ className, ...props }: CardHeaderProps) {
 }
 
 export function CardBody({ className, ...props }: CardBodyProps) {
-  console.log('Step 3: Rendering CardBody');
   return (
     <div
       className={cn('px-6 py-4', className)}
@@ -48,7 +44,6 @@ export function CardBody({ className, ...props }: CardBodyProps) {
 }
 
 export function CardFooter({ className, ...props }: CardFooterProps) {
-  console.log('Step 4: Rendering CardFooter');
   return (
     <div
       className={cn('px-6 py-4 border-t border-border bg-bg-secondary', className)}
