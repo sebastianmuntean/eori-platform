@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { generateSwaggerUIHTML } from '@/lib/swagger/swagger-ui-template';
+import { DEFAULT_SWAGGER_UI_CONFIG } from '@/lib/swagger/swagger-ui-config';
 
 /**
  * GET /api/docs/ui - Serve Swagger UI for interactive API documentation
  * 
  * Returns an HTML page with Swagger UI for browsing and testing the API.
+ * The Swagger UI is served as a static HTML page with embedded JavaScript
+ * that loads the OpenAPI specification from /api/docs endpoint.
  * 
  * @openapi
  * /api/docs/ui:
@@ -23,72 +27,16 @@ import { NextResponse } from 'next/server';
  */
 export async function GET() {
   try {
-    const apiDocsUrl = '/api/docs';
-    
-    // Generate Swagger UI HTML
-    const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EORI Platform API Documentation</title>
-  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css" />
-  <style>
-    html {
-      box-sizing: border-box;
-      overflow: -moz-scrollbars-vertical;
-      overflow-y: scroll;
-    }
-    *, *:before, *:after {
-      box-sizing: inherit;
-    }
-    body {
-      margin: 0;
-      background: #fafafa;
-    }
-    .swagger-ui .topbar {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
-  <script>
-    window.onload = function() {
-      const ui = SwaggerUIBundle({
-        url: '${apiDocsUrl}',
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        presets: [
-          SwaggerUIBundle.presets.apis,
-          SwaggerUIStandalonePreset
-        ],
-        plugins: [
-          SwaggerUIBundle.plugins.DownloadUrl
-        ],
-        layout: "StandaloneLayout",
-        tryItOutEnabled: true,
-        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-        validatorUrl: null,
-        docExpansion: 'list',
-        filter: true,
-        showExtensions: true,
-        showCommonExtensions: true
-      });
-    };
-  </script>
-</body>
-</html>
-    `;
+    const html = generateSwaggerUIHTML({
+      ...DEFAULT_SWAGGER_UI_CONFIG,
+      url: '/api/docs',
+    });
 
     return new NextResponse(html, {
       status: 200,
       headers: {
-        'Content-Type': 'text/html',
-        'Cache-Control': 'public, max-age=3600',
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
       },
     });
   } catch (error) {

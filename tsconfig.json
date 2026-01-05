@@ -31,6 +31,9 @@
       ],
       "@/drizzle/*": [
         "./drizzle/*"
+      ],
+      "@/types/*": [
+        "./types/*"
       ]
     }
   },

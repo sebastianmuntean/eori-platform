@@ -7,10 +7,10 @@ export const genderEnum = pgEnum('gender', ['male', 'female', 'other']);
 export const employmentStatusEnum = pgEnum('employment_status', ['active', 'on_leave', 'terminated', 'retired']);
 
 // Contract type enum
-export const contractTypeEnum = pgEnum('employment_contract_type', ['indeterminate', 'determinate', 'part_time', 'internship', 'consultant']);
+export const employmentContractTypeEnum = pgEnum('employment_contract_type', ['indeterminate', 'determinate', 'part_time', 'internship', 'consultant']);
 
 // Contract status enum
-export const contractStatusEnum = pgEnum('employment_contract_status', ['draft', 'active', 'expired', 'terminated', 'suspended']);
+export const employmentContractStatusEnum = pgEnum('employment_contract_status', ['draft', 'active', 'expired', 'terminated', 'suspended']);
 
 // Salary status enum
 export const salaryStatusEnum = pgEnum('salary_status', ['draft', 'calculated', 'approved', 'paid', 'cancelled']);

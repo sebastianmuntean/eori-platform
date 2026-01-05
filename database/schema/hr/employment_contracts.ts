@@ -1,13 +1,13 @@
 import { pgTable, uuid, varchar, text, date, numeric, timestamp, integer, unique } from 'drizzle-orm/pg-core';
 import { employees } from './employees';
 import { users } from '../superadmin/users';
-import { contractTypeEnum, contractStatusEnum } from './enums';
+import { employmentContractTypeEnum, employmentContractStatusEnum } from './enums';
 
 export const employmentContracts = pgTable('employment_contracts', {
   id: uuid('id').primaryKey().defaultRandom(),
   employeeId: uuid('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
   contractNumber: varchar('contract_number', { length: 50 }).notNull(),
-  contractType: contractTypeEnum('contract_type').notNull(),
+  contractType: employmentContractTypeEnum('contract_type').notNull(),
   startDate: date('start_date').notNull(),
   endDate: date('end_date'),
   probationEndDate: date('probation_end_date'),
@@ -16,7 +16,7 @@ export const employmentContracts = pgTable('employment_contracts', {
   workingHoursPerWeek: integer('working_hours_per_week').notNull(),
   workLocation: varchar('work_location', { length: 255 }),
   jobDescription: text('job_description'),
-  status: contractStatusEnum('status').notNull().default('draft'),
+  status: employmentContractStatusEnum('status').notNull().default('draft'),
   terminationDate: date('termination_date'),
   terminationReason: text('termination_reason'),
   notes: text('notes'),

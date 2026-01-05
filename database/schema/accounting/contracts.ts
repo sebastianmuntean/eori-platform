@@ -36,7 +36,14 @@ export const contracts = pgTable('contracts', {
   notes: text('notes'),
   renewalDate: date('renewal_date'),
   autoRenewal: boolean('auto_renewal').default(false),
-  parentContractId: uuid('parent_contract_id').references((): any => contracts.id),
+  // Self-reference: Points to the parent contract for renewals/amendments
+  // Business Rule: A contract can be renewed, creating a new contract linked to the original
+  // Constraint: Prevents deletion of parent if child contracts exist (enforced by 'restrict')
+  // Validation: Application-level checks should prevent circular references
+  // Note: Type assertion ((): any =>) is required to resolve TypeScript circular type inference
+  parentContractId: uuid('parent_contract_id').references((): any => contracts.id, {
+    onDelete: 'restrict', // Prevents deletion if child contracts exist
+  }),
   invoiceItemTemplate: jsonb('invoice_item_template'), // Template for invoice line items
   createdBy: uuid('created_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

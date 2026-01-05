@@ -6,7 +6,14 @@ import { generalRegisterWorkflowActionEnum, generalRegisterStepStatusEnum, gener
 export const generalRegisterWorkflow = pgTable('general_register_workflow', {
   id: uuid('id').primaryKey().defaultRandom(),
   documentId: uuid('document_id').notNull().references(() => generalRegister.id, { onDelete: 'cascade' }),
-  parentStepId: uuid('parent_step_id').references(() => generalRegisterWorkflow.id, { onDelete: 'set null' }),
+  // Self-reference: Points to the parent workflow step for nested approval chains
+  // Business Rule: Workflow steps can be nested to support complex approval hierarchies
+  // Constraint: Deleting a parent step sets child steps' parent to null (preserves workflow history)
+  // Validation: Application-level checks should prevent circular references
+  // Note: Type assertion ((): any =>) is required to resolve TypeScript circular type inference
+  parentStepId: uuid('parent_step_id').references((): any => generalRegisterWorkflow.id, {
+    onDelete: 'set null', // Preserves child steps when parent is deleted
+  }),
   fromUserId: uuid('from_user_id').references(() => users.id),
   toUserId: uuid('to_user_id').references(() => users.id),
   action: generalRegisterWorkflowActionEnum('action').notNull(),
