@@ -3,7 +3,7 @@ import { pilgrimages } from './pilgrimages';
 import { users } from '../superadmin/users';
 
 // Document type enum
-export const documentTypeEnum = pgEnum('document_type', [
+export const pilgrimageDocumentTypeEnum = pgEnum('document_type', [
   'program',
   'information',
   'contract',
@@ -15,7 +15,7 @@ export const documentTypeEnum = pgEnum('document_type', [
 export const pilgrimageDocuments = pgTable('pilgrimage_documents', {
   id: uuid('id').primaryKey().defaultRandom(),
   pilgrimageId: uuid('pilgrimage_id').notNull().references(() => pilgrimages.id, { onDelete: 'cascade' }),
-  documentType: documentTypeEnum('document_type').notNull(),
+  documentType: pilgrimageDocumentTypeEnum('document_type').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   fileName: varchar('file_name', { length: 255 }).notNull(),
   filePath: text('file_path').notNull(),
