@@ -112,7 +112,14 @@ export async function POST(
     });
   } catch (error) {
     logError('Error applying mapping dataset', error);
-    return formatErrorResponse(error, 'Failed to apply mapping dataset');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

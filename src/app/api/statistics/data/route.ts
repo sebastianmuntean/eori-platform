@@ -223,7 +223,7 @@ export async function GET() {
         .where(sql`${payments.clientId} IS NOT NULL`),
       
       // Parishes with clients (returns 0 if parish_id column doesn't exist)
-      Promise.resolve({ count: 0 }),
+      Promise.resolve([{ count: 0 }]),
       
       // Parishes with invoices
       db
@@ -310,8 +310,15 @@ export async function GET() {
       data: statistics,
     });
   } catch (error) {
-    logError('Failed to fetch data statistics', error);
-    return formatErrorResponse(error, 'Failed to fetch data statistics');
+    logError(error, { context: 'Failed to fetch data statistics' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

@@ -133,7 +133,14 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     logError('Error fetching available tables', error);
-    return formatErrorResponse(error, 'Failed to fetch available tables');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

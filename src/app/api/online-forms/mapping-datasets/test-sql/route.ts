@@ -104,7 +104,14 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     logError('Error testing SQL query', error);
-    return formatErrorResponse(error, 'Failed to test SQL query');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

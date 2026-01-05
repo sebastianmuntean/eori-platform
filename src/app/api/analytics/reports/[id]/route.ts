@@ -79,7 +79,14 @@ export async function GET(
     });
   } catch (error) {
     logError('Failed to fetch saved report', error);
-    return formatErrorResponse(error, 'Failed to fetch saved report');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
@@ -128,7 +135,14 @@ export async function PUT(
       );
     }
     logError('Failed to update saved report', error);
-    return formatErrorResponse(error, 'Failed to update saved report');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
@@ -163,7 +177,14 @@ export async function DELETE(
       );
     }
     logError('Failed to delete saved report', error);
-    return formatErrorResponse(error, 'Failed to delete saved report');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

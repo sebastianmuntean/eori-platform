@@ -65,7 +65,14 @@ export async function GET() {
     });
   } catch (error) {
     logError('Failed to fetch saved reports', error);
-    return formatErrorResponse(error, 'Failed to fetch saved reports');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
@@ -116,7 +123,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logError('Failed to create saved report', error);
-    return formatErrorResponse(error, 'Failed to create saved report');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

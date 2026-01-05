@@ -1574,7 +1574,14 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     logError('Failed to generate fake data', error);
-    return formatErrorResponse(error, 'Failed to generate fake data');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 

@@ -34,7 +34,14 @@ export async function GET(
       );
     }
     logError('Failed to generate report data', error);
-    return formatErrorResponse(error, 'Failed to generate report data');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
