@@ -16,8 +16,11 @@ import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
 
 export default function ProdusePangarPage() {
+  const { loading: permissionLoading } = useRequirePermission(PANGARE_PERMISSIONS.VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
@@ -60,6 +63,11 @@ export default function ProdusePangarPage() {
     minStock: '',
     isActive: true,
   });
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   useEffect(() => {
     fetchParishes({ all: true });
@@ -423,4 +431,5 @@ export default function ProdusePangarPage() {
     </div>
   );
 }
+
 

@@ -14,6 +14,8 @@ import { useParishes } from '@/hooks/useParishes';
 import { SqlMappingEditor } from '@/components/online-forms/SqlMappingEditor';
 import { AvailableTablesList } from '@/components/online-forms/AvailableTablesList';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 type MappingType = 'direct' | 'sql' | 'transformation';
 
@@ -33,6 +35,14 @@ export default function EditMappingDatasetPage() {
   const id = params.id as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
+
+  // Check permission to view mapping datasets
+  const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.MAPPING_DATASETS_VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const { dataset, fetchDataset, updateDataset } = useMappingDatasets();
   const { parishes, fetchParishes } = useParishes();

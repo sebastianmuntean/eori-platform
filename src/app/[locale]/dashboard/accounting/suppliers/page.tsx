@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useClients, Client } from '@/hooks/useClients';
@@ -19,13 +19,23 @@ import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency, getClientDisplayName } from '@/lib/utils/accounting';
 import { validateSupplierForm, SupplierFormData } from '@/lib/validations/suppliers';
-import { ClientForm, ClientFormData, createEmptyClientFormData, clientToFormData } from '@/components/accounting/ClientForm';
-import { getClientType } from '@/lib/utils/clients';
+import { ClientForm, ClientFormData } from '@/components/accounting/ClientForm';
+import { getClientType, createEmptyClientFormData, clientToFormData } from '@/lib/utils/clients';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function SuppliersPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.SUPPLIERS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('suppliers'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const {
     clients,
@@ -307,42 +317,31 @@ export default function SuppliersPage() {
         </CardBody>
       </Card>
 
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
         title={`${t('add')} ${t('suppliers')}`}
+        onSubmit={handleCreate}
+        onCancel={resetForm}
+        isSubmitting={isSubmitting}
+        submitLabel={isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
+        error={error || null}
       >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <ClientForm
-            formData={formData}
-            clientType={clientType}
-            formErrors={formErrors}
-            isSubmitting={isSubmitting}
-            onTypeChange={setClientType}
-            onFieldChange={handleFieldChange}
-            onClearError={handleClearError}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => {
-              setShowAddModal(false);
-              resetForm();
-            }} disabled={isSubmitting}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleCreate} disabled={isSubmitting}>
-              {isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        <ClientForm
+          formData={formData}
+          clientType={clientType}
+          formErrors={formErrors}
+          isSubmitting={isSubmitting}
+          onTypeChange={setClientType}
+          onFieldChange={handleFieldChange}
+          onClearError={handleClearError}
+        />
+      </FormModal>
 
-      <Modal
+      <FormModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
@@ -350,34 +349,25 @@ export default function SuppliersPage() {
           setFormErrors({});
         }}
         title={`${t('edit')} ${t('suppliers')}`}
+        onSubmit={handleUpdate}
+        onCancel={() => {
+          setSelectedClient(null);
+          setFormErrors({});
+        }}
+        isSubmitting={isSubmitting}
+        submitLabel={isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
+        error={error || null}
       >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <ClientForm
-            formData={formData}
-            clientType={clientType}
-            formErrors={formErrors}
-            isSubmitting={isSubmitting}
-            onTypeChange={setClientType}
-            onFieldChange={handleFieldChange}
-            onClearError={handleClearError}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => {
-              setShowEditModal(false);
-              setSelectedClient(null);
-              setFormErrors({});
-            }} disabled={isSubmitting}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleUpdate} disabled={isSubmitting}>
-              {isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        <ClientForm
+          formData={formData}
+          clientType={clientType}
+          formErrors={formErrors}
+          isSubmitting={isSubmitting}
+          onTypeChange={setClientType}
+          onFieldChange={handleFieldChange}
+          onClearError={handleClearError}
+        />
+      </FormModal>
 
       <ConfirmDialog
         isOpen={!!deleteConfirm}

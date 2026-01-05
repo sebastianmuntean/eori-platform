@@ -59,8 +59,8 @@ interface UsePaymentsReturn {
     dateTo?: string;
     type?: 'income' | 'expense';
   }) => Promise<void>;
-  createPayment: (data: Partial<Payment>) => Promise<Payment | null>;
-  updatePayment: (id: string, data: Partial<Payment>) => Promise<Payment | null>;
+  createPayment: (data: import('@/lib/types/payments').CreatePaymentData) => Promise<Payment | null>;
+  updatePayment: (id: string, data: import('@/lib/types/payments').UpdatePaymentData) => Promise<Payment | null>;
   deletePayment: (id: string) => Promise<boolean>;
 }
 
@@ -128,7 +128,7 @@ export function usePayments(): UsePaymentsReturn {
     }
   }, []);
 
-  const createPayment = useCallback(async (data: Partial<Payment>): Promise<Payment | null> => {
+  const createPayment = useCallback(async (data: import('@/lib/types/payments').CreatePaymentData): Promise<Payment | null> => {
     setLoading(true);
     setError(null);
 
@@ -157,7 +157,7 @@ export function usePayments(): UsePaymentsReturn {
     }
   }, [fetchPayments]);
 
-  const updatePayment = useCallback(async (id: string, data: Partial<Payment>): Promise<Payment | null> => {
+  const updatePayment = useCallback(async (id: string, data: import('@/lib/types/payments').UpdatePaymentData): Promise<Payment | null> => {
     setLoading(true);
     setError(null);
 

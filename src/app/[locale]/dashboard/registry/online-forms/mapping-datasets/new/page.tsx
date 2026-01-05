@@ -14,6 +14,8 @@ import { MappingEditorModal, Mapping } from '@/components/online-forms/MappingEd
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function CreateMappingDatasetPage() {
   const params = useParams();
@@ -22,6 +24,10 @@ export default function CreateMappingDatasetPage() {
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
 
+  // Check permission to view mapping datasets
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.MAPPING_DATASETS_VIEW);
+
+  // All hooks must be called before any conditional returns
   const { createDataset } = useMappingDatasets();
   const { parishes, fetchParishes } = useParishes();
   const { toasts, success, error: showError, removeToast } = useToast();
@@ -42,8 +48,14 @@ export default function CreateMappingDatasetPage() {
   const [editingIndex, setEditingIndex] = useState<number>(-1);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSave = useCallback(async () => {
     setErrors({});

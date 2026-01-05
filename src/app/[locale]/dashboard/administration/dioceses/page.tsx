@@ -12,11 +12,17 @@ import { Dropdown } from '@/components/ui/Dropdown';
 import { Modal } from '@/components/ui/Modal';
 import { useDioceses, Diocese } from '@/hooks/useDioceses';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 export default function DiocesesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.DIOCESES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('dioceses'));
 
   const {
     dioceses,

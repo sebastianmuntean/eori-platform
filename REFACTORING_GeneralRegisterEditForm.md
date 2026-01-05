@@ -95,3 +95,5 @@ Refactored the `GeneralRegisterEditForm` component to improve code quality, secu
 
 The component is now ready for integration into the detail page. The form should be displayed after document creation (Screen 1) as per the workflow design.
 
+
+

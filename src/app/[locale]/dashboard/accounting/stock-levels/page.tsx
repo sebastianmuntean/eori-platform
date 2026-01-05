@@ -10,11 +10,21 @@ import { useStockLevels, StockLevel } from '@/hooks/useStockLevels';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function StockLevelsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.STOCK_LEVELS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('stockLevels'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const {
     stockLevels,

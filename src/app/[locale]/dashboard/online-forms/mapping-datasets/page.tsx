@@ -12,6 +12,8 @@ import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { useMappingDatasets, MappingDataset } from '@/hooks/useMappingDatasets';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 export default function MappingDatasetsPage() {
   const params = useParams();
@@ -19,6 +21,14 @@ export default function MappingDatasetsPage() {
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
+
+  // Check permission to view mapping datasets
+  const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.MAPPING_DATASETS_VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const {
     datasets,
@@ -231,7 +241,7 @@ export default function MappingDatasetsPage() {
         title={t('confirmDelete')}
       >
         <div className="space-y-4">
-          <p>{tForms('confirmDelete')}</p>
+          <p>{t('confirmDelete')}</p>
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>
               {t('cancel')}

@@ -13,17 +13,23 @@ import { Modal } from '@/components/ui/Modal';
 import { useUsers, User, ImportResult } from '@/hooks/useUsers';
 import { downloadUserImportTemplate } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 type UserRow = User & {
   [key: string]: any;
 };
 
 export default function UtilizatoriPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.USERS_VIEW);
   console.log('Step 1: Rendering Users administration page');
 
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('users'));
 
   const {
     users,
@@ -317,6 +323,14 @@ export default function UtilizatoriPage() {
     { label: t('administration'), href: `/${locale}/dashboard/administration` },
     { label: t('utilizatori') },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering users page');
   return (

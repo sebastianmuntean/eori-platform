@@ -1,81 +1,60 @@
-# Security Review - EORI Platform
-
-**Review Date**: 2024  
-**Reviewer**: AI Security Reviewer  
-**Scope**: Comprehensive security assessment of authentication, authorization, input validation, data protection, and infrastructure security
+# Security Review Report
+**Date:** 2024-12-19  
+**Platform:** EORI Platform  
+**Review Scope:** Comprehensive security audit of authentication, authorization, input validation, data protection, and infrastructure
 
 ---
 
 ## Executive Summary
 
-This security review identified **8 critical vulnerabilities**, **12 high-priority issues**, and **15 medium-priority recommendations** across the codebase. The most severe issues involve SQL injection vulnerabilities, missing CSRF protection, and information disclosure in error messages.
+This security review identified **15 security issues** across authentication, authorization, input validation, XSS/CSRF protection, SQL injection prevention, and infrastructure security. While the application has several good security practices in place (bcrypt password hashing, session management, rate limiting), there are critical vulnerabilities that require immediate attention.
 
-**Overall Security Posture**: ⚠️ **Needs Immediate Attention**
-
-**Priority Actions Required**:
-1. 🔴 **CRITICAL**: Fix SQL injection vulnerability in online forms submission processor
-2. 🔴 **CRITICAL**: Implement CSRF protection for state-changing operations
-3. 🔴 **CRITICAL**: Remove sensitive data from error messages and logs
-4. 🔴 **CRITICAL**: Fix insecure SQL query construction in submission processor
-5. 🟡 **HIGH**: Add rate limiting to authentication endpoints
-6. 🟡 **HIGH**: Implement proper file upload validation and sanitization
-7. 🟡 **HIGH**: Add security headers middleware
-8. 🟡 **HIGH**: Review and harden session management
+**Risk Level Distribution:**
+- 🔴 **Critical:** 3 issues
+- 🟠 **High:** 5 issues
+- 🟡 **Medium:** 4 issues
+- 🟢 **Low:** 3 issues
 
 ---
 
 ## 1. Authentication & Authorization
 
-### ✅ What's Working Well
+### ✅ Strengths
+- ✅ Bcrypt password hashing with configurable rounds (default: 12)
+- ✅ Strong password validation (8+ chars, uppercase, lowercase, number, special char)
+- ✅ Session-based authentication with secure cookies
+- ✅ Account status checks (isActive, approvalStatus)
+- ✅ Session invalidation on password change
+- ✅ Rate limiting on login endpoints
 
-1. **Password Security**: 
-   - Uses bcrypt with configurable rounds (default 12)
-   - Strong password validation (min 8 chars, uppercase, lowercase, number, special char)
-   - Passwords are hashed before storage
+### 🔴 Critical Issues
 
-2. **Session Management**:
-   - Cryptographically secure token generation using `randomBytes(32)`
-   - HttpOnly cookies for session tokens
-   - Secure flag enabled in production
-   - SameSite=strict for CSRF protection
-   - Session expiration (7 days default)
+#### 1.1 CSRF Token Not Used in API Routes
+**Severity:** 🔴 Critical  
+**Location:** All API routes  
+**Issue:** CSRF token generation exists (`src/lib/csrf.ts`) but is not validated in API routes. This leaves the application vulnerable to Cross-Site Request Forgery attacks.
 
-3. **Authorization Framework**:
-   - RBAC system with roles and permissions
-   - `requireParishAccess()` utility for parish-level authorization
-   - Permission checks in critical endpoints
-
-### 🔴 CRITICAL Issues
-
-#### 1.1 Missing CSRF Protection on State-Changing Operations
-
-**Location**: Multiple API routes (POST, PUT, DELETE endpoints)
-
-**Problem**: CSRF tokens are generated and validated, but **not consistently enforced** across all state-changing operations. Many endpoints accept POST/PUT/DELETE requests without CSRF validation.
-
-**Impact**: 
-- Attackers can perform actions on behalf of authenticated users
-- Cross-site request forgery attacks possible
-- Unauthorized data modification
-
-**Current State**:
+**Evidence:**
 ```typescript
-// CSRF utilities exist but are not used in most endpoints
-// src/lib/csrf.ts has validateCsrfToken() but it's rarely called
+// src/lib/csrf.ts - Token generation exists
+export function generateCsrfToken(): string { ... }
+export async function validateCsrfToken(...): Promise<boolean> { ... }
+
+// But no API routes use it
+// src/app/api/**/route.ts - No CSRF validation found
 ```
 
-**Remediation**:
+**Impact:** Attackers can perform actions on behalf of authenticated users without their knowledge.
 
-1. **Create CSRF middleware**:
+**Remediation:**
 ```typescript
-// src/lib/middleware/csrf.ts
+// src/lib/api-security.ts (NEW FILE)
 import { validateCsrfToken, getCsrfTokenFromHeader } from '@/lib/csrf';
-import { createErrorResponse } from '@/lib/api-utils/error-handling';
+import { NextResponse } from 'next/server';
 
 export async function requireCsrfToken(request: Request): Promise<NextResponse | null> {
-  // Skip CSRF for GET, HEAD, OPTIONS
-  const method = request.method;
-  if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+  // Skip CSRF for GET/HEAD/OPTIONS
+  if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     return null;
   }
 
@@ -83,540 +62,532 @@ export async function requireCsrfToken(request: Request): Promise<NextResponse |
   const isValid = await validateCsrfToken(token);
 
   if (!isValid) {
-    return createErrorResponse('Invalid or missing CSRF token', 403);
+    return NextResponse.json(
+      { success: false, error: 'CSRF token validation failed' },
+      { status: 403 }
+    );
   }
 
-  return null; // CSRF check passed
+  return null;
 }
-```
 
-2. **Apply to all state-changing endpoints**:
-```typescript
-// Example: src/app/api/pangare/inventar/route.ts
+// Usage in API routes:
+// src/app/api/users/route.ts
 export async function POST(request: Request) {
-  // Add CSRF check
   const csrfError = await requireCsrfToken(request);
   if (csrfError) return csrfError;
-
+  
   // ... rest of handler
 }
 ```
 
-3. **Update frontend to send CSRF tokens**:
-```typescript
-// Ensure all POST/PUT/DELETE requests include CSRF token header
-const csrfToken = await getCsrfTokenFromCookie();
-fetch('/api/endpoint', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-CSRF-Token': csrfToken || '',
-  },
-  // ...
-});
-```
-
-**Priority**: 🔴 **CRITICAL** - Fix immediately
+**Priority:** Immediate - Implement CSRF protection for all state-changing operations.
 
 ---
 
-#### 1.2 Session Token Not Rotated on Privilege Escalation
+#### 1.2 Session Cookie Security Configuration
+**Severity:** 🟠 High  
+**Location:** `src/lib/session.ts:57-63`
 
-**Location**: `src/lib/session.ts`
+**Issue:** Session cookie `secure` flag only set in production. In development, cookies are sent over HTTP, making them vulnerable to interception.
 
-**Problem**: When a user's permissions or roles change, existing sessions are not invalidated. A user could retain elevated privileges even after being downgraded.
-
-**Impact**:
-- Privilege escalation persistence
-- Security policy violations
-- Audit compliance issues
-
-**Remediation**:
+**Current Code:**
 ```typescript
-// Add session invalidation on role/permission changes
-export async function invalidateSessionsOnPermissionChange(userId: string) {
-  await deleteAllUserSessions(userId);
-  // Log the action for audit
-  await logAuditEvent({
-    userId,
-    action: 'session_invalidated',
-    reason: 'permission_change',
-  });
-}
+cookieStore.set(SESSION_COOKIE_NAME, token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production', // ⚠️ Only secure in production
+  sameSite: 'strict',
+  maxAge: SESSION_MAX_AGE,
+  path: '/',
+});
 ```
 
-**Priority**: 🟡 **HIGH** - Fix within 1 week
+**Remediation:**
+```typescript
+// Always use secure cookies, even in development if HTTPS is available
+const isSecure = process.env.NODE_ENV === 'production' || 
+                 process.env.FORCE_SECURE_COOKIES === 'true';
+
+cookieStore.set(SESSION_COOKIE_NAME, token, {
+  httpOnly: true,
+  secure: isSecure,
+  sameSite: 'strict',
+  maxAge: SESSION_MAX_AGE,
+  path: '/',
+});
+```
+
+**Priority:** High - Ensure secure cookies in all environments with HTTPS.
 
 ---
 
-#### 1.3 Missing Rate Limiting on Authentication Endpoints
+#### 1.3 Excessive Console Logging of Sensitive Information
+**Severity:** 🟡 Medium  
+**Location:** Multiple files
 
-**Location**: `src/app/api/auth/login/route.ts`
+**Issue:** Console logs may expose sensitive information in production if logs are accessible.
 
-**Problem**: No rate limiting on login attempts, allowing brute force attacks.
-
-**Impact**:
-- Brute force password attacks
-- Account enumeration
-- DoS attacks
-
-**Remediation**:
+**Evidence:**
 ```typescript
-// src/lib/rate-limit.ts
-import { LRUCache } from 'lru-cache';
+// src/lib/auth.ts:28-32
+console.log(`Step 1: Hashing password`);
+// ... password operations logged
 
-const loginAttempts = new LRUCache<string, number>({
-  max: 500,
-  ttl: 15 * 60 * 1000, // 15 minutes
-});
+// src/lib/session.ts:72
+console.log(`Step 1: Reading session token from cookie`);
+```
 
-export function checkRateLimit(identifier: string, maxAttempts: number = 5): boolean {
-  const attempts = loginAttempts.get(identifier) || 0;
-  if (attempts >= maxAttempts) {
-    return false;
+**Remediation:**
+```typescript
+// src/lib/logger.ts - Use structured logging
+export function logSecurityEvent(event: string, metadata?: Record<string, any>) {
+  // Remove sensitive fields
+  const safeMetadata = { ...metadata };
+  delete safeMetadata.password;
+  delete safeMetadata.token;
+  delete safeMetadata.passwordHash;
+  
+  if (process.env.NODE_ENV === 'production') {
+    // Send to secure logging service (Sentry, etc.)
+    logger.info(event, safeMetadata);
+  } else {
+    console.log(`[SECURITY] ${event}`, safeMetadata);
   }
-  loginAttempts.set(identifier, attempts + 1);
-  return true;
 }
 
-// In login route:
+// Replace console.log with:
+logSecurityEvent('Password hashing initiated', { userId });
+```
+
+**Priority:** Medium - Remove sensitive data from logs.
+
+---
+
+### 🟠 High Priority Issues
+
+#### 1.4 Missing Permission Checks in Some API Routes
+**Severity:** 🟠 High  
+**Location:** Various API routes
+
+**Issue:** While page-level permissions were recently added, some API routes may still lack permission checks.
+
+**Remediation:**
+```typescript
+// Ensure all API routes check permissions:
 export async function POST(request: Request) {
-  const { email } = await request.json();
-  const clientId = request.headers.get('x-forwarded-for') || 'unknown';
-  
-  if (!checkRateLimit(`${email}:${clientId}`, 5)) {
-    return createErrorResponse('Too many login attempts. Please try again later.', 429);
+  const { userId } = await getCurrentUser();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Check specific permission
+  await requirePermission(ONLINE_FORMS_PERMISSIONS.CREATE);
   
-  // ... rest of login logic
+  // ... rest of handler
 }
 ```
 
-**Priority**: 🟡 **HIGH** - Fix within 1 week
-
----
-
-### 🟡 HIGH Priority Issues
-
-#### 1.4 Session Cookie Secure Flag Only in Production
-
-**Location**: `src/lib/session.ts:58`
-
-**Problem**: `secure` flag is only set in production, allowing session hijacking over HTTP in development.
-
-**Current Code**:
-```typescript
-secure: process.env.NODE_ENV === 'production',
-```
-
-**Remediation**:
-```typescript
-// Always use secure cookies, or check for HTTPS
-secure: process.env.NODE_ENV === 'production' || process.env.FORCE_SECURE_COOKIES === 'true',
-```
-
-**Priority**: 🟡 **MEDIUM** - Fix before production deployment
+**Priority:** High - Audit all API routes for permission checks.
 
 ---
 
 ## 2. Input Validation & Sanitization
 
-### 🔴 CRITICAL Issues
+### ✅ Strengths
+- ✅ Zod schema validation in many routes
+- ✅ Basic XSS sanitization function exists
+- ✅ SQL injection prevention via Drizzle ORM (parameterized queries)
 
-#### 2.1 SQL Injection Vulnerability in Online Forms Submission Processor
+### 🔴 Critical Issues
 
-**Location**: `src/lib/online-forms/submission-processor.ts:136-151`
+#### 2.1 SQL Injection Risk in Dynamic SQL Execution
+**Severity:** 🔴 Critical  
+**Location:** `src/app/api/online-forms/mapping-datasets/test-sql/route.ts:76`
 
-**Problem**: **CRITICAL SQL INJECTION VULNERABILITY**. User input is directly interpolated into SQL queries using string replacement, allowing SQL injection attacks.
+**Issue:** Raw SQL execution using `sql.raw()` with user-provided input, even after validation. The validation is not comprehensive enough.
 
-**Current Vulnerable Code**:
+**Current Code:**
 ```typescript
-// Extract parameter values from form data
-Object.keys(formData).forEach((key) => {
-  processedQuery = processedQuery.replace(
-    new RegExp(`\\$${paramIndex}`, 'g'),
-    `'${formData[key]}'`  // ⚠️ DIRECT STRING INTERPOLATION - SQL INJECTION!
-  );
-  queryParams.push(formData[key]);
-  paramIndex++;
-});
+const limitedQuery = testQuery.includes('LIMIT') 
+  ? testQuery 
+  : `${testQuery} LIMIT 1`;
+
+const result = await db.execute(sql.raw(limitedQuery)); // ⚠️ Raw SQL execution
 ```
 
-**Impact**:
-- **CRITICAL**: Full database compromise possible
-- Data exfiltration
-- Data modification/deletion
-- Privilege escalation
+**Problems:**
+1. SQL validator (`src/lib/online-forms/sql-validator.ts`) uses simple string matching
+2. Can be bypassed with comments: `SELECT * FROM users -- DROP TABLE users;`
+3. No protection against UNION-based attacks
+4. Table name validation is basic regex
 
-**Remediation**:
-
-1. **IMMEDIATELY DISABLE** this feature until fixed:
+**Remediation:**
 ```typescript
-// Add at the top of the function
-if (transformation?.mappingType === 'sql' && transformation?.sqlQuery) {
-  console.error('SQL mapping execution is disabled due to security concerns');
-  throw new Error('SQL mapping is not currently supported');
-}
-```
-
-2. **Implement proper parameterized queries**:
-```typescript
-// Use Drizzle ORM parameterized queries instead
+// src/lib/online-forms/sql-validator.ts - Enhanced validation
 import { sql } from 'drizzle-orm';
 
-// Validate SQL query first (already exists in sql-validator.ts)
-const validation = validateSqlQuery(sqlQuery, allowedTables);
-if (!validation.valid) {
-  throw new Error(validation.error);
+export function validateSqlQueryEnhanced(
+  sqlQuery: string,
+  allowedTables: string[]
+): { valid: boolean; error?: string; safeQuery?: string } {
+  // 1. Remove comments
+  const withoutComments = sqlQuery
+    .replace(/--.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // 2. Check for forbidden keywords (case-insensitive, whole word)
+  const forbiddenPattern = new RegExp(
+    `\\b(${FORBIDDEN_KEYWORDS.join('|')})\\b`,
+    'gi'
+  );
+  if (forbiddenPattern.test(withoutComments)) {
+    return { valid: false, error: 'Query contains forbidden keywords' };
+  }
+
+  // 3. Parse and validate table names using SQL parser (consider using node-sql-parser)
+  // 4. Only allow SELECT statements
+  if (!withoutComments.trim().toUpperCase().startsWith('SELECT')) {
+    return { valid: false, error: 'Only SELECT queries allowed' };
+  }
+
+  // 5. Build safe parameterized query
+  // Instead of raw SQL, use Drizzle's query builder
+  return { valid: true, safeQuery: withoutComments };
 }
 
-// Use parameterized queries
-const params: any[] = [];
-Object.keys(formData).forEach((key, index) => {
-  params.push(formData[key]);
-});
+// In route handler:
+const validation = validateSqlQueryEnhanced(sqlQuery, allowedTables);
+if (!validation.valid) {
+  return NextResponse.json({ error: validation.error }, { status: 400 });
+}
 
-// Execute with proper parameterization
-const result = await db.execute(
-  sql.raw(sqlQuery.replace(/\$\d+/g, () => `$${params.length + 1}`), params)
+// Use EXPLAIN instead of execution, or use query builder
+const explainResult = await db.execute(
+  sql.raw(`EXPLAIN (FORMAT JSON) ${validation.safeQuery}`)
 );
 ```
 
-3. **Better approach - Use Drizzle query builder**:
+**Alternative:** Use a SQL parser library:
 ```typescript
-// Instead of raw SQL, use Drizzle's type-safe query builder
-// This eliminates SQL injection risk entirely
-const result = await db
-  .select()
-  .from(allowedTable)
-  .where(eq(allowedTable.column, formData[fieldKey]));
-```
+import { Parser } from 'node-sql-parser';
 
-**Priority**: 🔴 **CRITICAL** - Fix immediately, disable feature until fixed
-
----
-
-#### 2.2 Insecure SQL Query String Replacement
-
-**Location**: `src/lib/online-forms/submission-processor.ts:145-148`
-
-**Problem**: Even with the comment "use parameterized queries", the code uses string replacement which is vulnerable.
-
-**Remediation**: See 2.1 above - use proper parameterized queries or Drizzle ORM.
-
-**Priority**: 🔴 **CRITICAL** - Same as 2.1
-
----
-
-### 🟡 HIGH Priority Issues
-
-#### 2.3 Missing Input Validation on Query Parameters
-
-**Location**: Multiple API routes
-
-**Problem**: While some endpoints validate UUIDs, many query parameters are not validated for type, length, or format.
-
-**Example**: `src/app/api/pangare/inventar/book-inventory/route.ts` (recently fixed, but pattern should be applied everywhere)
-
-**Remediation**: Create validation middleware:
-```typescript
-// src/lib/middleware/validation.ts
-import { z } from 'zod';
-import { createErrorResponse } from '@/lib/api-utils/error-handling';
-
-export function validateQueryParams<T extends z.ZodType>(
-  searchParams: URLSearchParams,
-  schema: T
-): z.infer<T> | NextResponse {
-  const params = Object.fromEntries(searchParams.entries());
-  const result = schema.safeParse(params);
-  
-  if (!result.success) {
-    return createErrorResponse(
-      `Invalid query parameters: ${result.error.errors[0].message}`,
-      400
-    );
+const parser = new Parser();
+try {
+  const ast = parser.astify(sqlQuery);
+  // Validate AST structure
+  if (ast.type !== 'select') {
+    throw new Error('Only SELECT queries allowed');
   }
-  
-  return result.data;
+  // Validate table names from AST
+  const tables = extractTablesFromAST(ast);
+  for (const table of tables) {
+    if (!allowedTables.includes(table)) {
+      throw new Error(`Table ${table} not allowed`);
+    }
+  }
+} catch (error) {
+  return { valid: false, error: error.message };
 }
 ```
 
-**Priority**: 🟡 **HIGH** - Apply to all endpoints
+**Priority:** Immediate - This is a critical SQL injection vector.
 
 ---
 
-#### 2.4 File Upload Path Traversal Vulnerability
+#### 2.2 XSS Vulnerability via dangerouslySetInnerHTML
+**Severity:** 🔴 Critical  
+**Location:** 
+- `src/components/email-templates/EmailTemplatePreview.tsx:112`
+- `src/lib/utils/accounting.ts:102`
+- `src/app/[locale]/dashboard/accounting/contracts/page.tsx:979`
 
-**Location**: `src/lib/services/file-storage-service.ts:106-108`
+**Issue:** User-controlled HTML is rendered without sanitization using `dangerouslySetInnerHTML`.
 
-**Problem**: File extension extraction doesn't sanitize path separators, allowing potential path traversal.
-
-**Current Code**:
+**Current Code:**
 ```typescript
-const fileExtension = fileName.split('.').pop() || '';
-const uniqueFileName = `${randomUUID()}.${fileExtension}`;
+// EmailTemplatePreview.tsx
+<div
+  dangerouslySetInnerHTML={{ __html: previewHtml }} // ⚠️ Unsanitized HTML
+/>
 ```
 
-**Impact**: 
-- Path traversal attacks
-- Overwriting system files
-- Directory traversal
+**Impact:** If email templates contain user input, XSS attacks are possible.
 
-**Remediation**:
+**Remediation:**
 ```typescript
-// Sanitize file extension
-function sanitizeFileExtension(fileName: string): string {
-  const extension = fileName.split('.').pop()?.toLowerCase() || '';
-  // Remove any path separators, special characters
-  return extension.replace(/[^a-z0-9]/g, '').slice(0, 10); // Max 10 chars
-}
+// Install: npm install dompurify @types/dompurify
+import DOMPurify from 'dompurify';
 
-// Validate extension is in whitelist
-const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'csv'];
+// In component:
+const sanitizedHtml = DOMPurify.sanitize(previewHtml, {
+  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3'],
+  ALLOWED_ATTR: ['href', 'target', 'rel'],
+  ALLOW_DATA_ATTR: false,
+});
 
-const fileExtension = sanitizeFileExtension(fileName);
-if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
-  throw new Error('File extension not allowed');
-}
-
-const uniqueFileName = `${randomUUID()}.${fileExtension}`;
+<div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
 ```
 
-**Priority**: 🟡 **HIGH** - Fix immediately
+**For Server-Side (Next.js):**
+```typescript
+// src/lib/sanitize.ts
+import { JSDOM } from 'jsdom';
+import DOMPurify from 'dompurify';
+
+const window = new JSDOM('').window;
+const purify = DOMPurify(window as any);
+
+export function sanitizeHtml(html: string): string {
+  return purify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li'],
+    ALLOWED_ATTR: ['href', 'target'],
+  });
+}
+```
+
+**Priority:** Immediate - XSS vulnerabilities are critical.
 
 ---
 
-#### 2.5 MIME Type Validation Bypass
+### 🟠 High Priority Issues
 
-**Location**: `src/lib/services/file-storage-service.ts:49-70`
+#### 2.3 Weak Input Sanitization
+**Severity:** 🟠 High  
+**Location:** `src/lib/validation.ts:6-10`
 
-**Problem**: MIME type validation relies on client-provided `file.type`, which can be spoofed.
+**Issue:** Sanitization only removes `<` and `>`, which is insufficient.
 
-**Impact**:
-- Malicious file uploads
-- Execution of uploaded scripts
-- XSS attacks via uploaded files
-
-**Remediation**:
+**Current Code:**
 ```typescript
-import { fileTypeFromBuffer } from 'file-type';
-
-// Validate actual file content, not just MIME type
-async function validateFileContent(buffer: Buffer): Promise<{ valid: boolean; mimeType?: string; error?: string }> {
-  const fileType = await fileTypeFromBuffer(buffer);
-  
-  if (!fileType) {
-    return { valid: false, error: 'Unable to determine file type' };
-  }
-  
-  const detectedMimeType = fileType.mime;
-  if (!ALLOWED_MIME_TYPES.includes(detectedMimeType)) {
-    return { valid: false, error: `File type ${detectedMimeType} not allowed` };
-  }
-  
-  return { valid: true, mimeType: detectedMimeType };
-}
-
-// Use in upload function
-const contentValidation = await validateFileContent(buffer);
-if (!contentValidation.valid) {
-  throw new Error(contentValidation.error);
+export function sanitizeString(input: string): string {
+  return input
+    .replace(/[<>]/g, '') // Only removes < and >
+    .trim();
 }
 ```
 
-**Priority**: 🟡 **HIGH** - Fix within 1 week
+**Remediation:**
+```typescript
+import DOMPurify from 'dompurify';
+
+export function sanitizeString(input: string): string {
+  // Remove HTML tags and encode special characters
+  return DOMPurify.sanitize(input, { 
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  }).trim();
+}
+
+// For HTML content that needs to be preserved:
+export function sanitizeHtml(input: string): string {
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em'],
+    ALLOWED_ATTR: [],
+  });
+}
+```
+
+**Priority:** High - Improve input sanitization.
+
+---
+
+#### 2.4 File Upload Security
+**Severity:** 🟠 High  
+**Location:** Multiple file upload endpoints
+
+**Issue:** File uploads may lack proper validation:
+- File type validation
+- File size limits (some exist, but may be inconsistent)
+- Filename sanitization
+- Virus scanning
+
+**Evidence:**
+```typescript
+// src/app/api/pilgrimages/[id]/documents/route.ts
+const file = formData.get('file') as File;
+// No MIME type validation visible
+// No filename sanitization
+```
+
+**Remediation:**
+```typescript
+// src/lib/file-upload-security.ts
+import { extname } from 'path';
+
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+export function validateFileUpload(file: File): {
+  valid: boolean;
+  error?: string;
+} {
+  // 1. Check file size
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: 'File size exceeds maximum allowed size' };
+  }
+
+  // 2. Check MIME type
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return { valid: false, error: 'File type not allowed' };
+  }
+
+  // 3. Sanitize filename
+  const sanitizedFilename = sanitizeFilename(file.name);
+  if (sanitizedFilename !== file.name) {
+    return { valid: false, error: 'Invalid filename' };
+  }
+
+  // 4. Check extension matches MIME type
+  const ext = extname(file.name).toLowerCase();
+  const expectedExts: Record<string, string[]> = {
+    'application/pdf': ['.pdf'],
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+  };
+  
+  if (expectedExts[file.type] && !expectedExts[file.type].includes(ext)) {
+    return { valid: false, error: 'File extension does not match file type' };
+  }
+
+  return { valid: true };
+}
+
+function sanitizeFilename(filename: string): string {
+  // Remove path traversal attempts
+  const basename = filename.replace(/^.*[\\/]/, '');
+  // Remove dangerous characters
+  return basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+// Usage in route:
+const file = formData.get('file') as File;
+const validation = validateFileUpload(file);
+if (!validation.valid) {
+  return NextResponse.json({ error: validation.error }, { status: 400 });
+}
+```
+
+**Priority:** High - File uploads are common attack vectors.
 
 ---
 
 ## 3. Data Protection
 
-### 🔴 CRITICAL Issues
+### ✅ Strengths
+- ✅ Passwords hashed with bcrypt
+- ✅ Session tokens are cryptographically random
+- ✅ Error messages don't expose sensitive data in production
 
-#### 3.1 Sensitive Data in Error Messages
+### 🟠 High Priority Issues
 
-**Location**: Multiple files, especially `src/lib/errors.ts`
+#### 3.1 Environment Variables Exposure Risk
+**Severity:** 🟠 High  
+**Location:** Multiple files using `process.env`
 
-**Problem**: Error messages in development mode expose sensitive information including:
-- Database connection strings
-- Table/column names
-- Stack traces with file paths
-- Internal error details
+**Issue:** `NEXT_PUBLIC_*` environment variables are exposed to the client. Some sensitive values might be accidentally exposed.
 
-**Current Code**:
+**Evidence:**
 ```typescript
-// src/lib/errors.ts:113-140
-function formatErrorMessage(errorType: ErrorType, originalMessage: string): string {
-  const isProduction = process.env.NODE_ENV === 'production';
+// next.config.js - Sentry DSN is public
+process.env.NEXT_PUBLIC_SENTRY_DSN
+
+// This is fine, but ensure no secrets use NEXT_PUBLIC_ prefix
+```
+
+**Remediation:**
+1. Audit all `NEXT_PUBLIC_*` variables
+2. Ensure no secrets use this prefix
+3. Document which variables are safe to expose
+
+```typescript
+// src/lib/config/env.ts - Centralized env validation
+import { z } from 'zod';
+
+const envSchema = z.object({
+  // Server-only (never exposed to client)
+  DATABASE_URL: z.string().min(1),
+  BREVO_API_KEY: z.string().min(1),
+  SESSION_SECRET: z.string().min(32),
   
-  switch (errorType) {
-    case ErrorType.DATABASE_TABLE_NOT_FOUND:
-      return isProduction
-        ? 'Database table not found. Please ensure migrations have been run.'
-        : `Database error: ${originalMessage}. This usually means the table or column doesn't exist.`;
-    // ...
-  }
-}
-```
-
-**Impact**:
-- Information disclosure
-- Attack surface enumeration
-- Database structure exposure
-
-**Remediation**:
-```typescript
-// Never expose internal details, even in development
-function formatErrorMessage(errorType: ErrorType, originalMessage: string): string {
-  // Log full details server-side only
-  logger.error('Internal error', { errorType, originalMessage });
-  
-  // Return generic messages to client
-  switch (errorType) {
-    case ErrorType.DATABASE_TABLE_NOT_FOUND:
-      return 'A database error occurred. Please contact support.';
-    case ErrorType.DATABASE_CONNECTION:
-      return 'Service temporarily unavailable. Please try again later.';
-    case ErrorType.DATABASE_OPERATION:
-      return 'A database error occurred. Please try again.';
-    default:
-      return 'An unexpected error occurred. Please try again.';
-  }
-}
-```
-
-**Priority**: 🔴 **CRITICAL** - Fix immediately
-
----
-
-#### 3.2 Console Logging of Sensitive Data
-
-**Location**: Throughout codebase (especially `src/lib/session.ts`, `src/lib/auth.ts`)
-
-**Problem**: Session tokens, user IDs, and other sensitive data are logged to console.
-
-**Examples**:
-```typescript
-// src/lib/session.ts:41
-console.log(`✓ Session created with token: ${token.substring(0, 8)}...`);
-
-// src/lib/auth.ts:140
-console.log(`✓ Login successful for user: ${user.id}`);
-```
-
-**Impact**:
-- Token leakage in logs
-- User enumeration
-- Audit trail contamination
-
-**Remediation**:
-```typescript
-// Use structured logging without sensitive data
-import { logger } from '@/lib/utils/logger';
-
-// Instead of:
-console.log(`✓ Session created with token: ${token.substring(0, 8)}...`);
-
-// Use:
-logger.info('Session created', { 
-  userId, 
-  tokenPrefix: token.substring(0, 4), // Only first 4 chars
-  ipAddress: sanitizeIp(ipAddress), // Sanitize IPs
+  // Public (safe to expose)
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
 });
+
+export const env = envSchema.parse(process.env);
 ```
 
-**Priority**: 🟡 **HIGH** - Fix within 1 week
+**Priority:** High - Prevent accidental secret exposure.
 
 ---
 
-### 🟡 HIGH Priority Issues
+#### 3.2 Information Disclosure in Error Messages
+**Severity:** 🟡 Medium  
+**Location:** Error handling throughout application
 
-#### 3.3 Missing Encryption at Rest for Sensitive Fields
+**Issue:** Development error messages may leak sensitive information if not properly filtered.
 
-**Location**: Database schema
+**Remediation:**
+```typescript
+// src/lib/errors.ts - Enhanced error sanitization
+export function sanitizeError(error: unknown): {
+  message: string;
+  code?: string;
+} {
+  if (process.env.NODE_ENV === 'production') {
+    // Never expose stack traces or internal details
+    if (error instanceof Error) {
+      // Only expose safe error messages
+      const safeMessages = [
+        'Invalid credentials',
+        'Resource not found',
+        'Validation failed',
+      ];
+      
+      if (safeMessages.includes(error.message)) {
+        return { message: error.message };
+      }
+      
+      return { message: 'An error occurred', code: 'INTERNAL_ERROR' };
+    }
+    return { message: 'An error occurred' };
+  }
+  
+  // Development: show full details
+  return {
+    message: error instanceof Error ? error.message : 'Unknown error',
+    code: error instanceof Error ? error.name : undefined,
+  };
+}
+```
 
-**Problem**: Sensitive data like email addresses, personal information may not be encrypted at rest.
-
-**Remediation**: 
-- Use database-level encryption for sensitive columns
-- Consider field-level encryption for PII
-- Implement encryption key rotation
-
-**Priority**: 🟡 **MEDIUM** - Review and implement based on compliance requirements
-
----
-
-#### 3.4 API Response Information Leakage
-
-**Location**: Multiple API endpoints
-
-**Problem**: Some endpoints return more information than necessary, potentially exposing:
-- Internal IDs
-- Database structure
-- User enumeration possibilities
-
-**Remediation**: 
-- Review all API responses
-- Remove unnecessary fields
-- Use consistent error messages
-- Implement response filtering middleware
-
-**Priority**: 🟡 **MEDIUM** - Review and fix incrementally
+**Priority:** Medium - Prevent information leakage.
 
 ---
 
 ## 4. Infrastructure Security
 
-### 🟡 HIGH Priority Issues
+### ✅ Strengths
+- ✅ Security headers implemented (CSP, X-Frame-Options, etc.)
+- ✅ HSTS enabled in production
+- ✅ Rate limiting implemented
 
-#### 4.1 Missing Security Headers Middleware
+### 🟡 Medium Priority Issues
 
-**Location**: `src/middleware.ts`
+#### 4.1 Content Security Policy Too Permissive
+**Severity:** 🟡 Medium  
+**Location:** `src/lib/security-headers.ts:27-30`
 
-**Problem**: Security headers are defined in `src/lib/security-headers.ts` but not applied globally via middleware.
+**Issue:** CSP allows `'unsafe-eval'` and `'unsafe-inline'`, which reduces XSS protection.
 
-**Impact**:
-- Missing CSP protection
-- Clickjacking vulnerabilities
-- MIME type sniffing attacks
-
-**Remediation**:
-```typescript
-// src/middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { addSecurityHeaders } from '@/lib/security-headers';
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/config';
-
-const intlMiddleware = createMiddleware(routing);
-
-export default function middleware(request: NextRequest) {
-  // Apply i18n middleware first
-  const response = intlMiddleware(request);
-  
-  // Add security headers to all responses
-  return addSecurityHeaders(request, response);
-}
-
-export const config = {
-  matcher: [
-    '/((?!api|_next|_vercel|.*\\..*).*)',
-  ],
-};
-```
-
-**Priority**: 🟡 **HIGH** - Fix immediately
-
----
-
-#### 4.2 CSP Allows Unsafe Eval and Inline Scripts
-
-**Location**: `src/lib/security-headers.ts:13`
-
-**Problem**: Content Security Policy allows `'unsafe-eval'` and `'unsafe-inline'`, reducing XSS protection.
-
-**Current Code**:
+**Current Code:**
 ```typescript
 response.headers.set(
   'Content-Security-Policy',
@@ -624,181 +595,186 @@ response.headers.set(
 );
 ```
 
-**Remediation**:
+**Remediation:**
 ```typescript
-// Use nonce-based CSP instead
+// Implement nonce-based CSP
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Buffer.from(array).toString('base64');
+}
+
+// In middleware or layout
 const nonce = generateNonce();
 response.headers.set(
   'Content-Security-Policy',
-  `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'; ...`
+  `default-src 'self'; ` +
+  `script-src 'self' 'nonce-${nonce}'; ` +
+  `style-src 'self' 'nonce-${nonce}'; ` +
+  `img-src 'self' data: https:; ` +
+  `font-src 'self' data:; ` +
+  `connect-src 'self'; ` +
+  `frame-ancestors 'none';`
 );
+
+// Pass nonce to components via context
 ```
 
-**Priority**: 🟡 **MEDIUM** - Fix when refactoring frontend
+**Priority:** Medium - Improve CSP implementation.
 
 ---
 
-#### 4.3 CORS Configuration Issues
+#### 4.2 Missing Dependency Security Scanning
+**Severity:** 🟡 Medium
 
-**Location**: `src/lib/cors.ts:11-14`
+**Issue:** No automated dependency vulnerability scanning detected.
 
-**Problem**: Origin validation doesn't handle null origins properly, and wildcard subdomains aren't supported.
+**Remediation:**
+1. Add `npm audit` to CI/CD pipeline
+2. Use Dependabot or Snyk for automated updates
+3. Review and update dependencies regularly
 
-**Current Code**:
-```typescript
-function isOriginAllowed(origin: string | null): boolean {
-  if (!origin) return false;
-  return ALLOWED_ORIGINS.includes(origin);
-}
-```
-
-**Remediation**:
-```typescript
-function isOriginAllowed(origin: string | null): boolean {
-  if (!origin) {
-    // Allow null origin only for same-origin requests
-    return false;
-  }
-  
-  // Support wildcard subdomains
-  return ALLOWED_ORIGINS.some(allowed => {
-    if (allowed === origin) return true;
-    if (allowed.startsWith('*.')) {
-      const domain = allowed.slice(2);
-      return origin.endsWith(`.${domain}`) || origin === domain;
-    }
-    return false;
-  });
-}
-```
-
-**Priority**: 🟡 **MEDIUM** - Fix before production
-
----
-
-#### 4.4 Environment Variable Exposure Risk
-
-**Location**: `next.config.js`, various files
-
-**Problem**: Environment variables may be exposed to client-side code if prefixed with `NEXT_PUBLIC_`.
-
-**Remediation**:
-- Audit all `NEXT_PUBLIC_` variables
-- Ensure no secrets are exposed
-- Use server-side only for sensitive config
-- Implement environment variable validation
-
-**Priority**: 🟡 **MEDIUM** - Review and fix
-
----
-
-## 5. Dependency Security
-
-### 🟡 MEDIUM Priority Issues
-
-#### 5.1 Missing Dependency Vulnerability Scanning
-
-**Problem**: No automated dependency vulnerability scanning in CI/CD.
-
-**Remediation**:
 ```json
-// package.json
+// package.json - Add scripts
 {
   "scripts": {
     "security:audit": "npm audit",
+    "security:fix": "npm audit fix",
     "security:check": "npm audit --audit-level=moderate"
   }
 }
 ```
 
-**Priority**: 🟡 **MEDIUM** - Implement in CI/CD
+**Priority:** Medium - Implement dependency scanning.
 
 ---
 
-## 6. Additional Security Recommendations
+#### 4.3 CORS Configuration
+**Severity:** 🟢 Low  
+**Location:** `src/lib/cors.ts`
 
-### 🟢 MEDIUM Priority
+**Issue:** CORS configuration exists but may need review for production.
 
-1. **Implement Request ID Tracking**: Add request IDs to all logs for better audit trails
-2. **Add Security Monitoring**: Implement intrusion detection and anomaly detection
-3. **Regular Security Audits**: Schedule quarterly security reviews
-4. **Penetration Testing**: Conduct annual penetration tests
-5. **Security Training**: Provide security training for developers
-6. **Incident Response Plan**: Document and test incident response procedures
+**Remediation:**
+```typescript
+// Ensure CORS is properly configured
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : [];
+
+// In production, never use '*'
+if (process.env.NODE_ENV === 'production' && ALLOWED_ORIGINS.length === 0) {
+  throw new Error('ALLOWED_ORIGINS must be set in production');
+}
+```
+
+**Priority:** Low - Review CORS configuration.
 
 ---
 
-## 7. Remediation Priority Matrix
+## 5. Additional Security Recommendations
+
+### 5.1 Implement Security Headers for API Routes
+**Priority:** Medium
+
+```typescript
+// src/lib/api-security.ts
+export function addApiSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  return response;
+}
+```
+
+### 5.2 Add Request ID Tracking
+**Priority:** Low
+
+```typescript
+// Add request ID for audit trails
+const requestId = crypto.randomUUID();
+response.headers.set('X-Request-ID', requestId);
+```
+
+### 5.3 Implement Account Lockout
+**Priority:** Medium
+
+```typescript
+// After N failed login attempts, lock account temporarily
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+```
+
+---
+
+## Security Checklist
+
+- [x] Verified proper authentication mechanisms (bcrypt, sessions)
+- [x] Checked authorization controls (RBAC implemented)
+- [x] Reviewed session management (secure cookies, expiration)
+- [x] Ensured secure password policies (strong validation)
+- [x] Identified SQL injection vulnerabilities (dynamic SQL execution)
+- [x] Checked for XSS attack vectors (dangerouslySetInnerHTML)
+- [x] Validated user inputs (Zod schemas, but needs improvement)
+- [x] Ensured sensitive data encryption (passwords hashed)
+- [x] Checked for data exposure in logs (excessive console.log)
+- [x] Reviewed dependency security (needs automated scanning)
+- [x] Analyzed CORS policies (needs production review)
+- [ ] **CSRF protection not implemented in API routes** ⚠️
+- [ ] **SQL injection risk in dynamic queries** ⚠️
+- [ ] **XSS via dangerouslySetInnerHTML** ⚠️
+
+---
+
+## Remediation Priority
 
 ### Immediate (This Week)
-1. ✅ Fix SQL injection in submission processor (2.1)
-2. ✅ Remove sensitive data from error messages (3.1)
-3. ✅ Implement CSRF protection (1.1)
-4. ✅ Add security headers middleware (4.1)
-5. ✅ Fix file upload path traversal (2.4)
+1. ✅ Implement CSRF protection in API routes
+2. ✅ Fix SQL injection in dynamic SQL execution
+3. ✅ Sanitize HTML in dangerouslySetInnerHTML usage
 
 ### High Priority (This Month)
-1. Add rate limiting (1.3)
-2. Fix MIME type validation (2.5)
-3. Remove console logging of sensitive data (3.2)
-4. Implement input validation middleware (2.3)
-5. Fix session token rotation (1.2)
+4. ✅ Improve input sanitization functions
+5. ✅ Add file upload security validation
+6. ✅ Audit environment variables
+7. ✅ Review and fix session cookie security
 
-### Medium Priority (Next Quarter)
-1. Improve CSP (4.2)
-2. Fix CORS configuration (4.3)
-3. Review environment variables (4.4)
-4. Add dependency scanning (5.1)
-5. Implement encryption at rest (3.3)
+### Medium Priority (Next Month)
+8. ✅ Remove sensitive data from console logs
+9. ✅ Implement nonce-based CSP
+10. ✅ Add dependency security scanning
+11. ✅ Enhance error message sanitization
 
----
-
-## 8. Testing Recommendations
-
-### Security Testing Checklist
-
-- [ ] SQL injection testing on all endpoints
-- [ ] XSS testing on all user inputs
-- [ ] CSRF testing on state-changing operations
-- [ ] Authentication bypass testing
-- [ ] Authorization testing (horizontal/vertical privilege escalation)
-- [ ] File upload security testing
-- [ ] Rate limiting testing
-- [ ] Session management testing
-- [ ] Error message information disclosure testing
-- [ ] Dependency vulnerability scanning
+### Low Priority (Ongoing)
+12. ✅ Review CORS configuration
+13. ✅ Add request ID tracking
+14. ✅ Implement account lockout mechanism
 
 ---
 
-## 9. Conclusion
+## Conclusion
 
-The codebase has a solid foundation with good password security, session management, and authorization framework. However, **critical SQL injection vulnerabilities** and missing CSRF protection require immediate attention.
+The EORI Platform has a solid security foundation with proper password hashing, session management, and rate limiting. However, **3 critical vulnerabilities** require immediate attention:
 
-**Key Strengths**:
-- Strong password hashing (bcrypt)
-- Secure session token generation
-- Good authorization framework
-- Security headers defined (need to be applied)
+1. **CSRF protection missing** - All state-changing API operations are vulnerable
+2. **SQL injection risk** - Dynamic SQL execution with insufficient validation
+3. **XSS vulnerabilities** - Unsanitized HTML rendering
 
-**Critical Weaknesses**:
-- SQL injection vulnerability
-- Missing CSRF protection
-- Information disclosure in errors
-- Insecure file upload handling
+Addressing these issues should be the top priority. The high-priority items (input sanitization, file uploads, environment variables) should follow within the month.
 
-**Estimated Remediation Time**:
-- Critical issues: 2-3 days
-- High priority: 1-2 weeks
-- Medium priority: 1-2 months
-
-**Risk Level**: 🔴 **HIGH** - Address critical issues before production deployment
+**Overall Security Posture:** 🟡 **Moderate** - Good foundation, but critical gaps need immediate attention.
 
 ---
 
-## 10. References
+## Next Steps
 
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [OWASP SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
-- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
-- [Next.js Security Best Practices](https://nextjs.org/docs/app/building-your-application/configuring/security-headers)
+1. **Immediate:** Fix the 3 critical vulnerabilities
+2. **This Week:** Review and implement all high-priority fixes
+3. **This Month:** Complete medium-priority improvements
+4. **Ongoing:** Implement security monitoring and regular audits
 
+---
+
+**Report Generated:** 2024-12-19  
+**Reviewer:** Security Audit System  
+**Next Review:** Recommended in 3 months or after major changes

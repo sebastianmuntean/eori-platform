@@ -10,8 +10,11 @@ import { useWarehouses } from '@/hooks/useWarehouses';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { FilterGrid, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
 
 export default function PangarPage() {
+  const { loading: permissionLoading } = useRequirePermission(PANGARE_PERMISSIONS.VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
@@ -23,6 +26,11 @@ export default function PangarPage() {
 
   const [parishFilter, setParishFilter] = useState('');
   const [warehouseFilter, setWarehouseFilter] = useState('');
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   useEffect(() => {
     fetchParishes({ all: true });

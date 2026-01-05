@@ -45,3 +45,5 @@ export const FIXED_ASSET_STATUS = {
 
 export type FixedAssetStatus = typeof FIXED_ASSET_STATUS[keyof typeof FIXED_ASSET_STATUS];
 
+
+

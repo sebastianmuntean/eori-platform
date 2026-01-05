@@ -10,18 +10,26 @@ import { Select } from '@/components/ui/Select';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useWarehouses, Warehouse } from '@/hooks/useWarehouses';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function WarehousesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('warehouses'));
 
+  // All hooks must be called before any conditional returns
   const {
     warehouses,
     loading,
@@ -58,10 +66,12 @@ export default function WarehousesPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -71,7 +81,7 @@ export default function WarehousesPage() {
       isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
     };
     fetchWarehouses(params);
-  }, [currentPage, searchTerm, parishFilter, typeFilter, isActiveFilter, fetchWarehouses]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, typeFilter, isActiveFilter, fetchWarehouses]);
 
   const handleAdd = () => {
     resetForm();
@@ -156,7 +166,7 @@ export default function WarehousesPage() {
       sortable: false,
       render: (value: string | null) => (
         value ? (
-          <Badge variant="outline" size="sm">
+          <Badge variant="secondary" size="sm">
             {value}
           </Badge>
         ) : (
@@ -196,6 +206,11 @@ export default function WarehousesPage() {
     },
   ];
 
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
+
   return (
     <div className="space-y-6">
       <Breadcrumbs
@@ -218,8 +233,8 @@ export default function WarehousesPage() {
             <div className="flex gap-4">
               <SearchInput
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                onChange={(value: string) => {
+                  setSearchTerm(value);
                   setCurrentPage(1);
                 }}
                 placeholder={t('search') || 'Search...'}
@@ -238,8 +253,8 @@ export default function WarehousesPage() {
               <FilterSelect
                 label={t('type') || 'Type'}
                 value={typeFilter}
-                onChange={(e) => {
-                  setTypeFilter(e.target.value);
+                onChange={(value) => {
+                  setTypeFilter(value);
                   setCurrentPage(1);
                 }}
                 options={[
@@ -253,8 +268,8 @@ export default function WarehousesPage() {
               <FilterSelect
                 label={t('status') || 'Status'}
                 value={isActiveFilter}
-                onChange={(e) => {
-                  setIsActiveFilter(e.target.value);
+                onChange={(value) => {
+                  setIsActiveFilter(value);
                   setCurrentPage(1);
                 }}
                 options={[
@@ -280,11 +295,14 @@ export default function WarehousesPage() {
               </div>
             )}
 
-            <Table
-              data={warehouses}
-              columns={columns}
-              loading={loading}
-            />
+            {loading ? (
+              <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+            ) : (
+              <Table
+                data={warehouses}
+                columns={columns}
+              />
+            )}
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
@@ -320,14 +338,23 @@ export default function WarehousesPage() {
       </Card>
 
       {/* Add/Edit Modal */}
-      <Modal
+      <FormModal
         isOpen={showAddModal || showEditModal}
         onClose={() => {
           setShowAddModal(false);
           setShowEditModal(false);
           resetForm();
         }}
+        onCancel={() => {
+          setShowAddModal(false);
+          setShowEditModal(false);
+          resetForm();
+        }}
         title={selectedWarehouse ? (t('editWarehouse') || 'Edit Warehouse') : (t('addWarehouse') || 'Add Warehouse')}
+        onSubmit={handleSave}
+        isSubmitting={false}
+        submitLabel={t('save') || 'Save'}
+        cancelLabel={t('cancel') || 'Cancel'}
         size="lg"
       >
         <div className="space-y-4">
@@ -398,37 +425,20 @@ export default function WarehousesPage() {
             />
             <label htmlFor="isActive" className="text-sm">{t('active') || 'Active'}</label>
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => {
-              setShowAddModal(false);
-              setShowEditModal(false);
-              resetForm();
-            }}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave}>{t('save') || 'Save'}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <ConfirmDialog
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
         title={t('confirmDelete') || 'Confirm Delete'}
-      >
-        <div className="space-y-4">
-          <p>{t('confirmDeleteMessage') || 'Are you sure you want to delete this warehouse?'}</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              {t('delete') || 'Delete'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this warehouse?'}
+        confirmLabel={t('delete') || 'Delete'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        variant="danger"
+      />
     </div>
   );
 }

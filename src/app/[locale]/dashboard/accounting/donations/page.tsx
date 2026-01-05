@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useDonations, Donation } from '@/hooks/useDonations';
@@ -22,12 +22,19 @@ import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter } from 
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency, getClientDisplayName } from '@/lib/utils/accounting';
 import { validateDonationForm, DonationFormData } from '@/lib/validations/donations';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function DonationsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.DONATIONS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('donations'));
 
+  // All hooks must be called before any conditional returns
   const {
     donations,
     loading,
@@ -42,7 +49,7 @@ export default function DonationsPage() {
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
   const { fetchSummary, summary } = usePayments();
-  const { toasts, success, error, removeToast } = useToast();
+  const { toasts, success, error: toastError, removeToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
@@ -70,11 +77,13 @@ export default function DonationsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -94,7 +103,7 @@ export default function DonationsPage() {
       dateTo: dateTo || undefined,
       type: 'income',
     });
-  }, [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchDonations, fetchSummary]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchDonations, fetchSummary]);
 
   const handleCreate = useCallback(async () => {
     setFormErrors({});
@@ -121,14 +130,14 @@ export default function DonationsPage() {
         resetForm();
         success(t('donationCreated') || 'Donation created successfully');
       } else {
-        error(t('errorCreatingDonation') || 'Failed to create donation');
+        toastError(t('errorCreatingDonation') || 'Failed to create donation');
       }
     } catch (err) {
-      error(t('errorCreatingDonation') || 'Failed to create donation');
+      toastError(t('errorCreatingDonation') || 'Failed to create donation');
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, t, createDonation, success, error]);
+  }, [formData, t, createDonation, success, toastError]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedDonation) return;
@@ -157,14 +166,14 @@ export default function DonationsPage() {
         setSelectedDonation(null);
         success(t('donationUpdated') || 'Donation updated successfully');
       } else {
-        error(t('errorUpdatingDonation') || 'Failed to update donation');
+        toastError(t('errorUpdatingDonation') || 'Failed to update donation');
       }
     } catch (err) {
-      error(t('errorUpdatingDonation') || 'Failed to update donation');
+      toastError(t('errorUpdatingDonation') || 'Failed to update donation');
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedDonation, formData, t, updateDonation, success, error]);
+  }, [selectedDonation, formData, t, updateDonation, success, toastError]);
 
   const handleDelete = useCallback(async (id: string) => {
     const result = await deleteDonation(id);
@@ -172,9 +181,9 @@ export default function DonationsPage() {
       setDeleteConfirm(null);
       success(t('donationDeleted') || 'Donation deleted successfully');
     } else {
-      error(t('errorDeletingDonation') || 'Failed to delete donation');
+      toastError(t('errorDeletingDonation') || 'Failed to delete donation');
     }
-  }, [deleteDonation, success, error, t]);
+  }, [deleteDonation, success, toastError, t]);
 
   const handleEdit = (donation: Donation) => {
     setSelectedDonation(donation);
@@ -292,6 +301,11 @@ export default function DonationsPage() {
     { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
     { label: t('donations') },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div>
@@ -420,8 +434,18 @@ export default function DonationsPage() {
       </Card>
 
       {/* Add Modal */}
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={`${t('add')} ${t('donation')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
+        title={`${t('add')} ${t('donation')}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -515,18 +539,22 @@ export default function DonationsPage() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Edit Modal */}
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title={`${t('edit')} ${t('donation')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
+        title={`${t('edit')} ${t('donation')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('update')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -620,14 +648,8 @@ export default function DonationsPage() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleUpdate}>{t('update')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Delete Confirmation Modal */}
       <ConfirmDialog

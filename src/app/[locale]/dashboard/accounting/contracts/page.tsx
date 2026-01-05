@@ -11,7 +11,9 @@ import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { SimpleModal } from '@/components/ui/SimpleModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useContracts, Contract } from '@/hooks/useContracts';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
@@ -19,12 +21,19 @@ import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter, ClientFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { InvoiceTemplateEditor } from '@/components/contracts/InvoiceTemplateEditor';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function ContractsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CONTRACTS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('contracts'));
 
+  // All hooks must be called before any conditional returns
   const {
     contracts,
     loading,
@@ -87,11 +96,13 @@ export default function ContractsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -112,7 +123,7 @@ export default function ContractsPage() {
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     });
-  }, [currentPage, searchTerm, parishFilter, directionFilter, typeFilter, statusFilter, partnerFilter, dateFrom, dateTo, fetchContracts, fetchSummary]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, directionFilter, typeFilter, statusFilter, partnerFilter, dateFrom, dateTo, fetchContracts, fetchSummary]);
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.contractNumber || !formData.startDate || !formData.endDate || !formData.amount) {
@@ -799,6 +810,11 @@ export default function ContractsPage() {
     </>
   );
 
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -935,37 +951,54 @@ export default function ContractsPage() {
         </CardBody>
       </Card>
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={`${t('add')} ${t('contract')}`} size="full">
-        <div className="space-y-6">
-          <ContractFormFields />
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>{t('cancel')}</Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
-          </div>
-        </div>
-      </Modal>
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
+        title={`${t('add')} ${t('contract')}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <ContractFormFields />
+      </FormModal>
 
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title={`${t('edit')} ${t('contract')}`} size="full">
-        <div className="space-y-6">
-          <ContractFormFields />
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>{t('cancel')}</Button>
-            <Button onClick={handleUpdate}>{t('update')}</Button>
-          </div>
-        </div>
-      </Modal>
+      <FormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
+        title={`${t('edit')} ${t('contract')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('update')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <ContractFormFields />
+      </FormModal>
 
-      <Modal isOpen={showRenewModal} onClose={() => setShowRenewModal(false)} title={t('renew')}>
-        <div className="space-y-4">
-          <p>{t('confirmRenew') || 'Are you sure you want to renew this contract?'}</p>
-          <div className="flex justify-end gap-2">
+      <SimpleModal
+        isOpen={showRenewModal}
+        onClose={() => setShowRenewModal(false)}
+        title={t('renew')}
+        actions={
+          <>
             <Button variant="outline" onClick={() => setShowRenewModal(false)}>{t('cancel')}</Button>
             <Button onClick={handleRenew}>{t('renew')}</Button>
-          </div>
-        </div>
-      </Modal>
+          </>
+        }
+      >
+        <p>{t('confirmRenew') || 'Are you sure you want to renew this contract?'}</p>
+      </SimpleModal>
 
-      <Modal isOpen={showInvoicesModal} onClose={() => setShowInvoicesModal(false)} title={selectedContract ? `Fișa Contract ${selectedContract.contractNumber}` : 'Fișa Contract'} size="full">
+      <SimpleModal
+        isOpen={showInvoicesModal}
+        onClose={() => setShowInvoicesModal(false)}
+        title={selectedContract ? `Fișa Contract ${selectedContract.contractNumber}` : 'Fișa Contract'}
+        size="full"
+      >
         <style dangerouslySetInnerHTML={{
           __html: `
             @media print {
@@ -1167,10 +1200,19 @@ export default function ContractsPage() {
             </>
           )}
         </div>
-      </Modal>
+      </SimpleModal>
 
       {selectedContract && (
-        <Modal isOpen={showGenerateInvoiceModal} onClose={() => setShowGenerateInvoiceModal(false)} title={`${t('generateInvoice')} - ${selectedContract.contractNumber}`}>
+        <FormModal
+          isOpen={showGenerateInvoiceModal}
+          onClose={() => setShowGenerateInvoiceModal(false)}
+          onCancel={() => setShowGenerateInvoiceModal(false)}
+          title={`${t('generateInvoice')} - ${selectedContract.contractNumber}`}
+          onSubmit={handleConfirmGenerateInvoice}
+          isSubmitting={loading}
+          submitLabel={loading ? t('generating') || 'Generating...' : t('generate')}
+          cancelLabel={t('cancel')}
+        >
           <div className="space-y-4">
             <Input
               type="number"
@@ -1190,27 +1232,20 @@ export default function ContractsPage() {
               max={12}
               required
             />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowGenerateInvoiceModal(false)}>{t('cancel')}</Button>
-              <Button onClick={handleConfirmGenerateInvoice} disabled={loading}>
-                {loading ? t('generating') || 'Generating...' : t('generate')}
-              </Button>
-            </div>
           </div>
-        </Modal>
+        </FormModal>
       )}
 
-      {deleteConfirm && (
-        <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title={t('confirmDelete')}>
-          <div className="space-y-4">
-            <p>{t('confirmDeleteMessage') || 'Are you sure you want to delete this contract?'}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t('cancel')}</Button>
-              <Button variant="danger" onClick={() => handleDelete(deleteConfirm)}>{t('delete')}</Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        title={t('confirmDelete')}
+        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this contract?'}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+        variant="danger"
+      />
     </div>
   );
 }

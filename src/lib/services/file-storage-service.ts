@@ -1,5 +1,5 @@
 import { writeFile, readFile, unlink, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import { createReadStream, existsSync } from 'fs';
 import { Readable } from 'stream';
@@ -8,7 +8,12 @@ import { documentAttachments } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 
 // File storage directory
-const UPLOAD_DIR = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads', 'documents');
+const UPLOAD_DIR = process.env.UPLOAD_DIR || resolve(process.cwd(), 'uploads', 'documents');
+
+// Helper function to construct paths at runtime (prevents Turbopack static analysis)
+function buildStoragePath(...segments: string[]): string {
+  return join(UPLOAD_DIR, ...segments);
+}
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Allowed MIME types
@@ -120,22 +125,23 @@ export async function uploadDocumentFile(
   }
 
   const uniqueFileName = `${randomUUID()}.${fileExtension}`;
-  // Use path.join to prevent path traversal
-  const storagePath = join(UPLOAD_DIR, documentId, uniqueFileName);
+  // Use runtime path builder to avoid Turbopack static analysis
+  const storagePath = buildStoragePath(documentId, uniqueFileName);
   
   // Additional security: Ensure the resolved path is within UPLOAD_DIR
-  const resolvedPath = join(process.cwd(), storagePath);
-  const uploadDirResolved = join(process.cwd(), UPLOAD_DIR);
-  if (!resolvedPath.startsWith(uploadDirResolved)) {
+  // Use resolve only for the base directory check (static path)
+  const uploadDirResolved = resolve(UPLOAD_DIR);
+  if (!storagePath.startsWith(uploadDirResolved)) {
     throw new Error('Invalid file path detected');
   }
 
   // Ensure upload directory exists
+  const uploadDir = buildStoragePath(documentId);
   try {
-    await mkdir(join(UPLOAD_DIR, documentId), { recursive: true });
+    await mkdir(uploadDir, { recursive: true });
   } catch (error) {
     // Directory might already exist, continue
-    if (!existsSync(join(UPLOAD_DIR, documentId))) {
+    if (!existsSync(uploadDir)) {
       throw new Error('Failed to create upload directory');
     }
   }

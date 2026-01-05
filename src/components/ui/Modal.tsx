@@ -51,7 +51,7 @@ export function Modal({
     md: 'max-w-lg',
     lg: 'max-w-2xl',
     xl: 'max-w-4xl',
-    full: 'max-w-[98vw] w-[98vw] h-[98vh] mx-auto my-auto',
+    full: 'w-[98vw] h-[98vh] max-w-[98vw] max-h-[98vh]',
   };
 
   if (!isOpen) {
@@ -75,15 +75,17 @@ export function Modal({
       {/* Modal Content */}
       <div
         className={cn(
-          'relative bg-bg-primary rounded-lg shadow-xl z-[10000]',
+          'relative bg-bg-primary rounded-lg shadow-xl z-[10000] flex flex-col',
           sizeStyles[size],
-          size === 'full' ? 'h-[98vh] flex flex-col' : 'w-full max-h-[90vh] overflow-hidden flex flex-col'
+          size === 'full' 
+            ? 'h-[98vh]' 
+            : 'w-full max-h-[90vh] overflow-hidden'
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
             {title && (
               <h2 id="modal-title" className="text-xl font-semibold text-text-primary">
                 {title}
@@ -92,7 +94,7 @@ export function Modal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="text-text-secondary hover:text-text-primary transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-bg-secondary"
                 aria-label="Close modal"
               >
                 <svg

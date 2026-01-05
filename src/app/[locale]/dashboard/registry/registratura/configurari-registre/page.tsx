@@ -5,12 +5,22 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { RegisterConfigurationList } from '@/components/registratura/RegisterConfigurationList';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function RegisterConfigurationsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
+
+  // Check permission to view register configurations
+  const { loading } = useRequirePermission(REGISTRATURA_PERMISSIONS.REGISTER_CONFIGURATIONS_VIEW);
+
+  // Don't render content while checking permissions
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

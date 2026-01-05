@@ -8,23 +8,30 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { SimpleModal } from '@/components/ui/SimpleModal';
 import { useEmailTemplates, EmailTemplate } from '@/hooks/useEmailTemplates';
 import { EmailTemplateForm } from '@/components/email-templates/EmailTemplateForm';
 import { EmailTemplatePreview } from '@/components/email-templates/EmailTemplatePreview';
 import { TemplateTestDialog } from '@/components/email-templates/TemplateTestDialog';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 type TemplateRow = EmailTemplate & {
   [key: string]: any;
 };
 
 export default function EmailTemplatesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.EMAIL_TEMPLATES_VIEW);
   console.log('Step 1: Rendering Email Templates administration page');
 
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('emailTemplates'));
 
   const {
     templates,
@@ -278,6 +285,14 @@ export default function EmailTemplatesPage() {
     },
   ];
 
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
+
   console.log('✓ Rendering page');
   return (
     <div className="space-y-6">
@@ -389,20 +404,24 @@ export default function EmailTemplatesPage() {
       </Card>
 
       {/* Add Template Modal */}
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           setFormErrors(null);
         }}
+        onCancel={() => {
+          setShowAddModal(false);
+          setFormErrors(null);
+        }}
         title={t('addEmailTemplate')}
+        onSubmit={() => {}}
+        isSubmitting={loading}
+        submitLabel={t('save')}
+        cancelLabel={t('cancel')}
+        error={formErrors || undefined}
         size="full"
       >
-        {formErrors && (
-          <div className="mb-4 p-3 bg-danger/10 border border-danger rounded text-danger text-sm">
-            {formErrors}
-          </div>
-        )}
         <EmailTemplateForm
           onSubmit={handleCreate}
           onCancel={() => {
@@ -411,24 +430,29 @@ export default function EmailTemplatesPage() {
           }}
           isLoading={loading}
         />
-      </Modal>
+      </FormModal>
 
       {/* Edit Template Modal */}
-      <Modal
+      <FormModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
           setSelectedTemplate(null);
           setFormErrors(null);
         }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedTemplate(null);
+          setFormErrors(null);
+        }}
         title={t('editTemplate')}
+        onSubmit={() => {}}
+        isSubmitting={loading}
+        submitLabel={t('save')}
+        cancelLabel={t('cancel')}
+        error={formErrors || undefined}
         size="full"
       >
-        {formErrors && (
-          <div className="mb-4 p-3 bg-danger/10 border border-danger rounded text-danger text-sm">
-            {formErrors}
-          </div>
-        )}
         {selectedTemplate && (
           <EmailTemplateForm
             template={selectedTemplate}
@@ -441,10 +465,10 @@ export default function EmailTemplatesPage() {
             isLoading={loading}
           />
         )}
-      </Modal>
+      </FormModal>
 
       {/* Preview Modal */}
-      <Modal
+      <SimpleModal
         isOpen={showPreviewModal}
         onClose={() => {
           setShowPreviewModal(false);
@@ -459,7 +483,7 @@ export default function EmailTemplatesPage() {
             onSendTest={handleSendTest}
           />
         )}
-      </Modal>
+      </SimpleModal>
 
       {/* Test Email Modal */}
       {selectedTemplate && (

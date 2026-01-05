@@ -14,11 +14,17 @@ import { useParishes, Parish } from '@/hooks/useParishes';
 import { useDioceses } from '@/hooks/useDioceses';
 import { useDeaneries } from '@/hooks/useDeaneries';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 export default function ParishesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.PARISHES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('parishes'));
 
   const {
     parishes,
@@ -201,6 +207,14 @@ export default function ParishesPage() {
       ),
     },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },

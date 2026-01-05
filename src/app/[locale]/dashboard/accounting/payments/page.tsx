@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { usePayments, Payment } from '@/hooks/usePayments';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients, Client } from '@/hooks/useClients';
+import { useUser } from '@/hooks/useUser';
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter } from '@/components/ui/FilterGrid';
@@ -22,12 +24,21 @@ import { useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { getClientDisplayName, getClientName as getClientNameHelper } from '@/lib/utils/client-helpers';
+import { CreatePaymentData, UpdatePaymentData, paymentToCreateData, quickPaymentFormToRequest, QuickPaymentFormData } from '@/lib/types/payments';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function PaymentsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PAYMENTS_VIEW);
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('payments'));
 
+  // All hooks must be called before any conditional returns
   const {
     payments,
     loading,
@@ -43,6 +54,7 @@ export default function PaymentsPage() {
 
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients, loading: clientsLoading } = useClients();
+  const { user } = useUser();
   const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,12 +70,15 @@ export default function PaymentsPage() {
   const [showQuickPaymentModal, setShowQuickPaymentModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [quickPaymentForm, setQuickPaymentForm] = useState({
+  const [quickPaymentForm, setQuickPaymentForm] = useState<QuickPaymentFormData>({
     parishId: '',
     clientId: '',
     clientDisplayName: '',
     amount: '',
     reason: '',
+    category: 'donation',
+    sendEmail: true,
+    emailAddress: '',
   });
   const [quickPaymentLoading, setQuickPaymentLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -82,8 +97,32 @@ export default function PaymentsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
+
+  // Check if quick payment modal should open from URL parameter
+  useEffect(() => {
+    const quickParam = searchParams.get('quick');
+    if (quickParam === 'true' && !showQuickPaymentModal) {
+      setShowQuickPaymentModal(true);
+      // Clean up URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete('quick');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, showQuickPaymentModal]);
+
+  // Preselect user's parish when opening quick payment modal
+  useEffect(() => {
+    if (showQuickPaymentModal && user?.parishId && !quickPaymentForm.parishId) {
+      // Verify the parish exists in the loaded parishes list
+      const userParishExists = parishes.some(p => p.id === user.parishId);
+      if (userParishExists) {
+        setQuickPaymentForm(prev => ({ ...prev, parishId: user.parishId! }));
+      }
+    }
+  }, [showQuickPaymentModal, user?.parishId, parishes, quickPaymentForm.parishId]);
 
   // Lazy load clients only when quick payment modal opens
   useEffect(() => {
@@ -93,6 +132,7 @@ export default function PaymentsPage() {
   }, [showQuickPaymentModal, clients.length, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -112,27 +152,44 @@ export default function PaymentsPage() {
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     });
-  }, [currentPage, searchTerm, parishFilter, typeFilter, statusFilter, categoryFilter, dateFrom, dateTo, fetchPayments, fetchSummary]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, typeFilter, statusFilter, categoryFilter, dateFrom, dateTo, fetchPayments, fetchSummary]);
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.paymentNumber || !formData.date || !formData.amount) {
-      alert(t('fillRequiredFields'));
+      showError(t('fillRequiredFields') || 'Please fill all required fields');
       return;
     }
 
-    const result = await createPayment({
-      ...formData,
-      amount: parseFloat(formData.amount) as any,
+    // Validate and parse amount
+    const amount = parseFloat(formData.amount);
+    if (isNaN(amount) || amount <= 0) {
+      showError(t('invalidAmount') || 'Invalid amount');
+      return;
+    }
+
+    const paymentData: CreatePaymentData = {
+      parishId: formData.parishId,
+      paymentNumber: formData.paymentNumber,
+      date: formData.date,
+      type: formData.type,
+      amount, // Now properly typed as number
+      currency: formData.currency,
       category: formData.category || null,
       clientId: formData.clientId || null,
       description: formData.description || null,
       paymentMethod: formData.paymentMethod || null,
       referenceNumber: formData.referenceNumber || null,
-    });
+      status: formData.status,
+    };
+
+    const result = await createPayment(paymentData);
 
     if (result) {
       setShowAddModal(false);
       resetForm();
+      showSuccess(t('paymentCreated') || 'Payment created successfully');
+    } else {
+      showError(t('paymentCreationFailed') || 'Failed to create payment');
     }
   };
 
@@ -140,23 +197,40 @@ export default function PaymentsPage() {
     if (!selectedPayment) return;
 
     if (!formData.parishId || !formData.paymentNumber || !formData.date || !formData.amount) {
-      alert(t('fillRequiredFields'));
+      showError(t('fillRequiredFields') || 'Please fill all required fields');
       return;
     }
 
-    const result = await updatePayment(selectedPayment.id, {
-      ...formData,
-      amount: parseFloat(formData.amount) as any,
+    // Validate and parse amount
+    const amount = parseFloat(formData.amount);
+    if (isNaN(amount) || amount <= 0) {
+      showError(t('invalidAmount') || 'Invalid amount');
+      return;
+    }
+
+    const paymentData: UpdatePaymentData = {
+      parishId: formData.parishId,
+      paymentNumber: formData.paymentNumber,
+      date: formData.date,
+      type: formData.type,
+      amount, // Now properly typed as number
+      currency: formData.currency,
       category: formData.category || null,
       clientId: formData.clientId || null,
       description: formData.description || null,
       paymentMethod: formData.paymentMethod || null,
       referenceNumber: formData.referenceNumber || null,
-    });
+      status: formData.status,
+    };
+
+    const result = await updatePayment(selectedPayment.id, paymentData);
 
     if (result) {
       setShowEditModal(false);
       setSelectedPayment(null);
+      showSuccess(t('paymentUpdated') || 'Payment updated successfully');
+    } else {
+      showError(t('paymentUpdateFailed') || 'Failed to update payment');
     }
   };
 
@@ -169,19 +243,20 @@ export default function PaymentsPage() {
 
   const handleEdit = (payment: Payment) => {
     setSelectedPayment(payment);
+    const paymentData = paymentToCreateData(payment);
     setFormData({
-      parishId: payment.parishId,
-      paymentNumber: payment.paymentNumber,
-      date: payment.date,
-      type: payment.type,
-      category: payment.category || '',
-      clientId: payment.clientId || '',
-      amount: payment.amount,
-      currency: payment.currency || 'RON',
-      description: payment.description || '',
-      paymentMethod: payment.paymentMethod || '',
-      referenceNumber: payment.referenceNumber || '',
-      status: payment.status,
+      parishId: paymentData.parishId,
+      paymentNumber: paymentData.paymentNumber,
+      date: paymentData.date,
+      type: paymentData.type,
+      category: paymentData.category || '',
+      clientId: paymentData.clientId || '',
+      amount: paymentData.amount.toString(), // Convert back to string for form input
+      currency: paymentData.currency || 'RON',
+      description: paymentData.description || '',
+      paymentMethod: paymentData.paymentMethod || '',
+      referenceNumber: paymentData.referenceNumber || '',
+      status: paymentData.status,
     });
     setShowEditModal(true);
   };
@@ -210,6 +285,9 @@ export default function PaymentsPage() {
       clientDisplayName: '',
       amount: '',
       reason: '',
+      category: 'donation',
+      sendEmail: true,
+      emailAddress: '',
     });
   };
 
@@ -245,27 +323,11 @@ export default function PaymentsPage() {
   }, [fetchClients]);
 
   const handleQuickPaymentSubmit = async () => {
-    // Validate required fields
-    if (!quickPaymentForm.parishId || !quickPaymentForm.clientId || !quickPaymentForm.amount || !quickPaymentForm.reason.trim()) {
-      showError(t('fillRequiredFields') || 'Please fill all required fields');
-      return;
-    }
-
-    // Validate client is selected (not just display name)
-    if (!quickPaymentForm.clientId) {
-      showError(t('selectClient') || 'Please select a valid client');
-      return;
-    }
-
-    // Validate and parse amount
-    const amount = parseFloat(quickPaymentForm.amount);
-    if (isNaN(amount) || amount <= 0) {
-      showError(t('invalidAmount') || 'Invalid amount');
-      return;
-    }
-
-    if (amount > 999999999.99) {
-      showError(t('amountTooLarge') || 'Amount exceeds maximum allowed');
+    // Validate and convert form data to request format
+    const requestData = quickPaymentFormToRequest(quickPaymentForm);
+    
+    if ('error' in requestData) {
+      showError(t(requestData.error) || requestData.error);
       return;
     }
 
@@ -274,12 +336,7 @@ export default function PaymentsPage() {
       const response = await fetch('/api/accounting/payments/quick', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parishId: quickPaymentForm.parishId,
-          clientId: quickPaymentForm.clientId,
-          amount: amount,
-          reason: quickPaymentForm.reason.trim(),
-        }),
+        body: JSON.stringify(requestData),
       });
 
       const result = await response.json();
@@ -298,8 +355,8 @@ export default function PaymentsPage() {
         pageSize: 10,
         search: searchTerm || undefined,
         parishId: parishFilter || undefined,
-        type: typeFilter as 'income' | 'expense' | undefined,
-        status: statusFilter as 'pending' | 'completed' | 'cancelled' | undefined,
+        type: (typeFilter || undefined) as 'income' | 'expense' | undefined,
+        status: (statusFilter || undefined) as 'pending' | 'completed' | 'cancelled' | undefined,
         category: categoryFilter || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -425,6 +482,11 @@ export default function PaymentsPage() {
     { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
     { label: t('payments') },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div>
@@ -603,8 +665,24 @@ export default function PaymentsPage() {
       </Card>
 
       {/* Add Modal */}
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={`${t('add')} ${t('payment')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        title={`${t('add')} ${t('payment')}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -650,7 +728,7 @@ export default function PaymentsPage() {
             <Input label={t('category')} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
             <ClientSelect
               value={formData.clientId}
-              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              onChange={(value) => setFormData({ ...formData, clientId: Array.isArray(value) ? value[0] || '' : value })}
               clients={clients}
               onlyCompanies={false}
               label={t('parteneri')}
@@ -704,18 +782,22 @@ export default function PaymentsPage() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Edit Modal - same structure as Add Modal */}
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title={`${t('edit')} ${t('payment')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
+        title={`${t('edit')} ${t('payment')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('update')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -761,7 +843,7 @@ export default function PaymentsPage() {
             <Input label={t('category')} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
             <ClientSelect
               value={formData.clientId}
-              onChange={(value) => setFormData({ ...formData, clientId: value })}
+              onChange={(value) => setFormData({ ...formData, clientId: Array.isArray(value) ? value[0] || '' : value })}
               clients={clients}
               onlyCompanies={false}
               label={t('parteneri')}
@@ -815,23 +897,25 @@ export default function PaymentsPage() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleUpdate}>{t('update')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Quick Payment Modal */}
-      <Modal 
-        isOpen={showQuickPaymentModal} 
+      <FormModal
+        isOpen={showQuickPaymentModal}
         onClose={() => {
           setShowQuickPaymentModal(false);
           resetQuickPaymentForm();
-        }} 
-        title={t('quickPayment') || 'Incasare rapida'} 
+        }}
+        onCancel={() => {
+          setShowQuickPaymentModal(false);
+          resetQuickPaymentForm();
+        }}
+        title={t('quickPayment') || 'Incasare rapida'}
+        onSubmit={handleQuickPaymentSubmit}
+        isSubmitting={quickPaymentLoading}
+        submitLabel={quickPaymentLoading ? (t('creating') || 'Creating...') : (t('create') || 'Create')}
+        cancelLabel={t('cancel')}
         size="full"
       >
         <div className="space-y-6 overflow-y-auto">
@@ -862,11 +946,16 @@ export default function PaymentsPage() {
                 
                 // Find and set client ID by matching label
                 const selectedOption = clientOptions.find(opt => opt.label === value);
-                if (selectedOption) {
-                  setQuickPaymentForm(prev => ({ ...prev, clientId: selectedOption.value }));
+                if (selectedOption && selectedOption.client) {
+                  setQuickPaymentForm(prev => ({ 
+                    ...prev, 
+                    clientId: selectedOption.value,
+                    // Pre-fill email from client if available
+                    emailAddress: selectedOption.client.email?.trim() || ''
+                  }));
                 } else {
                   // Clear client ID if no match (user typing)
-                  setQuickPaymentForm(prev => ({ ...prev, clientId: '' }));
+                  setQuickPaymentForm(prev => ({ ...prev, clientId: '', emailAddress: '' }));
                 }
               }}
               options={clientOptions}
@@ -887,6 +976,24 @@ export default function PaymentsPage() {
             />
 
             <div>
+              <label className="block text-sm font-medium mb-1">{t('paymentCategory') || 'Tip încasare'} *</label>
+              <select
+                value={quickPaymentForm.category}
+                onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, category: e.target.value })}
+                className="w-full px-3 py-2 border rounded text-base"
+                required
+              >
+                <option value="">{t('selectCategory') || 'Selectează tipul...'}</option>
+                <option value="donation">{t('donation') || 'Donație'}</option>
+                <option value="invoice_payment">{t('invoicePayment') || 'Plată factură'}</option>
+                <option value="service_payment">{t('servicePayment') || 'Plată servicii'}</option>
+                <option value="rent">{t('rent') || 'Chirie'}</option>
+                <option value="offering">{t('offering') || 'Pomană'}</option>
+                <option value="other">{t('other') || 'Altele'}</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium mb-1">{t('reason') || 'Motiv'} *</label>
               <textarea
                 value={quickPaymentForm.reason}
@@ -896,45 +1003,47 @@ export default function PaymentsPage() {
                 required
               />
             </div>
-          </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowQuickPaymentModal(false);
-                resetQuickPaymentForm();
-              }}
-              disabled={quickPaymentLoading}
-            >
-              {t('cancel')}
-            </Button>
-            <Button 
-              onClick={handleQuickPaymentSubmit}
-              disabled={quickPaymentLoading}
-            >
-              {quickPaymentLoading ? (t('creating') || 'Creating...') : (t('create') || 'Create')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title={t('confirmDelete')}>
-          <div className="space-y-4">
-            <p>{t('confirmDelete')}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-                {t('cancel')}
-              </Button>
-              <Button variant="danger" onClick={() => handleDelete(deleteConfirm)}>
-                {t('delete')}
-              </Button>
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="sendEmailCheckbox"
+                  checked={quickPaymentForm.sendEmail}
+                  onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, sendEmail: e.target.checked })}
+                  className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <label htmlFor="sendEmailCheckbox" className="text-sm font-medium cursor-pointer">
+                  {t('sendReceiptByEmail') || 'Trimite chitanta prin email la'} {quickPaymentForm.emailAddress ? `"${quickPaymentForm.emailAddress}"` : t('clientEmailAddress') || 'adresa din client'}
+                </label>
+              </div>
+              
+              {quickPaymentForm.sendEmail && (
+                <Input
+                  type="email"
+                  label={t('emailAddress') || 'Adresa de email'}
+                  value={quickPaymentForm.emailAddress}
+                  onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, emailAddress: e.target.value })}
+                  placeholder={t('enterEmailAddress') || 'Introdu adresa de email...'}
+                  className="text-base"
+                />
+              )}
             </div>
           </div>
-        </Modal>
-      )}
+        </div>
+      </FormModal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        title={t('confirmDelete')}
+        message={t('confirmDelete')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+        variant="danger"
+      />
 
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />

@@ -3,4 +3,7 @@ export * from './receipts';
 export * from './receipt_attachments';
 export * from './parishioner_contracts';
 export * from './contract_documents';
+export { parishioners } from '../partners/parishioners';
+
+
 

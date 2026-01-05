@@ -9,6 +9,8 @@ import { createGeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function CreateDocumentPage() {
   const params = useParams();
@@ -18,7 +20,16 @@ export default function CreateDocumentPage() {
   const tReg = useTranslations('registratura');
   const { toasts, success, error: showError, removeToast } = useToast();
 
+  // Check permission to view general register
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+
+  // All hooks must be called before any conditional returns
   const [loading, setLoading] = useState(false);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSave = useCallback(async (data: {
     registerConfigurationId: string;

@@ -6,8 +6,15 @@ import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
 export default function SuperadminPage() {
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.ROLES_VIEW);
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('superadmin'));
   console.log('Step 1: Rendering Superadmin overview page');
 
   const [stats, setStats] = useState({
@@ -166,6 +173,14 @@ export default function SuperadminPage() {
       ),
     },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering superadmin overview');
   return (

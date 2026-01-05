@@ -9,19 +9,26 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { useStockMovements, StockMovement } from '@/hooks/useStockMovements';
 import { useWarehouses } from '@/hooks/useWarehouses';
 import { useProducts } from '@/hooks/useProducts';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect, FilterDate } from '@/components/ui/FilterGrid';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function StockMovementsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.STOCK_MOVEMENTS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('stockMovements'));
 
+  // All hooks must be called before any conditional returns
   const {
     stockMovements,
     loading,
@@ -56,12 +63,14 @@ export default function StockMovementsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchWarehouses({ pageSize: 1000 });
     fetchProducts({ pageSize: 1000 });
-  }, [fetchParishes, fetchWarehouses, fetchProducts]);
+  }, [permissionLoading, fetchParishes, fetchWarehouses, fetchProducts]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -73,7 +82,7 @@ export default function StockMovementsPage() {
       dateTo: dateTo || undefined,
     };
     fetchStockMovements(params);
-  }, [currentPage, parishFilter, warehouseFilter, productFilter, typeFilter, dateFrom, dateTo, fetchStockMovements]);
+  }, [permissionLoading, currentPage, parishFilter, warehouseFilter, productFilter, typeFilter, dateFrom, dateTo, fetchStockMovements]);
 
   const handleSave = async () => {
     const result = await createStockMovement(formData);
@@ -154,6 +163,11 @@ export default function StockMovementsPage() {
       render: (value: string | null) => value ? parseFloat(value).toFixed(2) : '-',
     },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -270,13 +284,21 @@ export default function StockMovementsPage() {
       </Card>
 
       {/* Add Modal */}
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
         title={t('addStockMovement') || 'Add Stock Movement'}
+        onSubmit={handleSave}
+        isSubmitting={false}
+        submitLabel={t('save') || 'Save'}
+        cancelLabel={t('cancel') || 'Cancel'}
         size="lg"
       >
         <div className="space-y-4">
@@ -350,17 +372,8 @@ export default function StockMovementsPage() {
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           />
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => {
-              setShowAddModal(false);
-              resetForm();
-            }}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave}>{t('save') || 'Save'}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
     </div>
   );
 }

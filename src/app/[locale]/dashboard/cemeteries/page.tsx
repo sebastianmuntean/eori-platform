@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useCemeteries, Cemetery } from '@/hooks/useCemeteries';
@@ -17,6 +17,9 @@ import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, ParishFilter } from '@/components/ui/FilterGrid';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { CEMETERY_PERMISSIONS } from '@/lib/permissions/cemeteries';
 
 const PAGE_SIZE = 10;
 
@@ -24,7 +27,13 @@ export default function CemeteriesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('cemeteries'));
 
+  // Check permission to view cemeteries
+  const { loading: permissionLoading } = useRequirePermission(CEMETERY_PERMISSIONS.CEMETERIES_READ);
+
+  // All hooks must be called before any conditional returns
   const {
     cemeteries,
     loading,
@@ -58,11 +67,14 @@ export default function CemeteriesPage() {
     isActive: true,
   });
 
+  // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchCemeteries({
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -71,7 +83,12 @@ export default function CemeteriesPage() {
       sortBy: 'name',
       sortOrder: 'asc',
     });
-  }, [currentPage, searchTerm, parishFilter, fetchCemeteries]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, fetchCemeteries]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleAdd = () => {
     resetForm();
@@ -237,12 +254,18 @@ export default function CemeteriesPage() {
         </CardBody>
       </Card>
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={`${t('add')} ${t('cemeteries') || 'Cemetery'}`}>
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <div className="space-y-4">
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
+        title={`${t('add')} ${t('cemeteries') || 'Cemetery'}`}
+        onSubmit={handleSave}
+        isSubmitting={false}
+        submitLabel={t('create') || 'Create'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        error={error}
+      >
+        <div className="space-y-4">
             <Select
               label={t('parish') || 'Parish'}
               value={formData.parishId}
@@ -298,24 +321,21 @@ export default function CemeteriesPage() {
                 rows={3}
               />
             </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave}>
-              {t('create') || 'Create'}
-            </Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
-      <Modal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setSelectedCemetery(null); }} title={`${t('edit')} ${t('cemeteries') || 'Cemetery'}`}>
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <div className="space-y-4">
+      <FormModal
+        isOpen={showEditModal}
+        onClose={() => { setShowEditModal(false); setSelectedCemetery(null); }}
+        onCancel={() => { setShowEditModal(false); setSelectedCemetery(null); }}
+        title={`${t('edit')} ${t('cemeteries') || 'Cemetery'}`}
+        onSubmit={handleSave}
+        isSubmitting={false}
+        submitLabel={t('update') || 'Update'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        error={error}
+      >
+        <div className="space-y-4">
             <Input
               label={t('code') || 'Code'}
               value={formData.code}
@@ -365,16 +385,7 @@ export default function CemeteriesPage() {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedCemetery(null); }}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave}>
-              {t('update') || 'Update'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      </FormModal>
 
       <ConfirmDialog
         isOpen={!!deleteConfirm}

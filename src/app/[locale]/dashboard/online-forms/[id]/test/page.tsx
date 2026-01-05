@@ -7,6 +7,9 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { WidgetForm } from '@/components/online-forms/WidgetForm';
 import { useOnlineForm } from '@/hooks/useOnlineForms';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 export default function TestFormPage() {
   const params = useParams();
@@ -14,16 +17,28 @@ export default function TestFormPage() {
   const id = params.id as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
-
+  
   const { form, fetchForm } = useOnlineForm();
+  usePageTitle(form?.name ? `${t('test')} - ${form.name}` : t('test'));
+
+  // Check permission to view online forms
+  const { loading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
+
+  // All hooks must be called before any conditional returns
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] = useState<string>('');
 
   useEffect(() => {
+    if (loading) return;
     if (id) {
       fetchForm(id);
     }
-  }, [id, fetchForm]);
+  }, [loading, id, fetchForm]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (loading) {
+    return null;
+  }
 
   const handleSubmitSuccess = (submissionId: string) => {
     setSubmissionId(submissionId);

@@ -9,12 +9,22 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { useEmailTemplates, EmailTemplate } from '@/hooks/useEmailTemplates';
 import { SendEmailDialog } from '@/components/email-templates/SendEmailDialog';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useTranslations } from 'next-intl';
 
 export default function SendEmailPage() {
   console.log('Step 1: Rendering Send Email page');
 
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('sendEmail') || 'Send Email');
+
+  // Check permission to send emails
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.EMAIL_TEMPLATES_SEND);
 
   const {
     templates,
@@ -34,8 +44,9 @@ export default function SendEmailPage() {
     errors: Array<{ email: string; error: string }>;
   } | null>(null);
 
-  // Fetch only active templates
+  // Fetch only active templates (all hooks must be called before any conditional returns)
   useEffect(() => {
+    if (permissionLoading) return;
     console.log('Step 2: Fetching active email templates');
     fetchTemplates({
       page: 1,
@@ -44,7 +55,12 @@ export default function SendEmailPage() {
       sortBy: 'name',
       sortOrder: 'asc',
     });
-  }, [fetchTemplates]);
+  }, [permissionLoading, fetchTemplates]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSelectTemplate = (template: EmailTemplate) => {
     console.log(`Step 3: Selecting template ${template.id}`);

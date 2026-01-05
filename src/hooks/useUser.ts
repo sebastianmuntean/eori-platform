@@ -4,6 +4,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  parishId: string | null;
 }
 
 export function useUser() {

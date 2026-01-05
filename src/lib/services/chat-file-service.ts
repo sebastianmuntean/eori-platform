@@ -1,5 +1,5 @@
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import { existsSync } from 'fs';
 import { db } from '@/database/client';
@@ -7,7 +7,12 @@ import { messageAttachments } from '@/database/schema';
 import { CHAT_CONFIG } from '@/lib/config/chat-config';
 
 // File storage directory for chat
-const UPLOAD_DIR = join(process.cwd(), CHAT_CONFIG.UPLOAD_DIR);
+const UPLOAD_DIR = resolve(process.cwd(), CHAT_CONFIG.UPLOAD_DIR);
+
+// Helper function to construct paths at runtime (prevents Turbopack static analysis)
+function buildStoragePath(...segments: string[]): string {
+  return join(UPLOAD_DIR, ...segments);
+}
 
 export interface UploadChatFileParams {
   conversationId: string;
@@ -89,14 +94,16 @@ export async function uploadChatFile(
   // Generate unique filename
   const fileExtension = fileName.split('.').pop() || '';
   const uniqueFileName = `${randomUUID()}.${fileExtension}`;
-  const storagePath = join(UPLOAD_DIR, conversationId, uniqueFileName);
+  // Use runtime path builder to avoid Turbopack static analysis
+  const storagePath = buildStoragePath(conversationId, uniqueFileName);
 
   // Ensure upload directory exists
+  const uploadDir = buildStoragePath(conversationId);
   try {
-    await mkdir(join(UPLOAD_DIR, conversationId), { recursive: true });
+    await mkdir(uploadDir, { recursive: true });
   } catch (error) {
     // Directory might already exist, continue
-    if (!existsSync(join(UPLOAD_DIR, conversationId))) {
+    if (!existsSync(uploadDir)) {
       throw new Error('Failed to create upload directory');
     }
   }

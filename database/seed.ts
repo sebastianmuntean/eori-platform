@@ -77,6 +77,9 @@ const standardPermissions = [
   { name: 'events.delete', resource: 'events', action: 'delete', description: 'Ștergere evenimente' },
   { name: 'events.confirm', resource: 'events', action: 'confirm', description: 'Confirmare evenimente' },
   
+  // Notifications resource
+  { name: 'notifications.create', resource: 'notifications', action: 'create', description: 'Creare notificări' },
+  
   // Documents resource (Registratură)
   { name: 'documents.read', resource: 'documents', action: 'read', description: 'Citire documente' },
   { name: 'documents.create', resource: 'documents', action: 'create', description: 'Creare documente' },
@@ -115,6 +118,7 @@ const rolePermissionMappings: Record<string, string[]> = {
     'events.edit',
     'events.delete',
     'events.confirm',
+    'notifications.create',
     'documents.read',
     'documents.create',
     'documents.update',
@@ -136,6 +140,7 @@ const rolePermissionMappings: Record<string, string[]> = {
     'events.create',
     'events.edit',
     'events.confirm',
+    'notifications.create',
     'documents.read',
     'documents.create',
     'documents.update',

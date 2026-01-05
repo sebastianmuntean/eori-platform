@@ -37,3 +37,15 @@ export * from './audit';
 
 // Analytics
 export * from './analytics';
+
+// Pilgrimages
+export * from './pilgrimages';
+
+// HR (Human Resources)
+export * from './hr';
+
+// Catechesis
+export * from './catechesis';
+
+// Notifications
+export * from './notifications';

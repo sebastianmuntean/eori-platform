@@ -12,6 +12,9 @@ import { getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/use
 import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function DocumentDetailPage() {
   const params = useParams();
@@ -20,6 +23,14 @@ export default function DocumentDetailPage() {
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
   const id = params.id as string;
+
+  // Check permission to view general register
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const [document, setDocument] = useState<GeneralRegisterDocument | null>(null);
   const [loading, setLoading] = useState(true);

@@ -51,3 +51,5 @@ export function validateMessageContent(content: string): {
   return { valid: true };
 }
 
+
+

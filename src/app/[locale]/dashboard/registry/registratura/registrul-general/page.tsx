@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { DocumentList } from '@/components/registratura/DocumentList';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function RegistraturaGeneralPage() {
   const params = useParams();
@@ -11,6 +13,14 @@ export default function RegistraturaGeneralPage() {
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
+
+  // Check permission to view general register
+  const { loading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+
+  // Don't render content while checking permissions
+  if (loading) {
+    return null;
+  }
 
   const handleDocumentClick = (document: any) => {
     router.push(`/${locale}/dashboard/registry/registratura/registrul-general/${document.id}`);

@@ -10,6 +10,8 @@ import { Select } from '@/components/ui/Select';
 import { useOnlineForms } from '@/hooks/useOnlineForms';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 export default function CreateOnlineFormPage() {
   const params = useParams();
@@ -18,6 +20,10 @@ export default function CreateOnlineFormPage() {
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
 
+  // Check permission to view online forms (required to create)
+  const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
+
+  // All hooks must be called before any conditional returns
   const { createForm } = useOnlineForms();
   const { parishes, fetchParishes } = useParishes();
 
@@ -37,8 +43,14 @@ export default function CreateOnlineFormPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSave = async () => {
     setErrors({});

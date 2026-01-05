@@ -1,24 +1,27 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table } from '@/components/ui/Table';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter } from '@/components/ui/FilterGrid';
 import { useFixedAssets, FixedAsset } from '@/hooks/useFixedAssets';
-import { useParishes } from '@/hooks/useParishes';
+import { useFixedAssetsFilters } from '@/hooks/useFixedAssetsFilters';
 import { useTranslations } from 'next-intl';
-import { FIXED_ASSET_STATUS } from '@/lib/fixed-assets/constants';
-import { formatMonetaryValue, formatDate } from '@/lib/fixed-assets/formatters';
-import { getStatusBadgeVariant } from '@/lib/fixed-assets/helpers';
 import { FixedAssetForm, FixedAssetFormData } from './FixedAssetForm';
 import { validateFixedAssetForm } from '@/lib/fixed-assets/validation';
+import { useFixedAssetsTableColumns, TableColumn } from './FixedAssetsTableColumns';
+import { FixedAssetsPagination } from './FixedAssetsPagination';
+import { useFixedAssetsBreadcrumbs } from '@/lib/fixed-assets/breadcrumbs';
+import { ModalFooter } from './ModalFooter';
+import { createInitialFormData, assetToFormData } from '@/lib/fixed-assets/formHelpers';
+import { usePageLocale } from '@/hooks/usePageLocale';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export interface BaseCRUDPageProps {
   title: string;
@@ -49,94 +52,56 @@ export function BaseCRUDPage({
   defaultCategory,
   showCategory = true,
 }: BaseCRUDPageProps) {
-  const params = useParams();
-  const locale = params.locale as string;
+  const { locale } = usePageLocale();
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
 
+  // Use the centralized filters hook
   const {
     fixedAssets,
+    parishes,
     loading,
     error,
     pagination,
-    fetchFixedAssets,
+    searchTerm,
+    parishFilter,
+    handleSearchChange,
+    handleParishFilterChange,
+    handleClearFilters,
+    handlePageChange,
+    refreshData,
+  } = useFixedAssetsFilters({
+    category,
+    filterParams,
+  });
+
+  // CRUD operations
+  const {
     createFixedAsset,
     updateFixedAsset,
     deleteFixedAsset,
   } = useFixedAssets();
 
-  const { parishes, fetchParishes } = useParishes();
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [parishFilter, setParishFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<FixedAsset | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [formData, setFormData] = useState<FixedAssetFormData>({
-    parishId: '',
-    inventoryNumber: '',
-    name: '',
-    description: '',
-    category: defaultCategory || '',
-    type: '',
-    location: '',
-    acquisitionDate: '',
-    acquisitionValue: '',
-    currentValue: '',
-    depreciationMethod: '',
-    usefulLifeYears: '',
-    status: 'active',
-    disposalDate: '',
-    disposalValue: '',
-    disposalReason: '',
-    notes: '',
-  });
+  
+  const defaultStatus = (filterParams.status as FixedAssetFormData['status']) || 'active';
+  const [formData, setFormData] = useState<FixedAssetFormData>(
+    createInitialFormData(defaultCategory, defaultStatus)
+  );
 
   const pageTitle = tMenu(titleKey) || title;
-
-  useEffect(() => {
-    fetchParishes({ all: true });
-  }, [fetchParishes]);
-
-  useEffect(() => {
-    const params: any = {
-      page: currentPage,
-      pageSize: 10,
-      search: searchTerm || undefined,
-      parishId: parishFilter || undefined,
-      ...(category && { category }),
-      ...filterParams,
-    };
-    fetchFixedAssets(params);
-  }, [currentPage, searchTerm, parishFilter, category, fetchFixedAssets, filterParams]);
+  usePageTitle(pageTitle);
 
   const resetForm = useCallback(() => {
-    setFormData({
-      parishId: '',
-      inventoryNumber: '',
-      name: '',
-      description: '',
-      category: defaultCategory || '',
-      type: '',
-      location: '',
-      acquisitionDate: '',
-      acquisitionValue: '',
-      currentValue: '',
-      depreciationMethod: '',
-      usefulLifeYears: '',
-      status: filterParams.status as FixedAssetFormData['status'] || 'active',
-      disposalDate: '',
-      disposalValue: '',
-      disposalReason: '',
-      notes: '',
-    });
+    setFormData(createInitialFormData(defaultCategory, defaultStatus));
     setSelectedAsset(null);
     setFormErrors({});
-  }, [defaultCategory, filterParams.status]);
+  }, [defaultCategory, defaultStatus]);
 
   const handleAdd = useCallback(() => {
     resetForm();
@@ -145,25 +110,7 @@ export function BaseCRUDPage({
 
   const handleEdit = useCallback((asset: FixedAsset) => {
     setSelectedAsset(asset);
-    setFormData({
-      parishId: asset.parishId,
-      inventoryNumber: asset.inventoryNumber,
-      name: asset.name,
-      description: asset.description || '',
-      category: asset.category || defaultCategory || '',
-      type: asset.type || '',
-      location: asset.location || '',
-      acquisitionDate: asset.acquisitionDate || '',
-      acquisitionValue: asset.acquisitionValue || '',
-      currentValue: asset.currentValue || '',
-      depreciationMethod: asset.depreciationMethod || '',
-      usefulLifeYears: asset.usefulLifeYears?.toString() || '',
-      status: asset.status,
-      disposalDate: asset.disposalDate || '',
-      disposalValue: asset.disposalValue || '',
-      disposalReason: asset.disposalReason || '',
-      notes: asset.notes || '',
-    });
+    setFormData(assetToFormData(asset, defaultCategory));
     setFormErrors({});
     setShowEditModal(true);
   }, [defaultCategory]);
@@ -186,61 +133,30 @@ export function BaseCRUDPage({
           setShowEditModal(false);
           setSelectedAsset(null);
           resetForm();
-          fetchFixedAssets({ 
-            page: currentPage, 
-            pageSize: 10, 
-            ...(category && { category }),
-            ...filterParams 
-          });
+          refreshData();
         }
       } else {
         const result = await createFixedAsset(formData);
         if (result) {
           setShowAddModal(false);
           resetForm();
-          fetchFixedAssets({ 
-            page: currentPage, 
-            pageSize: 10, 
-            ...(category && { category }),
-            ...filterParams 
-          });
+          refreshData();
         }
       }
     } finally {
       setIsSaving(false);
     }
-  }, [selectedAsset, formData, currentPage, category, filterParams, fetchFixedAssets, createFixedAsset, updateFixedAsset, resetForm]);
+  }, [selectedAsset, formData, createFixedAsset, updateFixedAsset, resetForm, refreshData]);
 
   const handleDelete = useCallback(async () => {
     if (deleteConfirm) {
       const success = await deleteFixedAsset(deleteConfirm);
       if (success) {
         setDeleteConfirm(null);
-        fetchFixedAssets({ 
-          page: currentPage, 
-          pageSize: 10, 
-          ...(category && { category }),
-          ...filterParams 
-        });
+        refreshData();
       }
     }
-  }, [deleteConfirm, currentPage, category, filterParams, fetchFixedAssets, deleteFixedAsset]);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleParishFilterChange = useCallback((value: string) => {
-    setParishFilter(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleClearFilters = useCallback(() => {
-    setSearchTerm('');
-    setParishFilter('');
-    setCurrentPage(1);
-  }, []);
+  }, [deleteConfirm, deleteFixedAsset, refreshData]);
 
   const handleFormChange = useCallback((data: Partial<FixedAssetFormData>) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -256,39 +172,12 @@ export function BaseCRUDPage({
     }
   }, [formErrors]);
 
-  const columns = useMemo(() => [
-    { key: 'inventoryNumber', label: t('inventoryNumber') || 'Număr Inventar', sortable: true },
-    { key: 'name', label: t('name') || 'Name', sortable: true },
-    { key: 'location', label: t('location') || 'Location', sortable: false },
-    {
-      key: 'acquisitionDate',
-      label: t('acquisitionDate') || 'Acquisition Date',
-      sortable: false,
-      render: formatDate,
-    },
-    {
-      key: 'acquisitionValue',
-      label: t('acquisitionValue') || 'Acquisition Value',
-      sortable: false,
-      render: formatMonetaryValue,
-    },
-    {
-      key: 'currentValue',
-      label: t('currentValue') || 'Current Value',
-      sortable: false,
-      render: formatMonetaryValue,
-    },
-    {
-      key: 'status',
-      label: t('status') || 'Status',
-      sortable: false,
-      render: (value: string) => (
-        <Badge variant={getStatusBadgeVariant(value)} size="sm">
-          {value}
-        </Badge>
-      ),
-    },
-    {
+  // Use centralized table columns hook
+  const baseColumns = useFixedAssetsTableColumns();
+
+  // Add actions column with dropdown
+  const columns = useMemo(() => {
+    const actionsColumn: TableColumn = {
       key: 'actions',
       label: t('actions') || 'Actions',
       sortable: false,
@@ -307,15 +196,12 @@ export function BaseCRUDPage({
           ]}
         />
       ),
-    },
-  ], [t, handleEdit]);
+    };
+    return [...baseColumns, actionsColumn];
+  }, [baseColumns, t, handleEdit]);
 
-  const breadcrumbItems = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
-    { label: tMenu('fixedAssets') || 'Mijloace fixe', href: `/${locale}/dashboard/accounting/fixed-assets` },
-    { label: pageTitle, href },
-  ];
+  // Use centralized breadcrumbs hook
+  const breadcrumbItems = useFixedAssetsBreadcrumbs(locale, pageTitle, href);
 
   return (
     <div className="space-y-6">
@@ -361,39 +247,18 @@ export function BaseCRUDPage({
               loading={loading}
             />
 
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                <div className="text-sm text-text-secondary">
-                  {t('showing')} {(pagination.page - 1) * pagination.pageSize + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} {t('of')} {pagination.total}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                  >
-                    {t('previous')}
-                  </Button>
-                  <span className="text-sm text-text-secondary">
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === pagination.totalPages || loading}
-                  >
-                    {t('next')}
-                  </Button>
-                </div>
-              </div>
+            {pagination && (
+              <FixedAssetsPagination
+                pagination={pagination}
+                loading={loading}
+                onPageChange={handlePageChange}
+              />
             )}
           </div>
         </CardBody>
       </Card>
 
-      {/* Add Modal */}
+      {/* Add Modal - Full Screen */}
       <Modal
         isOpen={showAddModal}
         onClose={() => {
@@ -401,33 +266,32 @@ export function BaseCRUDPage({
           resetForm();
         }}
         title={t('addFixedAsset') || 'Add Fixed Asset'}
-        size="lg"
+        size="full"
       >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          <FixedAssetForm
-            formData={formData}
-            onChange={handleFormChange}
-            parishes={parishes}
-            defaultCategory={defaultCategory}
-            showCategory={showCategory}
-            errors={formErrors}
-          />
-          <div className="flex gap-2 justify-end pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => { setShowAddModal(false); resetForm(); }}
-              disabled={isSaving}
-            >
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving || loading}>
-              {isSaving ? (t('saving') || 'Saving...') : (t('save') || 'Save')}
-            </Button>
+        <div className="flex flex-col" style={{ height: 'calc(98vh - 80px)' }}>
+          <div className="flex-1 overflow-y-auto pr-2">
+            <FixedAssetForm
+              formData={formData}
+              onChange={handleFormChange}
+              parishes={parishes}
+              defaultCategory={defaultCategory}
+              showCategory={showCategory}
+              errors={formErrors}
+            />
           </div>
+          <ModalFooter
+            onCancel={() => {
+              setShowAddModal(false);
+              resetForm();
+            }}
+            onSave={handleSave}
+            isSaving={isSaving}
+            loading={loading}
+          />
         </div>
       </Modal>
 
-      {/* Edit Modal */}
+      {/* Edit Modal - Full Screen */}
       <Modal
         isOpen={showEditModal}
         onClose={() => {
@@ -435,29 +299,28 @@ export function BaseCRUDPage({
           resetForm();
         }}
         title={t('editFixedAsset') || 'Edit Fixed Asset'}
-        size="lg"
+        size="full"
       >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          <FixedAssetForm
-            formData={formData}
-            onChange={handleFormChange}
-            parishes={parishes}
-            defaultCategory={defaultCategory}
-            showCategory={showCategory}
-            errors={formErrors}
-          />
-          <div className="flex gap-2 justify-end pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => { setShowEditModal(false); resetForm(); }}
-              disabled={isSaving}
-            >
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving || loading}>
-              {isSaving ? (t('saving') || 'Saving...') : (t('save') || 'Save')}
-            </Button>
+        <div className="flex flex-col" style={{ height: 'calc(98vh - 80px)' }}>
+          <div className="flex-1 overflow-y-auto pr-2">
+            <FixedAssetForm
+              formData={formData}
+              onChange={handleFormChange}
+              parishes={parishes}
+              defaultCategory={defaultCategory}
+              showCategory={showCategory}
+              errors={formErrors}
+            />
           </div>
+          <ModalFooter
+            onCancel={() => {
+              setShowEditModal(false);
+              resetForm();
+            }}
+            onSave={handleSave}
+            isSaving={isSaving}
+            loading={loading}
+          />
         </div>
       </Modal>
 

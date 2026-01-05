@@ -2,8 +2,7 @@ import { randomBytes } from 'crypto';
 import { db } from '@/database/client';
 import { onlineFormEmailValidations, onlineFormSubmissions } from '@/database/schema';
 import { eq, and, gt } from 'drizzle-orm';
-import * as brevo from '@getbrevo/brevo';
-import { getBrevoApiInstance, SENDER_EMAIL, SENDER_NAME, apiKey } from '@/lib/email';
+import { getBrevoApiInstance, apiKey } from '@/lib/email';
 
 /**
  * Generate a 6-digit validation code
@@ -32,74 +31,29 @@ export async function sendValidationCodeEmail(
   }
 
   try {
-    // Try to use email template from database
+    // Get email template from database - template is required
     const { getTemplateByName, sendEmailWithTemplate } = await import('@/lib/email');
     const template = await getTemplateByName('Cod Validare Formular');
     
-    if (template) {
-      console.log(`Step 2: Using email template "Cod Validare Formular"`);
-      await sendEmailWithTemplate(
-        template.id,
-        email,
-        email,
-        {
-          form: {
-            name: formName,
-          },
-          code: code,
-        }
-      );
-      console.log(`✓ Validation code email sent successfully using template`);
-      return;
+    if (!template) {
+      const errorMessage = 'Email template "Cod Validare Formular" not found. Please ensure the template exists in the database.';
+      console.error(`❌ ${errorMessage}`);
+      throw new Error(errorMessage);
     }
 
-    // Fallback to hardcoded HTML if template not found
-    console.log(`Step 2: Template not found, using fallback HTML`);
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .code { font-size: 32px; font-weight: bold; text-align: center; 
-                  background: #f4f4f4; padding: 20px; margin: 20px 0; 
-                  border-radius: 5px; letter-spacing: 5px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h2>Cod de validare - ${formName}</h2>
-          <p>Salut,</p>
-          <p>Pentru a valida completarea formularului "<strong>${formName}</strong>", te rugăm să introduci următorul cod:</p>
-          <div class="code">${code}</div>
-          <p>Acest cod este valabil timp de 15 minute.</p>
-          <p>Dacă nu ai completat acest formular, te rugăm să ignori acest email.</p>
-          <p>Cu respect,<br>Echipa Platformă</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = `Cod de validare - ${formName}`;
-    sendSmtpEmail.htmlContent = htmlContent;
-    sendSmtpEmail.sender = {
-      name: SENDER_NAME,
-      email: SENDER_EMAIL,
-    };
-    sendSmtpEmail.to = [{ email, name: email }];
-
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log(`✓ Validation code email sent to ${email}`);
-    if (result.body?.messageId) {
-      console.log(`  Message ID: ${result.body.messageId}`);
-    }
-    
-    if (result.response) {
-      console.log(`  Response status: ${result.response.statusCode || 'N/A'}`);
-    }
+    console.log(`Step 2: Using email template "Cod Validare Formular"`);
+    await sendEmailWithTemplate(
+      template.id,
+      email,
+      email,
+      {
+        form: {
+          name: formName,
+        },
+        code: code,
+      }
+    );
+    console.log(`✓ Validation code email sent successfully using template`);
   } catch (error: any) {
     console.error(`❌ Failed to send validation code email to ${email}:`, error);
     

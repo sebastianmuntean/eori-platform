@@ -14,12 +14,20 @@ import { useEvents, ChurchEvent, EventType, EventStatus } from '@/hooks/useEvent
 import { useParishes } from '@/hooks/useParishes';
 import { useEventStatistics } from '@/hooks/useEventStatistics';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { EVENTS_PERMISSIONS } from '@/lib/permissions/events';
 
 export default function EventsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  usePageTitle(t('events'));
 
+  // Check permission to access Events module
+  const { loading: permissionLoading } = useRequirePermission(EVENTS_PERMISSIONS.VIEW);
+
+  // All hooks must be called before any conditional returns
   const {
     events,
     loading,
@@ -58,9 +66,10 @@ export default function EventsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchStatistics();
-  }, [fetchParishes, fetchStatistics]);
+  }, [permissionLoading, fetchParishes, fetchStatistics]);
 
   useEffect(() => {
     const params: any = {
@@ -76,7 +85,12 @@ export default function EventsPage() {
       sortOrder: 'desc',
     };
     fetchEvents(params);
-  }, [currentPage, searchTerm, parishFilter, typeFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, typeFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.type) {

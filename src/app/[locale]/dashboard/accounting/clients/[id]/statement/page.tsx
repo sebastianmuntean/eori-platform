@@ -12,8 +12,12 @@ import { useClientStatement } from '@/hooks/useClientStatement';
 import { Invoice } from '@/hooks/useInvoices';
 import { Payment } from '@/hooks/usePayments';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function ClientStatementPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CLIENTS_VIEW_STATEMENT);
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
@@ -21,6 +25,11 @@ export default function ClientStatementPage() {
   const t = useTranslations('common');
 
   const { statement, loading, error, fetchStatement } = useClientStatement();
+  usePageTitle(statement?.clientName ? `${t('statement')} - ${statement.clientName}` : t('statement'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');

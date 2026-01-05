@@ -38,3 +38,5 @@ Successfully integrated `UserSelectionModal` component into `FloatingChatWindow`
 1. Consider extracting conversation title logic into a helper function
 2. Consider using useReducer for complex state management if more features are added
 
+
+

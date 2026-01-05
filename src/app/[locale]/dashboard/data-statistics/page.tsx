@@ -8,6 +8,9 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { DATA_STATISTICS_PERMISSIONS } from '@/lib/permissions/dataStatistics';
 
 interface DataStatistics {
   entities: {
@@ -68,9 +71,12 @@ interface DataStatistics {
 }
 
 export default function DataStatisticsPage() {
+  const { loading: permissionLoading } = useRequirePermission(DATA_STATISTICS_PERMISSIONS.VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('dataStatistics'));
   const [statistics, setStatistics] = useState<DataStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +87,10 @@ export default function DataStatisticsPage() {
     type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users' | null;
     count: number;
   }>({ type: null, count: 10 });
+  const [showDeleteModal, setShowDeleteModal] = useState<{
+    type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users' | null;
+  }>({ type: null });
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [generateConfig, setGenerateConfig] = useState({
     clients: 100,
     suppliers: 20,
@@ -227,10 +237,65 @@ export default function DataStatisticsPage() {
     }
   };
 
+  const handleOpenDeleteModal = (sectionType: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users') => {
+    setShowDeleteModal({ type: sectionType });
+  };
+
+  const handleDeleteFakeData = async () => {
+    if (!showDeleteModal.type) return;
+
+    const sectionType = showDeleteModal.type;
+
+    try {
+      setDeleting(sectionType);
+      const response = await fetch(`/api/statistics/delete-fake-data?type=${sectionType}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setShowDeleteModal({ type: null });
+        // Refresh statistics
+        await fetchStatistics();
+        const sectionName = sectionType === 'clients' ? 'clienți' 
+          : sectionType === 'fixedAssets' ? 'mijloace fixe'
+          : sectionType === 'products' ? 'produse'
+          : sectionType === 'pangarProducts' ? 'produse pangar'
+          : sectionType === 'inventory' ? 'inventar'
+          : sectionType === 'documents' ? 'documente registratură'
+          : sectionType === 'users' ? 'utilizatori'
+          : sectionType === 'partners' ? 'parteneri'
+          : sectionType;
+        alert(data.message || `Date ${sectionName} șterse cu succes`);
+      } else {
+        const sectionName = sectionType === 'clients' ? 'clienți'
+          : sectionType === 'fixedAssets' ? 'mijloace fixe'
+          : sectionType === 'products' ? 'produse'
+          : sectionType === 'pangarProducts' ? 'produse pangar'
+          : sectionType === 'inventory' ? 'inventar'
+          : sectionType === 'documents' ? 'documente registratură'
+          : sectionType === 'users' ? 'utilizatori'
+          : sectionType === 'partners' ? 'parteneri'
+          : sectionType;
+        alert(data.error || `Eroare la ștergerea datelor ${sectionName}`);
+      }
+    } catch (err) {
+      alert(`Failed to delete ${sectionType} data`);
+      console.error(`Error deleting ${sectionType} data:`, err);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: t('dataStatistics') },
   ];
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   if (loading) {
     return (
@@ -424,14 +489,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('parteneri')} - {t('byCategory')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('partners')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'partners'}
-              >
-                {generatingSection === 'partners' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('partners')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'partners'}
+                >
+                  {generatingSection === 'partners' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('partners')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'partners'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'partners' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -445,14 +521,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('clients')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('clients')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'clients'}
-              >
-                {generatingSection === 'clients' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('clients')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'clients'}
+                >
+                  {generatingSection === 'clients' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('clients')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'clients'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'clients' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -473,14 +560,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('invoices')} - {t('byType')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('invoices')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'invoices'}
-              >
-                {generatingSection === 'invoices' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('invoices')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'invoices'}
+                >
+                  {generatingSection === 'invoices' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('invoices')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'invoices'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'invoices' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -508,14 +606,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('payments')} - {t('byType')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('payments')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'payments'}
-              >
-                {generatingSection === 'payments' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('payments')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'payments'}
+                >
+                  {generatingSection === 'payments' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('payments')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'payments'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'payments' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -543,14 +652,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('events')} - {t('byType')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('events')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'events'}
-              >
-                {generatingSection === 'events' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('events')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'events'}
+                >
+                  {generatingSection === 'events' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('events')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'events'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'events' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -585,14 +705,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">{t('contracts')} - {t('byType')}</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('contracts')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'contracts'}
-              >
-                {generatingSection === 'contracts' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('contracts')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'contracts'}
+                >
+                  {generatingSection === 'contracts' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('contracts')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'contracts'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'contracts' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -634,14 +765,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Produse Stoc</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('products')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'products'}
-              >
-                {generatingSection === 'products' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('products')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'products'}
+                >
+                  {generatingSection === 'products' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('products')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'products'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'products' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -662,14 +804,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Produse Pangar</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('pangarProducts')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'pangarProducts'}
-              >
-                {generatingSection === 'pangarProducts' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('pangarProducts')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'pangarProducts'}
+                >
+                  {generatingSection === 'pangarProducts' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('pangarProducts')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'pangarProducts'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'pangarProducts' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -690,14 +843,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Mijloace Fixe</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('fixedAssets')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'fixedAssets'}
-              >
-                {generatingSection === 'fixedAssets' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('fixedAssets')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'fixedAssets'}
+                >
+                  {generatingSection === 'fixedAssets' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('fixedAssets')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'fixedAssets'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'fixedAssets' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -718,14 +882,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Inventar</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('inventory')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'inventory'}
-              >
-                {generatingSection === 'inventory' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('inventory')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'inventory'}
+                >
+                  {generatingSection === 'inventory' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('inventory')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'inventory'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'inventory' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -746,14 +921,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Documente Registratură</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('documents')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'documents'}
-              >
-                {generatingSection === 'documents' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('documents')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'documents'}
+                >
+                  {generatingSection === 'documents' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('documents')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'documents'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'documents' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -774,14 +960,25 @@ export default function DataStatisticsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Utilizatori</h2>
-              <Button
-                onClick={() => handleOpenSectionModal('users')}
-                variant="outline"
-                size="sm"
-                disabled={generatingSection === 'users'}
-              >
-                {generatingSection === 'users' ? t('generating') : t('generateFakeData')}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenSectionModal('users')}
+                  variant="outline"
+                  size="sm"
+                  disabled={generatingSection === 'users'}
+                >
+                  {generatingSection === 'users' ? t('generating') : t('generateFakeData')}
+                </Button>
+                <Button
+                  onClick={() => handleOpenDeleteModal('users')}
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting === 'users'}
+                  className="text-danger hover:bg-danger hover:text-white"
+                >
+                  {deleting === 'users' ? 'Ștergere...' : 'Șterge date'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -990,6 +1187,49 @@ export default function DataStatisticsPage() {
               disabled={generatingSection !== null || showSectionModal.count <= 0}
             >
               {generatingSection ? t('generating') : t('generate')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal.type !== null}
+        onClose={() => setShowDeleteModal({ type: null })}
+        title="Confirmare ștergere date"
+      >
+        <div className="space-y-4">
+          <div className="bg-danger bg-opacity-10 border border-danger rounded-lg p-4">
+            <p className="text-danger font-semibold mb-2">⚠️ Atenție!</p>
+            <p className="text-text-secondary">
+              {showDeleteModal.type === 'clients' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru clienți? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'partners' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru parteneri? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'invoices' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru facturi? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'payments' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru plăți? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'events' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru evenimente? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'contracts' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru contracte? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'products' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'pangarProducts' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse pangar? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'fixedAssets' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru mijloace fixe? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'inventory' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru inventar? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'documents' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru documente registratură? Această acțiune este ireversibilă.'}
+              {showDeleteModal.type === 'users' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru utilizatori? Această acțiune este ireversibilă.'}
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteModal({ type: null })}
+              disabled={deleting !== null}
+            >
+              {t('cancel')}
+            </Button>
+            <Button
+              onClick={handleDeleteFakeData}
+              disabled={deleting !== null}
+              variant="danger"
+            >
+              {deleting ? 'Ștergere...' : 'Da, șterge datele'}
             </Button>
           </div>
         </div>

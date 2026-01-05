@@ -476,3 +476,5 @@ The component is well-structured and follows good React patterns, but lacks crit
 - `src/components/registratura/GeneralRegisterAttachments.tsx` - Reference for file validation patterns
 - Translation files in `src/locales/` - If internationalization is added
 
+
+

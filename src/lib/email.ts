@@ -42,72 +42,14 @@ let apiInstance: brevo.TransactionalEmailsApi | null = null;
 export const apiKey = process.env.BREVO_API_KEY;
 
 /**
- * Generate HTML email template for user confirmation
- */
-function generateConfirmationEmailHTML(
-  userName: string,
-  confirmationLink: string
-): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmă contul tău</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
-    <h1 style="color: #2c3e50; margin-top: 0;">Bun venit în platformă!</h1>
-    
-    <p>Salut <strong>${userName}</strong>,</p>
-    
-    <p>Contul tău a fost creat în platformă. Pentru a activa contul și a-ți seta parola, te rugăm să accesezi link-ul de mai jos:</p>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${confirmationLink}" 
-         style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        Confirmă contul și setează parola
-      </a>
-    </div>
-    
-    <p style="font-size: 14px; color: #666;">
-      Sau copiază acest link în browser:<br>
-      <a href="${confirmationLink}" style="color: #007bff; word-break: break-all;">${confirmationLink}</a>
-    </p>
-    
-    <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; border-radius: 4px;">
-      <p style="margin: 0; font-size: 14px;">
-        <strong>Important:</strong> Link-ul este valabil pentru 7 zile.
-      </p>
-    </div>
-    
-    <p style="font-size: 14px; color: #666;">
-      Dacă nu ai solicitat crearea acestui cont, te rugăm să ignori acest email.
-    </p>
-    
-    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
-    
-    <p style="font-size: 12px; color: #999; margin: 0;">
-      Cu respect,<br>
-      Echipa Platformă
-    </p>
-  </div>
-</body>
-</html>
-  `.trim();
-}
-
-/**
  * Send user confirmation email with password setup link
- * Uses email template from database if available, falls back to hardcoded HTML
+ * Requires the "Confirmare Cont" email template to exist in the database
  */
 export async function sendUserConfirmationEmail(
   userEmail: string,
   userName: string,
   confirmationLink: string
 ): Promise<void> {
-
   // Initialize API instance if not already done
   if (!apiInstance) {
     apiInstance = getBrevoApiInstance();
@@ -120,46 +62,32 @@ export async function sendUserConfirmationEmail(
   }
 
   try {
-    // Try to use email template from database
+    // Get email template from database - template is required
     const template = await getTemplateByName('Confirmare Cont');
     
-    if (template) {
-      await sendEmailWithTemplate(
-        template.id,
-        userEmail,
-        userName,
-        {
-          user: {
-            name: userName,
-            email: userEmail,
-          },
-          link: {
-            confirmation: confirmationLink,
-          },
-          app: {
-            name: SENDER_NAME,
-          },
-        }
-      );
-      return;
+    if (!template) {
+      const errorMessage = 'Email template "Confirmare Cont" not found. Please ensure the template exists in the database.';
+      console.error(`❌ ${errorMessage}`);
+      throw new Error(errorMessage);
     }
 
-    // Fallback to hardcoded HTML if template not found
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = 'Bun venit în platformă - Confirmă contul tău';
-    sendSmtpEmail.htmlContent = generateConfirmationEmailHTML(userName, confirmationLink);
-    sendSmtpEmail.sender = {
-      name: SENDER_NAME,
-      email: SENDER_EMAIL,
-    };
-    sendSmtpEmail.to = [
+    await sendEmailWithTemplate(
+      template.id,
+      userEmail,
+      userName,
       {
-        email: userEmail,
-        name: userName,
-      },
-    ];
-
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+        user: {
+          name: userName,
+          email: userEmail,
+        },
+        link: {
+          confirmation: confirmationLink,
+        },
+        app: {
+          name: SENDER_NAME,
+        },
+      }
+    );
   } catch (error: any) {
     console.error(`❌ Failed to send confirmation email to ${userEmail}:`, error);
     

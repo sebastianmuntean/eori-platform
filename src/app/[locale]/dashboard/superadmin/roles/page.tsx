@@ -11,11 +11,19 @@ import { Input } from '@/components/ui/Input';
 import { useRoles } from '@/hooks/useRoles';
 import { useTable } from '@/hooks/useTable';
 import { Badge } from '@/components/ui/Badge';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useParams } from 'next/navigation';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
 export default function RolesPage() {
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.ROLES_VIEW);
   console.log('Step 1: Rendering Roles page');
 
+  const params = useParams();
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('roles'));
   const { roles, loading, error, createRole, updateRole, deleteRole } = useRoles();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<typeof roles[0] | null>(null);
@@ -115,6 +123,14 @@ export default function RolesPage() {
     { label: t('breadcrumbSuperadmin'), href: '/dashboard/superadmin' },
     { label: 'Roluri' },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering roles page');
   return (

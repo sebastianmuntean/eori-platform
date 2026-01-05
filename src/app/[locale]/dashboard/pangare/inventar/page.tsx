@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
@@ -20,8 +20,11 @@ import { useWarehouses } from '@/hooks/useWarehouses';
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
 
 export default function InventarPage() {
+  const { loading: permissionLoading } = useRequirePermission(PANGARE_PERMISSIONS.INVENTAR_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
@@ -65,6 +68,11 @@ export default function InventarPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<InventorySession | null>(null);
   const [completeConfirm, setCompleteConfirm] = useState<InventorySession | null>(null);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   useEffect(() => {
     fetchParishes({ all: true });
@@ -507,99 +515,89 @@ export default function InventarPage() {
       </div>
 
       {/* Spot Check Modal */}
-      <Modal
-        isOpen={showSpotCheckModal}
-        onClose={handleCloseSpotCheckModal}
-        title={t('spotCheck') || 'Spot Check'}
-        size="md"
-      >
-        {spotCheckItem && (
-          <div className="space-y-4">
-            <div>
-              <p className="font-semibold">{spotCheckItem.name}</p>
-              <p className="text-sm text-text-secondary">Cod: {spotCheckItem.code}</p>
-              <p className="text-sm text-text-secondary">
-                {t('bookQuantity') || 'Cantitate scriptică'}: {spotCheckItem.quantity.toFixed(3)} {spotCheckItem.unit}
-              </p>
-            </div>
-            <Input
-              label={t('physicalQuantity') || 'Cantitate fizică'}
-              type="number"
-              step="0.001"
-              value={spotCheckPhysicalQuantity}
-              onChange={(e) => setSpotCheckPhysicalQuantity(e.target.value)}
-              placeholder={spotCheckItem.quantity.toFixed(3)}
-            />
-            <Input
-              label={t('notes') || 'Note'}
-              type="text"
-              value={spotCheckNotes}
-              onChange={(e) => setSpotCheckNotes(e.target.value)}
-              placeholder={t('optionalNotes') || 'Note opționale...'}
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="secondary" onClick={handleCloseSpotCheckModal} disabled={isSubmitting}>
-                {t('cancel') || 'Anulează'}
-              </Button>
-              <Button onClick={handleSaveSpotCheck} disabled={isSubmitting} isLoading={isSubmitting}>
-                {t('save') || 'Salvează'}
-              </Button>
-            </div>
+      {spotCheckItem && (
+        <FormModal
+          isOpen={showSpotCheckModal}
+          onClose={handleCloseSpotCheckModal}
+          onCancel={handleCloseSpotCheckModal}
+          title={t('spotCheck') || 'Spot Check'}
+          onSubmit={handleSaveSpotCheck}
+          isSubmitting={isSubmitting}
+          submitLabel={t('save') || 'Salvează'}
+          cancelLabel={t('cancel') || 'Anulează'}
+          size="md"
+        >
+          <div>
+            <p className="font-semibold">{spotCheckItem.name}</p>
+            <p className="text-sm text-text-secondary">Cod: {spotCheckItem.code}</p>
+            <p className="text-sm text-text-secondary">
+              {t('bookQuantity') || 'Cantitate scriptică'}: {spotCheckItem.quantity.toFixed(3)} {spotCheckItem.unit}
+            </p>
           </div>
-        )}
-      </Modal>
-
-      {/* Inventory Form Modal */}
-      <Modal
-        isOpen={showInventoryForm}
-        onClose={handleCloseInventoryForm}
-        title={selectedSession ? (t('editInventorySession') || 'Editează Sesiune Inventar') : (t('startInventory') || 'Începe Inventar')}
-        size="lg"
-      >
-        <div className="space-y-4">
-          <Select
-            label={t('parish') || 'Parohie'}
-            value={sessionFormData.parishId}
-            onChange={(e) => setSessionFormData({ ...sessionFormData, parishId: e.target.value, warehouseId: '' })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-            disabled={isSubmitting}
-          />
-          <Select
-            label={t('warehouse') || 'Gestiune'}
-            value={sessionFormData.warehouseId}
-            onChange={(e) => setSessionFormData({ ...sessionFormData, warehouseId: e.target.value })}
-            options={[
-              { value: '', label: t('all') || 'Toate' },
-              ...filteredWarehouses.map(w => ({ value: w.id, label: w.name })),
-            ]}
-            disabled={isSubmitting}
-          />
           <Input
-            label={t('date') || 'Data'}
-            type="date"
-            value={sessionFormData.date}
-            onChange={(e) => setSessionFormData({ ...sessionFormData, date: e.target.value })}
-            required
-            disabled={isSubmitting}
+            label={t('physicalQuantity') || 'Cantitate fizică'}
+            type="number"
+            step="0.001"
+            value={spotCheckPhysicalQuantity}
+            onChange={(e) => setSpotCheckPhysicalQuantity(e.target.value)}
+            placeholder={spotCheckItem.quantity.toFixed(3)}
           />
           <Input
             label={t('notes') || 'Note'}
-            value={sessionFormData.notes}
-            onChange={(e) => setSessionFormData({ ...sessionFormData, notes: e.target.value })}
+            type="text"
+            value={spotCheckNotes}
+            onChange={(e) => setSpotCheckNotes(e.target.value)}
             placeholder={t('optionalNotes') || 'Note opționale...'}
-            disabled={isSubmitting}
           />
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={handleCloseInventoryForm} disabled={isSubmitting}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button onClick={handleSaveInventory} disabled={isSubmitting} isLoading={isSubmitting}>
-              {t('save') || 'Salvează'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        </FormModal>
+      )}
+
+      {/* Inventory Form Modal */}
+      <FormModal
+        isOpen={showInventoryForm}
+        onClose={handleCloseInventoryForm}
+        onCancel={handleCloseInventoryForm}
+        title={selectedSession ? (t('editInventorySession') || 'Editează Sesiune Inventar') : (t('startInventory') || 'Începe Inventar')}
+        onSubmit={handleSaveInventory}
+        isSubmitting={isSubmitting}
+        submitLabel={t('save') || 'Salvează'}
+        cancelLabel={t('cancel') || 'Anulează'}
+        size="lg"
+      >
+        <Select
+          label={t('parish') || 'Parohie'}
+          value={sessionFormData.parishId}
+          onChange={(e) => setSessionFormData({ ...sessionFormData, parishId: e.target.value, warehouseId: '' })}
+          options={parishes.map(p => ({ value: p.id, label: p.name }))}
+          required
+          disabled={isSubmitting}
+        />
+        <Select
+          label={t('warehouse') || 'Gestiune'}
+          value={sessionFormData.warehouseId}
+          onChange={(e) => setSessionFormData({ ...sessionFormData, warehouseId: e.target.value })}
+          options={[
+            { value: '', label: t('all') || 'Toate' },
+            ...filteredWarehouses.map(w => ({ value: w.id, label: w.name })),
+          ]}
+          disabled={isSubmitting}
+        />
+        <Input
+          label={t('date') || 'Data'}
+          type="date"
+          value={sessionFormData.date}
+          onChange={(e) => setSessionFormData({ ...sessionFormData, date: e.target.value })}
+          required
+          disabled={isSubmitting}
+        />
+        <Input
+          label={t('notes') || 'Note'}
+          value={sessionFormData.notes}
+          onChange={(e) => setSessionFormData({ ...sessionFormData, notes: e.target.value })}
+          placeholder={t('optionalNotes') || 'Note opționale...'}
+          disabled={isSubmitting}
+        />
+      </FormModal>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

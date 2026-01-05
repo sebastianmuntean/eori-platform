@@ -14,3 +14,5 @@ export const receiptAttachments = pgTable('receipt_attachments', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+
+

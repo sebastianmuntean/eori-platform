@@ -14,14 +14,23 @@ import { useParishionerContracts, ParishionerContract, ParishionerContractStatus
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 const PAGE_SIZE = 10;
 
 export default function ParishionerContractsPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.CONTRACTS_VIEW);
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  usePageTitle(t('contracts'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const {
     contracts,

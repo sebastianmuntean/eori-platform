@@ -12,11 +12,21 @@ import { Dropdown } from '@/components/ui/Dropdown';
 import { Modal } from '@/components/ui/Modal';
 import { useParishionerTypes, ParishionerType } from '@/hooks/useParishionerTypes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 export default function ParishionerTypesPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.TYPES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('parishionerTypes'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const {
     types,
@@ -241,4 +251,5 @@ export default function ParishionerTypesPage() {
     </div>
   );
 }
+
 

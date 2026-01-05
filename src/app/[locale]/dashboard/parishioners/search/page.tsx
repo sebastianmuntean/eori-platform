@@ -11,14 +11,20 @@ import { useParishionerSearch } from '@/hooks/useParishionerSearch';
 import { useParishes } from '@/hooks/useParishes';
 import { useParishionerTypes } from '@/hooks/useParishionerTypes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 const PAGE_SIZE = 10;
 
 export default function ParishionerSearchPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.SEARCH);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  usePageTitle(t('search'));
 
+  // All hooks must be called before any conditional returns
   const { results, loading, error, pagination, search } = useParishionerSearch();
   const { parishes, fetchParishes } = useParishes();
   const { types, fetchTypes } = useParishionerTypes();
@@ -44,9 +50,15 @@ export default function ParishionerSearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchTypes({ all: true });
-  }, [fetchParishes, fetchTypes]);
+  }, [permissionLoading, fetchParishes, fetchTypes]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const handleSearch = () => {
     setCurrentPage(1);

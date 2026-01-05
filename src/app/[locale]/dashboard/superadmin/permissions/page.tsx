@@ -11,14 +11,40 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useTable } from '@/hooks/useTable';
 import { Badge } from '@/components/ui/Badge';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useParams } from 'next/navigation';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
-const RESOURCES = ['users', 'roles', 'permissions', 'posts', 'settings', 'reports', 'profile', 'superadmin'];
-const ACTIONS = ['read', 'write', 'delete', 'manage', 'access'];
+const RESOURCES = [
+  // Legacy/Generic
+  'users', 'roles', 'permissions', 'posts', 'settings', 'reports', 'profile', 'superadmin',
+  // Module Resources
+  'registratura.documents', 'registratura.generalRegister', 'registratura.onlineForms', 'registratura.mappingDatasets', 'registratura.registerConfigurations',
+  'accounting.invoices', 'accounting.contracts', 'accounting.payments', 'accounting.donations', 'accounting.clients', 'accounting.suppliers', 'accounting.warehouses', 'accounting.products', 'accounting.stockMovements', 'accounting.stockLevels', 'accounting.fixedAssets',
+  'administration.dioceses', 'administration.deaneries', 'administration.parishes', 'administration.departments', 'administration.users', 'administration.emailTemplates', 'administration.notifications',
+  'events', 'events.baptisms', 'events.weddings', 'events.funerals', 'events.documents', 'events.participants',
+  'parishioners', 'parishioners.receipts', 'parishioners.contracts', 'parishioners.types', 'parishioners.birthdays', 'parishioners.nameDays',
+  'catechesis.classes', 'catechesis.lessons', 'catechesis.students', 'catechesis.enrollments', 'catechesis.progress',
+  'pilgrimages', 'pilgrimages.participants', 'pilgrimages.payments', 'pilgrimages.documents', 'pilgrimages.meals', 'pilgrimages.accommodation', 'pilgrimages.transport', 'pilgrimages.schedule', 'pilgrimages.statistics',
+  'onlineForms', 'onlineForms.submissions', 'onlineForms.mappingDatasets',
+  'pangare', 'pangare.inventar', 'pangare.utilizatori',
+  'chat', 'chat.files',
+  'analytics', 'analytics.reports',
+  'dataStatistics',
+  'superadmin.roles', 'superadmin.permissions', 'superadmin.userRoles', 'superadmin.rolePermissions',
+];
+const ACTIONS = ['read', 'write', 'delete', 'manage', 'access', 'view', 'create', 'update', 'approve', 'export', 'import'];
 
 export default function PermissionsPage() {
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.PERMISSIONS_VIEW);
   console.log('Step 1: Rendering Permissions page');
 
+  const params = useParams();
+  const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('permissions'));
   const { permissions, loading, error, createPermission, updatePermission, deletePermission, bulkDeletePermissions } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<typeof permissions[0] | null>(null);
@@ -286,6 +312,14 @@ export default function PermissionsPage() {
     { label: t('breadcrumbSuperadmin'), href: '/dashboard/superadmin' },
     { label: t('permissionsBreadcrumb') },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering permissions page');
   return (

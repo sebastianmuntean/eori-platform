@@ -4,12 +4,20 @@ import { useParams } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
 
 export default function UtilizatoriPangarPage() {
+  const { loading: permissionLoading } = useRequirePermission(PANGARE_PERMISSIONS.UTILIZATORI_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -34,4 +42,5 @@ export default function UtilizatoriPangarPage() {
     </div>
   );
 }
+
 

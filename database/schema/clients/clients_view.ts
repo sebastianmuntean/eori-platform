@@ -33,3 +33,5 @@ export const clientsView = pgView('clients_view', {
   name: varchar('name', { length: 500 }), // Calculated field
 }).existing();
 
+
+

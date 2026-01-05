@@ -18,6 +18,9 @@ import { FormPreview } from '@/components/online-forms/FormPreview';
 import { useMappingDatasets } from '@/hooks/useMappingDatasets';
 import { Modal } from '@/components/ui/Modal';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 type TabType = 'config' | 'fields' | 'mappings' | 'preview';
 
@@ -28,8 +31,18 @@ export default function EditOnlineFormPage() {
   const id = params.id as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
+  const tMenu = useTranslations('menu');
+
+  // Check permission to view online forms
+  const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const { form, fetchForm } = useOnlineForm();
+  usePageTitle(form?.name || tMenu('onlineForms'));
   const { updateForm } = useOnlineForms();
   const { fields, fetchFields, createField, updateField, deleteField } = useFormFields();
   const { mappings, fetchMappings, createMapping, updateMapping, deleteMapping } = useFormMappings();
@@ -134,7 +147,7 @@ export default function EditOnlineFormPage() {
   };
 
   const handleDeleteField = async (fieldId: string) => {
-    if (confirm(tForms('confirmDelete') || 'Are you sure?')) {
+    if (confirm(t('confirmDelete') || 'Are you sure?')) {
       await deleteField(id, fieldId);
       await fetchFields(id);
     }
@@ -162,7 +175,7 @@ export default function EditOnlineFormPage() {
   };
 
   const handleDeleteMapping = async (mappingId: string) => {
-    if (confirm(tForms('confirmDelete') || 'Are you sure?')) {
+    if (confirm(t('confirmDelete') || 'Are you sure?')) {
       await deleteMapping(id, mappingId);
       await fetchMappings(id);
     }
@@ -191,7 +204,7 @@ export default function EditOnlineFormPage() {
     { id: 'config' as TabType, label: t('settings') },
     { id: 'fields' as TabType, label: tForms('fields') },
     { id: 'mappings' as TabType, label: tForms('mappings') },
-    { id: 'preview' as TabType, label: tForms('preview') },
+    { id: 'preview' as TabType, label: t('preview') },
   ];
 
   if (!form) {
@@ -430,7 +443,7 @@ export default function EditOnlineFormPage() {
       {activeTab === 'preview' && (
         <Card>
           <CardHeader>
-            <h2 className="text-xl font-semibold">{tForms('preview')}</h2>
+            <h2 className="text-xl font-semibold">{t('preview')}</h2>
           </CardHeader>
           <CardBody>
             <FormPreview

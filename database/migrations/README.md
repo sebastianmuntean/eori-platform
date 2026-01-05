@@ -42,10 +42,14 @@ Migrations are SQL scripts located in this directory and follow the naming patte
 13. `0011_add_payments.sql` - Payments table (requires parishes, partners, users) ⚠️
 14. `0012_add_invoices.sql` - Invoices table (requires parishes, partners, users) ⚠️
 15. `0013_add_church_events.sql` - Church events (requires parishes)
+... (many more migrations in between)
+49. `0049_add_hr_permissions.sql` - HR module permissions
+50. `0050_add_catechesis_module.sql` - **Catechesis module** (requires parishes, users) ⚠️
 
 **Key Dependencies:**
 - `0011_add_payments.sql` and `0012_add_invoices.sql` require `0005_marvelous_pride.sql` (creates parishes, partners)
 - `0008_add_departments.sql` requires `0005_marvelous_pride.sql` (creates parishes)
+- `0050_add_catechesis_module.sql` requires `0005_marvelous_pride.sql` (creates parishes) and `0000_classy_tattoo.sql` (creates users)
 - Most migrations after 0005 require tables created in 0005
 
 ## Notes

@@ -26,3 +26,5 @@ export function getCategoryRoute(category: FixedAssetCategory, locale: string): 
   return `/${locale}/dashboard/accounting/fixed-assets/registers/${CATEGORY_ROUTE_MAP[category]}`;
 }
 
+
+

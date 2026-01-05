@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/Button';
 import { ChartContainer, ChartDataPoint } from '@/components/analytics/ChartContainer';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Modal } from '@/components/ui/Modal';
+import { SimpleModal } from '@/components/ui/SimpleModal';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ANALYTICS_PERMISSIONS } from '@/lib/permissions/analytics';
 
 interface DashboardMetrics {
   userActivity: {
@@ -42,9 +45,11 @@ interface DashboardMetrics {
 }
 
 export default function AnalyticsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ANALYTICS_PERMISSIONS.VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  usePageTitle('Analytics');
   
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,6 +101,10 @@ export default function AnalyticsPage() {
       setLoading(false);
     }
   };
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   if (loading && !metrics) {
     return (
@@ -375,24 +384,20 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Report Builder Modal */}
-      {showReportBuilder && (
-        <Modal
-          isOpen={showReportBuilder}
-          onClose={() => setShowReportBuilder(false)}
-          title={t('createReport') || 'Create Report'}
-        >
-          <div className="p-4">
-            <p className="text-text-secondary">
-              {t('reportBuilderComingSoon') || 'Report builder coming soon. For now, you can view the analytics dashboard above.'}
-            </p>
-            <div className="mt-4 flex justify-end">
-              <Button onClick={() => setShowReportBuilder(false)} variant="secondary">
-                {t('close')}
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <SimpleModal
+        isOpen={showReportBuilder}
+        onClose={() => setShowReportBuilder(false)}
+        title={t('createReport') || 'Create Report'}
+        actions={
+          <Button onClick={() => setShowReportBuilder(false)} variant="secondary">
+            {t('close')}
+          </Button>
+        }
+      >
+        <p className="text-text-secondary">
+          {t('reportBuilderComingSoon') || 'Report builder coming soon. For now, you can view the analytics dashboard above.'}
+        </p>
+      </SimpleModal>
     </div>
   );
 }

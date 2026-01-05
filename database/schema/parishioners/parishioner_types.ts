@@ -12,3 +12,5 @@ export const parishionerTypes = pgTable('parishioner_types', {
   updatedBy: uuid('updated_by').references(() => users.id),
 });
 
+
+

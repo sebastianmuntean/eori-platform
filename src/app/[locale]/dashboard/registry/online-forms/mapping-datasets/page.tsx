@@ -12,6 +12,8 @@ import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { useMappingDatasets, MappingDataset } from '@/hooks/useMappingDatasets';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function MappingDatasetsPage() {
   const params = useParams();
@@ -20,6 +22,10 @@ export default function MappingDatasetsPage() {
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
 
+  // Check permission to view mapping datasets
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.MAPPING_DATASETS_VIEW);
+
+  // All hooks must be called before any conditional returns
   const {
     datasets,
     loading,
@@ -35,13 +41,19 @@ export default function MappingDatasetsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchDatasets({
       page: currentPage,
       limit: 10,
       search: searchTerm || undefined,
       targetModule: targetModuleFilter || undefined,
     });
-  }, [currentPage, searchTerm, targetModuleFilter, fetchDatasets]);
+  }, [permissionLoading, currentPage, searchTerm, targetModuleFilter, fetchDatasets]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = () => {
     router.push(`/${locale}/dashboard/registry/online-forms/mapping-datasets/new`);
@@ -231,7 +243,7 @@ export default function MappingDatasetsPage() {
         title={t('confirmDelete')}
       >
         <div className="space-y-4">
-          <p>{tForms('confirmDelete')}</p>
+          <p>{t('confirmDelete')}</p>
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>
               {t('cancel')}

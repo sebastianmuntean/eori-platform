@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { SimpleModal } from '@/components/ui/SimpleModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useInvoices, Invoice, InvoiceItem } from '@/hooks/useInvoices';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
@@ -20,12 +22,20 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter, ClientFilter } from '@/components/ui/FilterGrid';
 import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Select } from '@/components/ui/Select';
+import { Autocomplete, AutocompleteOption } from '@/components/ui/Autocomplete';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function InvoicesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.INVOICES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('invoices'));
 
+  // All hooks must be called before any conditional returns
   const {
     invoices,
     loading,
@@ -43,9 +53,12 @@ export default function InvoicesPage() {
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
   const { warehouses, fetchWarehouses } = useWarehouses();
-  const { products, fetchProducts } = useProducts();
+  const { products, fetchProducts, loading: productsLoading, createProduct } = useProducts();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [newProductInput, setNewProductInput] = useState('');
+  const previousItemsCountRef = useRef(0);
   const [parishFilter, setParishFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -56,6 +69,7 @@ export default function InvoicesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -74,17 +88,44 @@ export default function InvoicesPage() {
     items: [] as InvoiceItem[],
   });
 
+  const [productFormData, setProductFormData] = useState({
+    code: '',
+    name: '',
+    description: '',
+    category: '',
+    unit: 'buc',
+    purchasePrice: '',
+    salePrice: '',
+    vatRate: '19',
+    barcode: '',
+    trackStock: true,
+    minStock: '',
+    isActive: true,
+  });
+
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
-  // Fetch products when parish is selected (for received invoices)
+  // Fetch products when invoice type is 'received' (products are system-wide, not filtered by parish)
   useEffect(() => {
-    if (formData.parishId && formData.type === 'received') {
-      fetchProducts({ parishId: formData.parishId, isActive: true, pageSize: 1000 });
+    if (formData.type === 'received') {
+      fetchProducts({ isActive: true, pageSize: 1000 });
     }
-  }, [formData.parishId, formData.type, fetchProducts]);
+  }, [formData.type, fetchProducts]);
+
+  // Reset product input when a new product is added
+  useEffect(() => {
+    if (formData.type === 'received' && formData.items.length > previousItemsCountRef.current) {
+      // A new product was added, reset the input after a short delay
+      setTimeout(() => {
+        setNewProductInput('');
+      }, 100);
+    }
+    previousItemsCountRef.current = formData.items.length;
+  }, [formData.items.length, formData.type]);
 
   // Fetch warehouses when parish is selected
   useEffect(() => {
@@ -94,6 +135,7 @@ export default function InvoicesPage() {
   }, [formData.parishId, fetchWarehouses]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -113,7 +155,7 @@ export default function InvoicesPage() {
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     });
-  }, [currentPage, searchTerm, parishFilter, typeFilter, statusFilter, partnerFilter, dateFrom, dateTo, fetchInvoices, fetchSummary]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, typeFilter, statusFilter, partnerFilter, dateFrom, dateTo, fetchInvoices, fetchSummary]);
 
   const calculateItemTotal = (item: InvoiceItem) => {
     const subtotal = item.quantity * item.unitPrice;
@@ -139,6 +181,7 @@ export default function InvoicesPage() {
       ...formData,
       series: formData.series,
       number: formData.number, // Optional - API will auto-generate if not provided
+      warehouseId: formData.warehouseId || null, // Convert empty string to null
       amount: calculateTotals().subtotal.toString(),
       vat: vat.toString(),
       total: total.toString(),
@@ -148,7 +191,7 @@ export default function InvoicesPage() {
           ...item,
           total: calculateItemTotal(item),
           productId: extendedItem.productId || null,
-          warehouseId: extendedItem.warehouseId || formData.warehouseId || null,
+          warehouseId: extendedItem.warehouseId || (formData.warehouseId || null),
           unitCost: extendedItem.unitCost || null,
         };
       }),
@@ -173,6 +216,7 @@ export default function InvoicesPage() {
       ...formData,
       series: formData.series,
       number: formData.number,
+      warehouseId: formData.warehouseId || null, // Convert empty string to null
       amount: calculateTotals().subtotal.toString(),
       vat: vat.toString(),
       total: total.toString(),
@@ -182,7 +226,7 @@ export default function InvoicesPage() {
           ...item,
           total: calculateItemTotal(item),
           productId: extendedItem.productId || null,
-          warehouseId: extendedItem.warehouseId || formData.warehouseId || null,
+          warehouseId: extendedItem.warehouseId || (formData.warehouseId || null),
           unitCost: extendedItem.unitCost || null,
         };
       }),
@@ -222,9 +266,9 @@ export default function InvoicesPage() {
       status: invoice.status,
       items: invoice.items || [],
     });
-    // Fetch products if it's a received invoice
-    if (invoice.type === 'received' && invoice.parishId) {
-      await fetchProducts({ parishId: invoice.parishId, isActive: true, pageSize: 1000 });
+    // Fetch products if it's a received invoice (products are system-wide, not filtered by parish)
+    if (invoice.type === 'received') {
+      await fetchProducts({ isActive: true, pageSize: 1000 });
     }
     setShowEditModal(true);
   };
@@ -250,6 +294,7 @@ export default function InvoicesPage() {
       status: 'draft',
       items: [],
     });
+    setNewProductInput('');
   };
 
   // Helper function to calculate next invoice number
@@ -387,6 +432,110 @@ export default function InvoicesPage() {
     return new Intl.NumberFormat('ro-RO', { style: 'currency', currency }).format(num);
   };
 
+  // Helper functions for product Autocomplete
+  const getProductLabel = (product: Product) => `${product.code} - ${product.name}`;
+  
+  const getProductIdFromLabel = (label: string): string | null => {
+    const product = products.find(p => getProductLabel(p) === label);
+    return product?.id || null;
+  };
+
+  const getProductOptions = (excludeProductIds: string[] = []): AutocompleteOption[] => {
+    return products
+      .filter(p => !excludeProductIds.includes(p.id))
+      .map(p => ({
+        value: p.id,
+        label: getProductLabel(p),
+        product: p,
+      }));
+  };
+
+  const handleProductSearch = (searchTerm: string) => {
+    setProductSearchTerm(searchTerm);
+    if (searchTerm.trim().length >= 2) {
+      fetchProducts({ search: searchTerm.trim(), isActive: true, pageSize: 1000 });
+    }
+  };
+
+  const handleProductSelect = (label: string, excludeProductIds: string[] = []) => {
+    const productId = getProductIdFromLabel(label);
+    if (productId) {
+      const product = products.find(p => p.id === productId);
+      if (product && !excludeProductIds.includes(productId)) {
+        addProductItem(product);
+        // Input will be reset by useEffect when item is added
+      }
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    try {
+      // Validate required fields
+      if (!productFormData.code || !productFormData.name) {
+        alert(t('fillRequiredFields') || 'Te rugăm să completezi toate câmpurile obligatorii');
+        return;
+      }
+
+      // Check if parish is selected in invoice form
+      if (!formData.parishId) {
+        alert(t('pleaseSelectParish') || 'Vă rugăm să selectați o parohie pentru factură înainte de a adăuga produse');
+        return;
+      }
+
+      // Use the invoice's parishId for the product (products are generic but need a parish association)
+      const newProduct = await createProduct({
+        ...productFormData,
+        parishId: formData.parishId, // Use invoice's parish
+        purchasePrice: productFormData.purchasePrice || null,
+        salePrice: productFormData.salePrice || null,
+        minStock: productFormData.minStock || null,
+      });
+      
+      if (newProduct) {
+        // Refresh products list
+        await fetchProducts({ isActive: true, pageSize: 1000 });
+        // Add the new product to the invoice
+        addProductItem(newProduct);
+        // Close modal and reset form
+        setShowAddProductModal(false);
+        setNewProductInput(''); // Reset autocomplete input
+        setProductFormData({
+          code: '',
+          name: '',
+          description: '',
+          category: '',
+          unit: 'buc',
+          purchasePrice: '',
+          salePrice: '',
+          vatRate: '19',
+          barcode: '',
+          trackStock: true,
+          minStock: '',
+          isActive: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating product:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Eroare la crearea produsului';
+      alert(errorMessage);
+    }
+  };
+
+  const handleProductChange = (index: number, label: string) => {
+    const productId = getProductIdFromLabel(label);
+    if (productId) {
+      updateLineItem(index, 'productId', productId);
+    } else {
+      updateLineItem(index, 'productId', null);
+    }
+  };
+
+  const getProductLabelForItem = (item: ExtendedInvoiceItem): string => {
+    if (!item.productId) return '';
+    const product = products.find(p => p.id === item.productId);
+    return product ? getProductLabel(product) : '';
+  };
+
   const getClientName = (clientId: string) => {
     const client = clients.find((c) => c.id === clientId);
     if (!client) return clientId;
@@ -474,6 +623,11 @@ export default function InvoicesPage() {
   ];
 
   const { subtotal, vat, total } = calculateTotals();
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div>
@@ -651,8 +805,18 @@ export default function InvoicesPage() {
       </Card>
 
       {/* Add Modal */}
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={`${t('add')} ${t('invoice')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
+        title={`${t('add')} ${t('invoice')}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -735,9 +899,9 @@ export default function InvoicesPage() {
                     newType,
                     formData.warehouseId || undefined
                   );
-                  // Fetch products if switching to received type
-                  if (newType === 'received' && formData.parishId) {
-                    await fetchProducts({ parishId: formData.parishId, isActive: true, pageSize: 1000 });
+                  // Fetch products if switching to received type (products are system-wide, not filtered by parish)
+                  if (newType === 'received') {
+                    await fetchProducts({ isActive: true, pageSize: 1000 });
                   }
                   setFormData({
                     ...formData,
@@ -745,6 +909,7 @@ export default function InvoicesPage() {
                     number: nextNumber || formData.number,
                     items: [], // Reset items when changing type
                   });
+                  setNewProductInput(''); // Reset product input when changing type
                 }}
                 className="w-full px-3 py-2 border rounded"
                 required
@@ -792,20 +957,46 @@ export default function InvoicesPage() {
                 {formData.type === 'received' ? (t('products') || 'Produse') : (t('lineItems') || 'Linii Factură')} *
               </label>
               {formData.type === 'received' ? (
-                <Select
-                  value=""
-                  onChange={(e) => {
-                    const product = products.find(p => p.id === e.target.value);
-                    if (product) addProductItem(product);
-                  }}
-                  options={[
-                    { value: '', label: t('selectProduct') || 'Selectează Produs' },
-                    ...products
-                      .filter(p => !formData.items.some((item: ExtendedInvoiceItem) => item.productId === p.id))
-                      .map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
-                  ]}
-                  placeholder={t('selectProduct') || 'Selectează Produs'}
-                />
+                <div className="flex items-center gap-2">
+                  <div className="w-64">
+                    <Autocomplete
+                      value={newProductInput}
+                      onChange={(label) => {
+                        setNewProductInput(label);
+                        // Only add product when a valid option is selected (not during typing)
+                        if (label && products.some(p => getProductLabel(p) === label)) {
+                          const excludeIds = formData.items
+                            .map((item: ExtendedInvoiceItem) => item.productId)
+                            .filter((id): id is string => !!id);
+                          handleProductSelect(label, excludeIds);
+                        }
+                      }}
+                      options={getProductOptions(
+                        formData.items
+                          .map((item: ExtendedInvoiceItem) => item.productId)
+                          .filter((id): id is string => !!id)
+                      )}
+                      placeholder={t('selectProduct') || 'Selectează Produs'}
+                      loading={productsLoading}
+                      onSearch={handleProductSearch}
+                      getOptionLabel={(option) => option.label}
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setProductFormData({
+                        ...productFormData,
+                        parishId: formData.parishId || '',
+                      });
+                      setShowAddProductModal(true);
+                    }}
+                  >
+                    +
+                  </Button>
+                </div>
               ) : (
                 <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
                   {t('add')} {t('lineItems')}
@@ -823,14 +1014,11 @@ export default function InvoicesPage() {
                       {formData.type === 'received' ? (
                         <>
                           <div className="col-span-3">
-                            <Select
+                            <Input
                               label={t('product') || 'Produs'}
-                              value={extendedItem.productId || ''}
-                              onChange={(e) => updateLineItem(index, 'productId', e.target.value || null)}
-                              options={[
-                                { value: '', label: t('selectProduct') || 'Selectează Produs' },
-                                ...products.map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
-                              ]}
+                              value={extendedItem.description || ''}
+                              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                              placeholder={t('productName') || 'Nume produs'}
                             />
                           </div>
                           <div className="col-span-2">
@@ -951,17 +1139,23 @@ export default function InvoicesPage() {
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t mt-6">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
           </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Edit Modal */}
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title={`${t('edit')} ${t('invoice')}`} size="full">
-        <div className="space-y-6 overflow-y-auto">
+      <FormModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
+        title={`${t('edit')} ${t('invoice')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('update')}
+        cancelLabel={t('cancel')}
+        size="full"
+      >
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
@@ -1070,20 +1264,46 @@ export default function InvoicesPage() {
                 {formData.type === 'received' ? (t('products') || 'Produse') : (t('lineItems') || 'Linii Factură')} *
               </label>
               {formData.type === 'received' ? (
-                <Select
-                  value=""
-                  onChange={(e) => {
-                    const product = products.find(p => p.id === e.target.value);
-                    if (product) addProductItem(product);
-                  }}
-                  options={[
-                    { value: '', label: t('selectProduct') || 'Selectează Produs' },
-                    ...products
-                      .filter(p => !formData.items.some((item: ExtendedInvoiceItem) => item.productId === p.id))
-                      .map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
-                  ]}
-                  placeholder={t('selectProduct') || 'Selectează Produs'}
-                />
+                <div className="flex items-center gap-2">
+                  <div className="w-64">
+                    <Autocomplete
+                      value={newProductInput}
+                      onChange={(label) => {
+                        setNewProductInput(label);
+                        // Only add product when a valid option is selected (not during typing)
+                        if (label && products.some(p => getProductLabel(p) === label)) {
+                          const excludeIds = formData.items
+                            .map((item: ExtendedInvoiceItem) => item.productId)
+                            .filter((id): id is string => !!id);
+                          handleProductSelect(label, excludeIds);
+                        }
+                      }}
+                      options={getProductOptions(
+                        formData.items
+                          .map((item: ExtendedInvoiceItem) => item.productId)
+                          .filter((id): id is string => !!id)
+                      )}
+                      placeholder={t('selectProduct') || 'Selectează Produs'}
+                      loading={productsLoading}
+                      onSearch={handleProductSearch}
+                      getOptionLabel={(option) => option.label}
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setProductFormData({
+                        ...productFormData,
+                        parishId: formData.parishId || '',
+                      });
+                      setShowAddProductModal(true);
+                    }}
+                  >
+                    +
+                  </Button>
+                </div>
               ) : (
                 <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
                   {t('add')} {t('lineItems')}
@@ -1101,14 +1321,11 @@ export default function InvoicesPage() {
                       {formData.type === 'received' ? (
                         <>
                           <div className="col-span-3">
-                            <Select
+                            <Input
                               label={t('product') || 'Produs'}
-                              value={extendedItem.productId || ''}
-                              onChange={(e) => updateLineItem(index, 'productId', e.target.value || null)}
-                              options={[
-                                { value: '', label: t('selectProduct') || 'Selectează Produs' },
-                                ...products.map(p => ({ value: p.id, label: `${p.code} - ${p.name}` }))
-                              ]}
+                              value={extendedItem.description || ''}
+                              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                              placeholder={t('productName') || 'Nume produs'}
                             />
                           </div>
                           <div className="col-span-2">
@@ -1228,18 +1445,16 @@ export default function InvoicesPage() {
               </select>
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-4 border-t mt-6">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleUpdate}>{t('update')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* View Modal - Read-only */}
       {selectedInvoice && (
-        <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title={`${t('view')} ${t('invoice')}`}>
+        <SimpleModal
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          title={`${t('view')} ${t('invoice')}`}
+        >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -1253,25 +1468,166 @@ export default function InvoicesPage() {
             </div>
             {/* Add more read-only fields */}
           </div>
-        </Modal>
+        </SimpleModal>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title={t('confirmDelete')}>
-          <div className="space-y-4">
-            <p>{t('confirmDelete')}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-                {t('cancel')}
-              </Button>
-              <Button variant="danger" onClick={() => handleDelete(deleteConfirm)}>
-                {t('delete')}
-              </Button>
-            </div>
+      {/* Add Product Modal */}
+      <FormModal
+        isOpen={showAddProductModal}
+        onClose={() => {
+          setShowAddProductModal(false);
+          setProductFormData({
+            code: '',
+            name: '',
+            description: '',
+            category: '',
+            unit: 'buc',
+            purchasePrice: '',
+            salePrice: '',
+            vatRate: '19',
+            barcode: '',
+            trackStock: true,
+            minStock: '',
+            isActive: true,
+          });
+        }}
+        onCancel={() => {
+          setShowAddProductModal(false);
+          setProductFormData({
+            code: '',
+            name: '',
+            description: '',
+            category: '',
+            unit: 'buc',
+            purchasePrice: '',
+            salePrice: '',
+            vatRate: '19',
+            barcode: '',
+            trackStock: true,
+            minStock: '',
+            isActive: true,
+          });
+        }}
+        title={t('addProduct') || 'Adaugă Produs'}
+        onSubmit={handleCreateProduct}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
+        size="lg"
+      >
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+          <Input
+            label={`${t('code')} *`}
+            value={productFormData.code}
+            onChange={(e) => setProductFormData({ ...productFormData, code: e.target.value })}
+            required
+          />
+          <Input
+            label={`${t('name')} *`}
+            value={productFormData.name}
+            onChange={(e) => setProductFormData({ ...productFormData, name: e.target.value })}
+            required
+          />
+          <Input
+            label={t('description')}
+            value={productFormData.description}
+            onChange={(e) => setProductFormData({ ...productFormData, description: e.target.value })}
+          />
+          <Select
+            label={t('category')}
+            value={productFormData.category}
+            onChange={(e) => setProductFormData({ ...productFormData, category: e.target.value })}
+            options={[
+              { value: '', label: t('select') || 'Selectează...' },
+              { value: 'pangar', label: 'Pangar' },
+              { value: 'material', label: 'Material' },
+              { value: 'service', label: 'Serviciu' },
+              { value: 'fixed', label: 'Mijloc Fix' },
+              { value: 'other', label: 'Altele' },
+            ]}
+          />
+          <Select
+            label={`${t('unit')} *`}
+            value={productFormData.unit}
+            onChange={(e) => setProductFormData({ ...productFormData, unit: e.target.value })}
+            options={[
+              { value: 'buc', label: 'Bucată (buc)' },
+              { value: 'kg', label: 'Kilogram (kg)' },
+              { value: 'g', label: 'Gram (g)' },
+              { value: 'l', label: 'Litru (l)' },
+              { value: 'ml', label: 'Mililitru (ml)' },
+              { value: 'm', label: 'Metru (m)' },
+              { value: 'cm', label: 'Centimetru (cm)' },
+              { value: 'm2', label: 'Metru pătrat (m²)' },
+              { value: 'm3', label: 'Metru cub (m³)' },
+              { value: 'pachet', label: 'Pachet' },
+              { value: 'cutie', label: 'Cutie' },
+              { value: 'set', label: 'Set' },
+              { value: 'pereche', label: 'Pereche' },
+            ]}
+            required
+          />
+          <Input
+            type="number"
+            step="0.01"
+            label={t('purchasePrice')}
+            value={productFormData.purchasePrice}
+            onChange={(e) => setProductFormData({ ...productFormData, purchasePrice: e.target.value })}
+          />
+          <Input
+            type="number"
+            step="0.01"
+            label={t('salePrice')}
+            value={productFormData.salePrice}
+            onChange={(e) => setProductFormData({ ...productFormData, salePrice: e.target.value })}
+          />
+          <Input
+            type="number"
+            step="0.01"
+            label={t('vatRate')}
+            value={productFormData.vatRate}
+            onChange={(e) => setProductFormData({ ...productFormData, vatRate: e.target.value })}
+          />
+          <Input
+            label={t('barcode')}
+            value={productFormData.barcode}
+            onChange={(e) => setProductFormData({ ...productFormData, barcode: e.target.value })}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="trackStock"
+              checked={productFormData.trackStock}
+              onChange={(e) => setProductFormData({ ...productFormData, trackStock: e.target.checked })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="trackStock" className="text-sm font-medium">
+              {t('trackStock') || 'Urmărește stoc'}
+            </label>
           </div>
-        </Modal>
-      )}
+          {productFormData.trackStock && (
+            <Input
+              type="number"
+              step="0.001"
+              label={t('minStock')}
+              value={productFormData.minStock}
+              onChange={(e) => setProductFormData({ ...productFormData, minStock: e.target.value })}
+            />
+          )}
+        </div>
+      </FormModal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        title={t('confirmDelete')}
+        message={t('confirmDelete')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+        variant="danger"
+      />
     </div>
   );
 }

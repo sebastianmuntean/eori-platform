@@ -9,6 +9,8 @@ import { createGeneralRegisterDocument, getGeneralRegisterDocument, GeneralRegis
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function CreateDocumentPage() {
   const params = useParams();
@@ -18,6 +20,10 @@ export default function CreateDocumentPage() {
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
 
+  // Check permission to view general register
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+
+  // All hooks must be called before any conditional returns
   const [loading, setLoading] = useState(false);
   const [initialData, setInitialData] = useState<{
     registerConfigurationId?: string;
@@ -34,6 +40,7 @@ export default function CreateDocumentPage() {
 
   // Handle copyFrom query parameter
   useEffect(() => {
+    if (permissionLoading) return;
     const copyFromId = searchParams.get('copyFrom');
     if (copyFromId) {
       setLoadingCopy(true);
@@ -62,7 +69,12 @@ export default function CreateDocumentPage() {
           setLoadingCopy(false);
         });
     }
-  }, [searchParams, showError, tReg]);
+  }, [permissionLoading, searchParams, showError, tReg]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSave = useCallback(async (data: {
     registerConfigurationId: string;

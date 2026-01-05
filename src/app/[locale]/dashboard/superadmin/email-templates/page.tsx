@@ -14,17 +14,23 @@ import { EmailTemplateForm } from '@/components/email-templates/EmailTemplateFor
 import { EmailTemplatePreview } from '@/components/email-templates/EmailTemplatePreview';
 import { TemplateTestDialog } from '@/components/email-templates/TemplateTestDialog';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 type TemplateRow = EmailTemplate & {
   [key: string]: any;
 };
 
 export default function SuperadminEmailTemplatesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.EMAIL_TEMPLATES_VIEW);
   console.log('Step 1: Rendering Email Templates superadmin page');
 
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('emailTemplates') || t('emailTemplates'));
 
   const {
     templates,
@@ -321,6 +327,15 @@ export default function SuperadminEmailTemplatesPage() {
     { label: t('breadcrumbSuperadmin'), href: `/${locale}/dashboard/superadmin` },
     { label: t('emailTemplates') },
   ];
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering page');
   return (

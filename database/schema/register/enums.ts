@@ -33,3 +33,5 @@ export const generalRegisterStepStatusEnum = pgEnum('general_register_step_statu
 // Used by general_register_workflow
 export const generalRegisterResolutionStatusEnum = pgEnum('general_register_resolution_status', ['approved', 'rejected']);
 
+
+

@@ -31,11 +31,13 @@ const createInvoiceSchema = z.object({
   currency: z.string().length(3).optional().default('RON'),
   description: z.string().optional().nullable(),
   status: z.enum(['draft', 'sent', 'paid', 'overdue', 'cancelled']).optional().default('draft'),
-  warehouseId: z.string().uuid('Invalid warehouse ID').optional().nullable(),
+  warehouseId: z.string().uuid('Invalid warehouse ID').optional().nullable().or(z.literal('')),
 }).transform((data) => ({
   ...data,
   // Convert empty string to undefined for invoiceNumber
   invoiceNumber: data.invoiceNumber === '' ? undefined : data.invoiceNumber,
+  // Convert empty string to null for warehouseId
+  warehouseId: data.warehouseId === '' ? null : data.warehouseId,
 }));
 
 /**
@@ -311,7 +313,7 @@ export async function POST(request: Request) {
         parish_id, series, number, invoice_number, type,
         issue_date, date, due_date,
         client_id,
-        amount, vat, total,
+        amount, subtotal, vat, vat_amount, total,
         currency, status, description, items,
         warehouse_id, created_by, created_at, updated_at
       ) VALUES (
@@ -325,6 +327,8 @@ export async function POST(request: Request) {
         ${data.dueDate}::date,
         ${data.clientId}::uuid,
         ${subtotal.toString()}::numeric,
+        ${subtotal.toString()}::numeric,
+        ${vatTotal.toString()}::numeric,
         ${vatTotal.toString()}::numeric,
         ${total.toString()}::numeric,
         ${data.currency || 'RON'},

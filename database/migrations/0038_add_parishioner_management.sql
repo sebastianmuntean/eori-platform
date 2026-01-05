@@ -283,3 +283,5 @@ CREATE INDEX IF NOT EXISTS "clients_parish_id_idx" ON "clients" ("parish_id");
 CREATE INDEX IF NOT EXISTS "clients_name_day_idx" ON "clients" ("name_day");
 CREATE INDEX IF NOT EXISTS "clients_is_parishioner_idx" ON "clients" ("is_parishioner");
 
+
+

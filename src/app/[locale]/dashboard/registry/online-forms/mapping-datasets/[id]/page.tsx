@@ -14,6 +14,8 @@ import { MappingEditorModal, Mapping } from '@/components/online-forms/MappingEd
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function EditMappingDatasetPage() {
   const params = useParams();
@@ -22,6 +24,14 @@ export default function EditMappingDatasetPage() {
   const id = params.id as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
+
+  // Check permission to view mapping datasets
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.MAPPING_DATASETS_VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const { dataset, fetchDataset, updateDataset } = useMappingDatasets();
   const { parishes, fetchParishes } = useParishes();

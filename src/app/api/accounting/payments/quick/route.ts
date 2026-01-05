@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { payments, parishes, clients } from '@/database/schema';
-import { formatErrorResponse, logError } from '@/lib/errors';
+import { formatErrorResponse, logError, AuthorizationError, NotFoundError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
+import { requireParishAccess } from '@/lib/api-utils/authorization';
 import { eq, and, like, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { sendEmailWithTemplateName, getTemplateByName } from '@/lib/email';
@@ -17,6 +18,18 @@ const quickPaymentSchema = z.object({
     .positive('Amount must be positive')
     .max(MAX_PAYMENT_AMOUNT, 'Amount exceeds maximum allowed'),
   reason: z.string().min(1, 'Reason is required').max(500, 'Reason is too long'),
+  category: z.string().min(1, 'Category is required').max(100, 'Category is too long'),
+  sendEmail: z.boolean().optional().default(false),
+  emailAddress: z.string().email('Invalid email address').optional(),
+}).refine((data) => {
+  // If sendEmail is true, emailAddress must be provided
+  if (data.sendEmail && !data.emailAddress) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Email address is required when sendEmail is true',
+  path: ['emailAddress'],
 });
 
 /**
@@ -47,8 +60,30 @@ export async function POST(request: Request) {
 
     const data = validation.data;
 
-    // Check if parish exists
-    console.log(`Step 2: Checking if parish ${data.parishId} exists`);
+    // Authorization check - verify user has access to the parish
+    console.log(`Step 2: Checking user access to parish ${data.parishId}`);
+    try {
+      await requireParishAccess(data.parishId, false);
+    } catch (error) {
+      if (error instanceof AuthorizationError) {
+        console.log(`❌ User does not have access to parish ${data.parishId}`);
+        return NextResponse.json(
+          { success: false, error: 'You do not have access to this parish' },
+          { status: 403 }
+        );
+      }
+      if (error instanceof NotFoundError) {
+        console.log(`❌ Parish ${data.parishId} not found`);
+        return NextResponse.json(
+          { success: false, error: 'Parish not found' },
+          { status: 404 }
+        );
+      }
+      throw error;
+    }
+
+    // Check if parish exists and is active
+    console.log(`Step 3: Verifying parish ${data.parishId} is active`);
     const [existingParish] = await db
       .select()
       .from(parishes)
@@ -72,7 +107,7 @@ export async function POST(request: Request) {
     }
 
     // Check if client exists and is active
-    console.log(`Step 3: Checking if client ${data.clientId} exists`);
+    console.log(`Step 4: Checking if client ${data.clientId} exists`);
     const [existingClient] = await db
       .select()
       .from(clients)
@@ -96,7 +131,7 @@ export async function POST(request: Request) {
     }
 
     // Generate payment number and create payment in a transaction to prevent race conditions
-    console.log('Step 4: Generating payment number and creating payment');
+    console.log('Step 5: Generating payment number and creating payment');
     const currentYear = new Date().getFullYear();
     const paymentPrefix = `INC-${currentYear}-`;
     const currentDate = new Date().toISOString().split('T')[0];
@@ -144,7 +179,7 @@ export async function POST(request: Request) {
             paymentNumber: paymentNumber,
             date: currentDate,
             type: 'income',
-            category: null,
+            category: data.category,
             clientId: data.clientId,
             amount: data.amount.toString(),
             currency: 'RON', // TODO: Make configurable per parish
@@ -172,7 +207,7 @@ export async function POST(request: Request) {
               paymentNumber: retryPaymentNumber,
               date: currentDate,
               type: 'income',
-              category: null,
+              category: data.category,
               clientId: data.clientId,
               amount: data.amount.toString(),
               currency: 'RON', // TODO: Make configurable per parish
@@ -192,74 +227,74 @@ export async function POST(request: Request) {
 
     console.log(`✓ Payment created successfully: ${newPayment.id}`);
 
-    // Send email receipt to client if email exists and is valid
-    const clientEmail = existingClient.email?.trim();
-    if (clientEmail && isValidEmail(clientEmail)) {
-      console.log(`Step 5: Sending email receipt to ${clientEmail}`);
-      try {
-        // Get client display name using helper
-        const clientName = getClientName(existingClient);
+    // Send email receipt if requested
+    if (data.sendEmail && data.emailAddress) {
+      const emailToSend = data.emailAddress.trim();
+      if (isValidEmail(emailToSend)) {
+        console.log(`Step 6: Sending email receipt to ${emailToSend}`);
+        try {
+          // Get client display name using helper
+          const clientName = getClientName(existingClient);
 
-        // Format payment date (parse string date properly)
-        const paymentDateObj = new Date(currentDate + 'T00:00:00');
-        const paymentDate = paymentDateObj.toLocaleDateString('ro-RO', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
+          // Format payment date (parse string date properly)
+          const paymentDateObj = new Date(currentDate + 'T00:00:00');
+          const paymentDate = paymentDateObj.toLocaleDateString('ro-RO', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
 
-        // Format amount
-        const currency = 'RON'; // TODO: Make configurable per parish
-        const formattedAmount = new Intl.NumberFormat('ro-RO', {
-          style: 'currency',
-          currency: currency
-        }).format(data.amount);
+          // Format amount
+          const currency = 'RON'; // TODO: Make configurable per parish
+          const formattedAmount = new Intl.NumberFormat('ro-RO', {
+            style: 'currency',
+            currency: currency
+          }).format(data.amount);
 
-        // Try to get email template
-        const template = await getTemplateByName('Chitanta Plata');
-        
-        if (template) {
-          await sendEmailWithTemplateName(
-            'Chitanta Plata',
-            clientEmail,
-            clientName,
-            {
-              client: {
-                name: clientName,
-                email: clientEmail,
-              },
-              payment: {
-                number: newPayment.paymentNumber,
-                date: paymentDate,
-                amount: formattedAmount,
-                currency: currency,
-                reason: data.reason,
-              },
-              parish: {
-                name: existingParish.name,
-              },
-            }
-          );
-          console.log(`✓ Email receipt sent successfully`);
-        } else {
-          console.warn('⚠️ Email template "Chitanta Plata" not found - skipping email send');
+          // Try to get email template
+          const template = await getTemplateByName('Chitanta Plata');
+          
+          if (template) {
+            await sendEmailWithTemplateName(
+              'Chitanta Plata',
+              emailToSend,
+              clientName,
+              {
+                client: {
+                  name: clientName,
+                  email: emailToSend,
+                },
+                payment: {
+                  number: newPayment.paymentNumber,
+                  date: paymentDate,
+                  amount: formattedAmount,
+                  currency: currency,
+                  reason: data.reason,
+                },
+                parish: {
+                  name: existingParish.name,
+                },
+              }
+            );
+            console.log(`✓ Email receipt sent successfully to ${emailToSend}`);
+          } else {
+            console.warn('⚠️ Email template "Chitanta Plata" not found - skipping email send');
+          }
+        } catch (emailError) {
+          // Log error but don't fail payment creation
+          console.error('❌ Error sending email receipt:', emailError);
+          logError(emailError, { 
+            endpoint: '/api/accounting/payments/quick', 
+            method: 'POST', 
+            context: 'email_sending',
+            paymentId: newPayment.id 
+          });
         }
-      } catch (emailError) {
-        // Log error but don't fail payment creation
-        console.error('❌ Error sending email receipt:', emailError);
-        logError(emailError, { 
-          endpoint: '/api/accounting/payments/quick', 
-          method: 'POST', 
-          context: 'email_sending',
-          paymentId: newPayment.id 
-        });
+      } else {
+        console.warn(`⚠️ Invalid email address provided: ${emailToSend} - skipping email send`);
       }
     } else {
-      if (clientEmail && !isValidEmail(clientEmail)) {
-        console.warn(`⚠️ Client has invalid email address: ${clientEmail} - skipping email send`);
-      } else {
-        console.log('⚠️ Client has no email address - skipping email send');
-      }
+      console.log('⚠️ Email receipt not requested - skipping email send');
     }
 
     return NextResponse.json(

@@ -9,3 +9,5 @@ ALTER COLUMN "verification_code" TYPE varchar(255);
 -- Add comment to document the change
 COMMENT ON COLUMN "users"."verification_code" IS 'Verification token for email confirmation (up to 255 characters)';
 
+
+

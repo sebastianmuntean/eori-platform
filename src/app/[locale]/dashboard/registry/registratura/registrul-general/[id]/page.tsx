@@ -11,6 +11,9 @@ import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { DocumentForm } from '@/components/registratura/DocumentForm';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
 export default function DocumentDetailPage() {
   const params = useParams();
@@ -20,6 +23,10 @@ export default function DocumentDetailPage() {
   const tReg = useTranslations('registratura');
   const id = params.id as string;
 
+  // Check permission to view general register
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+
+  // All hooks must be called before any conditional returns
   // Note: This page is for document_registry, not general_register
   // Using document_registry hooks and components
   const { document, fetchDocument, loading: documentLoading } = useDocument(id);
@@ -30,10 +37,16 @@ export default function DocumentDetailPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchDocument(id);
     }
-  }, [id, fetchDocument]);
+  }, [permissionLoading, id, fetchDocument]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleEdit = () => {
     setShowEditModal(true);
@@ -141,9 +154,10 @@ export default function DocumentDetailPage() {
 
       {showEditModal && document && (
         <Modal
-          open={showEditModal}
+          isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           title={tReg('editDocument')}
+          size="full"
         >
           <DocumentForm
             document={document}

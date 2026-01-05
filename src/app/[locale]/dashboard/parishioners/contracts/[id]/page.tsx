@@ -10,12 +10,20 @@ import { useParishionerContracts } from '@/hooks/useParishionerContracts';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 export default function ParishionerContractDetailPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.CONTRACTS_VIEW);
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const { contracts, fetchContracts } = useParishionerContracts();
   const { parishes, fetchParishes } = useParishes();
@@ -154,4 +162,5 @@ export default function ParishionerContractDetailPage() {
     </div>
   );
 }
+
 

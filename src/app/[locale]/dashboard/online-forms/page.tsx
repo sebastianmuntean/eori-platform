@@ -13,6 +13,9 @@ import { Modal } from '@/components/ui/Modal';
 import { useOnlineForms, OnlineForm } from '@/hooks/useOnlineForms';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ONLINE_FORMS_PERMISSIONS } from '@/lib/permissions/onlineForms';
 
 export default function OnlineFormsPage() {
   const params = useParams();
@@ -20,6 +23,16 @@ export default function OnlineFormsPage() {
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tForms = useTranslations('online-forms');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('onlineForms'));
+
+  // Check permission to view online forms
+  const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const {
     forms,

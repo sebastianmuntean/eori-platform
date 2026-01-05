@@ -10,7 +10,8 @@ import { Select } from '@/components/ui/Select';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useFixedAssets, FixedAsset } from '@/hooks/useFixedAssets';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
@@ -18,12 +19,19 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { FIXED_ASSET_STATUS } from '@/lib/fixed-assets/constants';
 import { getCategoryOptions, getStatusBadgeVariant } from '@/lib/fixed-assets/helpers';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 export default function FixedAssetsManagePage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.FIXED_ASSETS_MANAGE);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const {
     fixedAssets,
@@ -334,14 +342,23 @@ export default function FixedAssetsManagePage() {
       </Card>
 
       {/* Add/Edit Modal */}
-      <Modal
+      <FormModal
         isOpen={showAddModal || showEditModal}
         onClose={() => {
           setShowAddModal(false);
           setShowEditModal(false);
           resetForm();
         }}
+        onCancel={() => {
+          setShowAddModal(false);
+          setShowEditModal(false);
+          resetForm();
+        }}
         title={selectedAsset ? (t('editFixedAsset') || 'Edit Fixed Asset') : (t('addFixedAsset') || 'Add Fixed Asset')}
+        onSubmit={handleSave}
+        isSubmitting={false}
+        submitLabel={t('save') || 'Save'}
+        cancelLabel={t('cancel') || 'Cancel'}
         size="lg"
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
@@ -469,37 +486,20 @@ export default function FixedAssetsManagePage() {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             type="textarea"
           />
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => {
-              setShowAddModal(false);
-              setShowEditModal(false);
-              resetForm();
-            }}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleSave}>{t('save') || 'Save'}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <ConfirmDialog
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
         title={t('confirmDelete') || 'Confirm Delete'}
-      >
-        <div className="space-y-4">
-          <p>{t('confirmDeleteMessage') || 'Are you sure you want to delete this fixed asset?'}</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              {t('delete') || 'Delete'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this fixed asset?'}
+        confirmLabel={t('delete') || 'Delete'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        variant="danger"
+      />
     </div>
   );
 }

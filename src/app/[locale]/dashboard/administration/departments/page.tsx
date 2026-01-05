@@ -9,15 +9,22 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useDepartments, Department } from '@/hooks/useDepartments';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 export default function DepartmentsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.DEPARTMENTS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('departments'));
 
   const {
     departments,
@@ -200,6 +207,14 @@ export default function DepartmentsPage() {
     },
   ];
 
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
+
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
@@ -297,10 +312,15 @@ export default function DepartmentsPage() {
       </Card>
 
       {/* Add Modal */}
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
         title={`${t('add')} ${t('departamente')}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel')}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
@@ -364,20 +384,19 @@ export default function DepartmentsPage() {
               {t('active')}
             </label>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Edit Modal */}
-      <Modal
+      <FormModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
         title={`${t('edit')} ${t('departamente')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('update')}
+        cancelLabel={t('cancel')}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
@@ -441,35 +460,20 @@ export default function DepartmentsPage() {
               {t('active')}
             </label>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleUpdate}>{t('update')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <Modal
-          isOpen={!!deleteConfirm}
-          onClose={() => setDeleteConfirm(null)}
-          title={t('confirmDelete')}
-        >
-          <div className="space-y-4">
-            <p>{t('confirmDelete')}</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-                {t('cancel')}
-              </Button>
-              <Button variant="danger" onClick={() => handleDelete(deleteConfirm)}>
-                {t('delete')}
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        title={t('confirmDelete')}
+        message={t('confirmDelete')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+        variant="danger"
+      />
     </div>
   );
 }

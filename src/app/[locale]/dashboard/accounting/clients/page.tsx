@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { useClients, Client } from '@/hooks/useClients';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, TypeFilter } from '@/components/ui/FilterGrid';
@@ -21,15 +21,22 @@ import {
   clientToFormData,
 } from '@/lib/utils/clients';
 import { validateClientForm } from '@/lib/validations/clients';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 
 const PAGE_SIZE = 10;
 
 export default function ClientsPage() {
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CLIENTS_VIEW);
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('clients'));
 
+  // All hooks must be called before any conditional returns
   const {
     clients,
     loading,
@@ -54,6 +61,7 @@ export default function ClientsPage() {
 
   // Fetch clients when filters or page changes
   useEffect(() => {
+    if (permissionLoading) return;
     fetchClients({
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -61,7 +69,7 @@ export default function ClientsPage() {
       sortBy: 'code',
       sortOrder: 'asc',
     });
-  }, [currentPage, searchTerm, fetchClients]);
+  }, [permissionLoading, currentPage, searchTerm, fetchClients]);
 
   // Filter clients by type on client-side (API doesn't support it yet)
   const filteredClients = useMemo(
@@ -275,6 +283,11 @@ export default function ClientsPage() {
     [t, locale]
   );
 
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -358,56 +371,50 @@ export default function ClientsPage() {
       </Card>
 
       {/* Add Client Modal */}
-      <Modal isOpen={showAddModal} onClose={handleCloseAddModal} title={`${t('add')} ${t('clients')}`}>
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <ClientForm
-            formData={formData}
-            clientType={clientType}
-            formErrors={formErrors}
-            isSubmitting={isSubmitting}
-            onTypeChange={setClientType}
-            onFieldChange={handleFieldChange}
-            onClearError={handleClearError}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCloseAddModal} disabled={isSubmitting}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleCreate} disabled={isSubmitting}>
-              {isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <FormModal
+        isOpen={showAddModal}
+        onClose={handleCloseAddModal}
+        onCancel={handleCloseAddModal}
+        title={`${t('add')} ${t('clients')}`}
+        onSubmit={handleCreate}
+        isSubmitting={isSubmitting}
+        submitLabel={isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        error={error}
+      >
+        <ClientForm
+          formData={formData}
+          clientType={clientType}
+          formErrors={formErrors}
+          isSubmitting={isSubmitting}
+          onTypeChange={setClientType}
+          onFieldChange={handleFieldChange}
+          onClearError={handleClearError}
+        />
+      </FormModal>
 
       {/* Edit Client Modal */}
-      <Modal isOpen={showEditModal} onClose={handleCloseEditModal} title={`${t('edit')} ${t('clients')}`}>
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>
-          )}
-          <ClientForm
-            formData={formData}
-            clientType={clientType}
-            formErrors={formErrors}
-            isSubmitting={isSubmitting}
-            onTypeChange={setClientType}
-            onFieldChange={handleFieldChange}
-            onClearError={handleClearError}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCloseEditModal} disabled={isSubmitting}>
-              {t('cancel') || 'Cancel'}
-            </Button>
-            <Button onClick={handleUpdate} disabled={isSubmitting}>
-              {isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <FormModal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        onCancel={handleCloseEditModal}
+        title={`${t('edit')} ${t('clients')}`}
+        onSubmit={handleUpdate}
+        isSubmitting={isSubmitting}
+        submitLabel={isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
+        cancelLabel={t('cancel') || 'Cancel'}
+        error={error}
+      >
+        <ClientForm
+          formData={formData}
+          clientType={clientType}
+          formErrors={formErrors}
+          isSubmitting={isSubmitting}
+          onTypeChange={setClientType}
+          onFieldChange={handleFieldChange}
+          onClearError={handleClearError}
+        />
+      </FormModal>
     </div>
   );
 }

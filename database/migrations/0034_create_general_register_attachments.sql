@@ -28,3 +28,5 @@ CREATE INDEX IF NOT EXISTS "general_register_attachments_workflow_step_id_idx" O
 -- Create index on uploaded_by for faster queries
 CREATE INDEX IF NOT EXISTS "general_register_attachments_uploaded_by_idx" ON "general_register_attachments"("uploaded_by");
 
+
+

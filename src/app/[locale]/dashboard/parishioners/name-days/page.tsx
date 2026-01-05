@@ -9,12 +9,19 @@ import { Table } from '@/components/ui/Table';
 import { useNameDays } from '@/hooks/useNameDays';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 export default function NameDaysPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.NAME_DAYS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('nameDays'));
 
+  // All hooks must be called before any conditional returns
   const { nameDays, loading, error, fetchNameDays } = useNameDays();
   const { parishes, fetchParishes } = useParishes();
 
@@ -22,10 +29,12 @@ export default function NameDaysPage() {
   const [daysAhead, setDaysAhead] = useState(30);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const today = new Date();
     const dateTo = new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000);
     
@@ -35,7 +44,12 @@ export default function NameDaysPage() {
       parishId: parishFilter || undefined,
       daysAhead,
     });
-  }, [parishFilter, daysAhead, fetchNameDays]);
+  }, [permissionLoading, parishFilter, daysAhead, fetchNameDays]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString(locale);
@@ -117,4 +131,5 @@ export default function NameDaysPage() {
     </div>
   );
 }
+
 

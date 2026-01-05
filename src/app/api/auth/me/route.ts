@@ -79,6 +79,7 @@ export async function GET() {
         id: user.id,
         email: user.email,
         name: user.name,
+        parishId: user.parishId || null,
       },
     }, {
       headers: {

@@ -6,11 +6,18 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 export default function ParishionersPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+
+  if (permissionLoading) {
+    return null;
+  }
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -86,4 +93,5 @@ export default function ParishionersPage() {
     </div>
   );
 }
+
 

@@ -9,11 +9,21 @@ import { Table } from '@/components/ui/Table';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
 
 export default function BirthdaysPage() {
+  const { loading: permissionLoading } = useRequirePermission(PARISHIONERS_PERMISSIONS.BIRTHDAYS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('birthdays'));
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const { birthdays, loading, error, fetchBirthdays } = useBirthdays();
   const { parishes, fetchParishes } = useParishes();
@@ -122,4 +132,5 @@ export default function BirthdaysPage() {
     </div>
   );
 }
+
 

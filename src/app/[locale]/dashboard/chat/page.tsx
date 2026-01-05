@@ -4,8 +4,20 @@ import { useEffect } from 'react';
 import { ChatWidget } from '@/components/chat/ChatWidget';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card } from '@/components/ui/Card';
+import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { CHAT_PERMISSIONS } from '@/lib/permissions/chat';
 
 export default function ChatPage() {
+  const { loading: permissionLoading } = useRequirePermission(CHAT_PERMISSIONS.VIEW);
+  const t = useTranslations('common');
+  usePageTitle('Chat');
+
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
+
   return (
     <div className="h-full flex flex-col">
       <Breadcrumbs

@@ -9,15 +9,29 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useEvents, ChurchEvent, EventStatus } from '@/hooks/useEvents';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { EVENTS_PERMISSIONS } from '@/lib/permissions/events';
 
 export default function BaptismsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('baptisms'));
+
+  // Check permission to access Baptisms
+  const { loading: permissionLoading } = useRequirePermission(EVENTS_PERMISSIONS.VIEW);
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   const {
     events,
@@ -296,13 +310,21 @@ export default function BaptismsPage() {
       </Card>
 
       {/* Add/Edit Modals - same structure as weddings page */}
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
         title={`${t('add') || 'Adaugă'} ${t('baptism') || 'Botez'}`}
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel={t('create')}
+        cancelLabel={t('cancel') || 'Anulează'}
       >
         <div className="space-y-4">
           <div>
@@ -352,22 +374,24 @@ export default function BaptismsPage() {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => { setShowAddModal(false); resetForm(); }}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
-      <Modal
+      <FormModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
           setSelectedEvent(null);
         }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedEvent(null);
+        }}
         title={`${t('edit') || 'Editează'} ${t('baptism') || 'Botez'}`}
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel={t('save')}
+        cancelLabel={t('cancel') || 'Anulează'}
       >
         <div className="space-y-4">
           <div>
@@ -430,32 +454,19 @@ export default function BaptismsPage() {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => { setShowEditModal(false); setSelectedEvent(null); }}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button onClick={handleUpdate}>{t('save')}</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
-      <Modal
+      <ConfirmDialog
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
         title={t('confirmDelete')}
-      >
-        <div className="space-y-4">
-          <p>{t('confirmDeleteEvent')}</p>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              {t('delete') || 'Șterge'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message={t('confirmDeleteEvent')}
+        confirmLabel={t('delete') || 'Șterge'}
+        cancelLabel={t('cancel') || 'Anulează'}
+        variant="danger"
+      />
     </div>
   );
 }

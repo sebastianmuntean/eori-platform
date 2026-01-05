@@ -9,15 +9,21 @@ import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
+import { FormModal } from '@/components/accounting/FormModal';
 import { useDeaneries, Deanery } from '@/hooks/useDeaneries';
 import { useDioceses } from '@/hooks/useDioceses';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 export default function DeaneriesPage() {
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.DEANERIES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('deaneries'));
 
   const {
     deaneries,
@@ -156,6 +162,14 @@ export default function DeaneriesPage() {
     },
   ];
 
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
+
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: t('administration'), href: `/${locale}/dashboard/administration` },
@@ -240,10 +254,15 @@ export default function DeaneriesPage() {
         </CardBody>
       </Card>
 
-      <Modal
+      <FormModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+        onCancel={() => setShowAddModal(false)}
         title="Add Deanery"
+        onSubmit={handleCreate}
+        isSubmitting={false}
+        submitLabel="Create"
+        cancelLabel="Cancel"
       >
         <div className="space-y-4">
           <div>
@@ -300,19 +319,18 @@ export default function DeaneriesPage() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate}>Create</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
 
-      <Modal
+      <FormModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
+        onCancel={() => setShowEditModal(false)}
         title="Edit Deanery"
+        onSubmit={handleUpdate}
+        isSubmitting={false}
+        submitLabel="Update"
+        cancelLabel="Cancel"
       >
         <div className="space-y-4">
           <div>
@@ -369,14 +387,8 @@ export default function DeaneriesPage() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate}>Update</Button>
-          </div>
         </div>
-      </Modal>
+      </FormModal>
     </div>
   );
 }

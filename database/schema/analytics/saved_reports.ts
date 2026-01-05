@@ -48,3 +48,5 @@ export const savedReports = pgTable('saved_reports', {
   lastGeneratedAt: timestamp('last_generated_at', { withTimezone: true }),
 });
 
+
+

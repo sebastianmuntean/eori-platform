@@ -7,10 +7,19 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { Badge } from '@/components/ui/Badge';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
 export default function UserRolesPage() {
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.USER_ROLES_VIEW);
   console.log('Step 1: Rendering User Roles page');
 
+  const params = useParams();
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('userRoles') || 'User Roles');
   const { users, loading, error, assignRole, removeRole, fetchUsers } = useUserRoles();
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +57,14 @@ export default function UserRolesPage() {
     { label: 'Superadmin', href: '/dashboard/superadmin' },
     { label: 'Utilizatori-Roluri' },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering user roles page');
   return (

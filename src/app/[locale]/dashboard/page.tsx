@@ -7,6 +7,9 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 export default function DashboardPage() {
   console.log('Step 1: Rendering Dashboard page');
@@ -14,6 +17,15 @@ export default function DashboardPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
+  usePageTitle(t('dashboard'));
+
+  // Check permission to access dashboard
+  const { loading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.USERS_VIEW);
+
+  // Don't render content while checking permissions
+  if (loading) {
+    return null;
+  }
   
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },

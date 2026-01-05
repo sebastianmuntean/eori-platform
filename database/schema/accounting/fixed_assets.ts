@@ -29,3 +29,5 @@ export const fixedAssets = pgTable('fixed_assets', {
   uniqueParishInventory: unique().on(table.parishId, table.inventoryNumber),
 }));
 
+
+

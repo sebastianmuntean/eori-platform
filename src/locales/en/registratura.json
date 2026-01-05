@@ -6,7 +6,6 @@
   "editDocument": "Edit Document",
   "newDocumentDescription": "Create a new document in the general register. Date and registration number will be set automatically.",
   "documentNotFound": "Document not found",
-  "loading": "Loading...",
   "confirmDeleteDocument": "Are you sure you want to delete this document?",
   "documents": "Documents",
   "document": "Document",
@@ -24,7 +23,9 @@
     "draft": "Draft",
     "registered": "Registered",
     "in_work": "In Work",
+    "distributed": "Distributed",
     "resolved": "Resolved",
+    "cancelled": "Cancelled",
     "archived": "Archived"
   },
   "priority": "Priority",
@@ -86,6 +87,12 @@
   "fromDepartment": "From Department",
   "toDepartment": "To Department",
   "resolution": "Resolution",
+  "solutionare": "Solution",
+  "solutionStatus": "Solution Status",
+  "approved": "Approve",
+  "rejected": "Reject",
+  "redirected": "Redirect",
+  "noSolution": "No Solution",
   "notes": "Notes",
   "isExpired": "Expired",
   "connections": "Connections",
@@ -127,6 +134,8 @@
   "documentCreated": "Document created successfully",
   "documentUpdated": "Document updated successfully",
   "documentDeleted": "Document deleted successfully",
+  "copyDocument": "Copy Document",
+  "copyDocumentDescription": "Modify the copied document data and save as a new document.",
   "documentRouted": "Document routed successfully",
   "documentResolved": "Document resolved successfully",
   "documentArchived": "Document archived successfully",
@@ -181,6 +190,7 @@
     "namePlaceholder": "Ex: General Register, Register Parish X",
     "notesPlaceholder": "Notes about this register...",
     "addRegistersForParishes": "Add Registers for Parishes",
+    "continue": "Continue",
     "creatingRegisters": "Creating...",
     "registersCreated": "✓ {count} registers created for parishes:",
     "yes": "Yes",
@@ -189,10 +199,7 @@
     "actions": "Actions",
     "error": "Error",
     "deleting": "Deleting...",
-    "delete": "Delete",
-    "saving": "Saving...",
-    "save": "Save",
-    "cancel": "Cancel"
+    "saving": "Saving..."
   }
 }
 

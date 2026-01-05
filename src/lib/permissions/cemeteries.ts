@@ -44,3 +44,5 @@ export const CEMETERY_PERMISSIONS = {
 
 export type CemeteryPermission = typeof CEMETERY_PERMISSIONS[keyof typeof CEMETERY_PERMISSIONS];
 
+
+
