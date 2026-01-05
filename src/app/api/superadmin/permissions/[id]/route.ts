@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { permissions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -13,20 +14,22 @@ const updatePermissionSchema = z.object({
 });
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: GET /api/superadmin/permissions/${params.id} - Fetching permission`);
+  const { id } = await params;
+  console.log(`Step 1: GET /api/superadmin/permissions/${id} - Fetching permission`);
 
   try {
-    console.log(`Step 2: Querying database for permission with id: ${params.id}`);
-    const [permission] = await db.select().from(permissions).where(eq(permissions.id, params.id)).limit(1);
+    await requireRole('superadmin');
+    console.log(`Step 2: Querying database for permission with id: ${id}`);
+    const [permission] = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1);
 
     if (!permission) {
-      console.log(`❌ Permission with id ${params.id} not found`);
+      console.log(`❌ Permission with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Permission not found' },
         { status: 404 }
@@ -40,7 +43,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error fetching permission:', error);
-    logError(error, { endpoint: `/api/superadmin/permissions/${params.id}`, method: 'GET' });
+    logError(error, { endpoint: `/api/superadmin/permissions/${id}`, method: 'GET' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });
@@ -48,9 +51,11 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: PUT /api/superadmin/permissions/${params.id} - Updating permission`);
+  const { id } = await params;
+  console.log(`Step 1: PUT /api/superadmin/permissions/${id} - Updating permission`);
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = updatePermissionSchema.safeParse(body);
@@ -65,11 +70,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const updateData = validation.data;
 
-    console.log(`Step 3: Checking if permission with id ${params.id} exists`);
-    const [existingPermission] = await db.select().from(permissions).where(eq(permissions.id, params.id)).limit(1);
+    console.log(`Step 3: Checking if permission with id ${id} exists`);
+    const [existingPermission] = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1);
 
     if (!existingPermission) {
-      console.log(`❌ Permission with id ${params.id} not found`);
+      console.log(`❌ Permission with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Permission not found' },
         { status: 404 }
@@ -94,7 +99,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
     }
 
-    console.log(`Step 5: Updating permission with id ${params.id}`);
+    console.log(`Step 5: Updating permission with id ${id}`);
     const updateValues: {
       name?: string;
       description?: string | null;
@@ -119,7 +124,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const [updatedPermission] = await db
       .update(permissions)
       .set(updateValues)
-      .where(eq(permissions.id, params.id))
+      .where(eq(permissions.id, id))
       .returning();
 
     console.log(`✓ Permission updated successfully: ${updatedPermission.name}`);
@@ -129,7 +134,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error updating permission:', error);
-    logError(error, { endpoint: `/api/superadmin/permissions/${params.id}`, method: 'PUT' });
+    logError(error, { endpoint: `/api/superadmin/permissions/${id}`, method: 'PUT' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });
@@ -137,22 +142,24 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: DELETE /api/superadmin/permissions/${params.id} - Deleting permission`);
+  const { id } = await params;
+  console.log(`Step 1: DELETE /api/superadmin/permissions/${id} - Deleting permission`);
 
   try {
-    console.log(`Step 2: Checking if permission with id ${params.id} exists`);
-    const [existingPermission] = await db.select().from(permissions).where(eq(permissions.id, params.id)).limit(1);
+    await requireRole('superadmin');
+    console.log(`Step 2: Checking if permission with id ${id} exists`);
+    const [existingPermission] = await db.select().from(permissions).where(eq(permissions.id, id)).limit(1);
 
     if (!existingPermission) {
-      console.log(`❌ Permission with id ${params.id} not found`);
+      console.log(`❌ Permission with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Permission not found' },
         { status: 404 }
       );
     }
 
-    console.log(`Step 3: Deleting permission "${existingPermission.name}" with id ${params.id}`);
-    await db.delete(permissions).where(eq(permissions.id, params.id));
+    console.log(`Step 3: Deleting permission "${existingPermission.name}" with id ${id}`);
+    await db.delete(permissions).where(eq(permissions.id, id));
 
     console.log(`✓ Permission deleted successfully`);
     return NextResponse.json({
@@ -161,7 +168,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error deleting permission:', error);
-    logError(error, { endpoint: `/api/superadmin/permissions/${params.id}`, method: 'DELETE' });
+    logError(error, { endpoint: `/api/superadmin/permissions/${id}`, method: 'DELETE' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });

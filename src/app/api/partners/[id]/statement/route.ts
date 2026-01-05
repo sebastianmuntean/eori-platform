@@ -1,0 +1,145 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/database/client';
+import { clients, invoices, payments } from '@/database/schema';
+import { formatErrorResponse, logError } from '@/lib/errors';
+import { eq, and, gte, lte, or, sql } from 'drizzle-orm';
+
+/**
+ * GET /api/partners/[id]/statement - Get client financial statement
+ */
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    const invoiceType = searchParams.get('invoiceType');
+    const invoiceStatus = searchParams.get('invoiceStatus');
+    const paymentType = searchParams.get('paymentType');
+
+    // Get partner information
+    const [partner] = await db
+      .select()
+      .from(clients)
+      .where(eq(clients.id, id))
+      .limit(1);
+
+    if (!partner) {
+      return NextResponse.json(
+        { success: false, error: 'Partner not found' },
+        { status: 404 }
+      );
+    }
+
+    // Build invoice conditions
+    const invoiceConditions = [eq(invoices.clientId, id)];
+    if (dateFrom) {
+      invoiceConditions.push(gte(invoices.date, dateFrom));
+    }
+    if (dateTo) {
+      invoiceConditions.push(lte(invoices.date, dateTo));
+    }
+    if (invoiceType) {
+      invoiceConditions.push(eq(invoices.type, invoiceType as 'issued' | 'received'));
+    }
+    if (invoiceStatus) {
+      invoiceConditions.push(eq(invoices.status, invoiceStatus as any));
+    }
+    const invoiceWhereClause = invoiceConditions.length > 0 
+      ? (invoiceConditions.length === 1 ? invoiceConditions[0] : and(...invoiceConditions as any[]))
+      : undefined;
+
+    // Get invoices
+    let invoiceQuery = db.select().from(invoices);
+    if (invoiceWhereClause) {
+      invoiceQuery = invoiceQuery.where(invoiceWhereClause);
+    }
+    const allInvoices = await invoiceQuery.orderBy(invoices.date);
+
+    // Calculate invoice totals
+    const issuedInvoices = allInvoices.filter(inv => inv.type === 'issued');
+    const receivedInvoices = allInvoices.filter(inv => inv.type === 'received');
+    
+    const issuedInvoicesTotal = issuedInvoices.reduce(
+      (sum, inv) => sum + parseFloat(inv.total || '0'),
+      0
+    );
+    const receivedInvoicesTotal = receivedInvoices.reduce(
+      (sum, inv) => sum + parseFloat(inv.total || '0'),
+      0
+    );
+
+    // Build payment conditions
+    const paymentConditions = [eq(payments.clientId, id)];
+    if (dateFrom) {
+      paymentConditions.push(gte(payments.date, dateFrom));
+    }
+    if (dateTo) {
+      paymentConditions.push(lte(payments.date, dateTo));
+    }
+    if (paymentType) {
+      paymentConditions.push(eq(payments.type, paymentType as 'income' | 'expense'));
+    }
+    const paymentWhereClause = paymentConditions.length > 0 
+      ? (paymentConditions.length === 1 ? paymentConditions[0] : and(...paymentConditions as any[]))
+      : undefined;
+
+    // Get payments
+    let paymentQuery = db.select().from(payments);
+    if (paymentWhereClause) {
+      paymentQuery = paymentQuery.where(paymentWhereClause);
+    }
+    const allPayments = await paymentQuery.orderBy(payments.date);
+
+    // Calculate payment totals
+    const paymentsReceived = allPayments.filter(pay => pay.type === 'income');
+    const paymentsMade = allPayments.filter(pay => pay.type === 'expense');
+    
+    const paymentsReceivedTotal = paymentsReceived.reduce(
+      (sum, pay) => sum + parseFloat(pay.amount || '0'),
+      0
+    );
+    const paymentsMadeTotal = paymentsMade.reduce(
+      (sum, pay) => sum + parseFloat(pay.amount || '0'),
+      0
+    );
+
+    // Calculate balance
+    // For clients: positive balance = client owes us, negative = we owe client
+    // Balance = (issued invoices - received invoices) + (payments received - payments made)
+    const balance = (issuedInvoicesTotal - receivedInvoicesTotal) + (paymentsReceivedTotal - paymentsMadeTotal);
+
+    const summary = {
+      issuedInvoices: issuedInvoicesTotal,
+      receivedInvoices: receivedInvoicesTotal,
+      paymentsReceived: paymentsReceivedTotal,
+      paymentsMade: paymentsMadeTotal,
+      balance,
+      issuedInvoicesCount: issuedInvoices.length,
+      receivedInvoicesCount: receivedInvoices.length,
+      paymentsReceivedCount: paymentsReceived.length,
+      paymentsMadeCount: paymentsMade.length,
+    };
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        partner,
+        summary,
+        invoices: allInvoices,
+        payments: allPayments,
+      },
+    });
+  } catch (error) {
+    logError(error, { endpoint: '/api/partners/[id]/statement', method: 'GET' });
+    return NextResponse.json(formatErrorResponse(error), {
+      status: formatErrorResponse(error).statusCode,
+    });
+  }
+}
+
+
+

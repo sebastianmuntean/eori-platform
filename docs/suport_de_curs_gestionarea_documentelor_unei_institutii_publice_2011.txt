@@ -1,0 +1,1632 @@
+Programul Opera?ional Sectorial „Cre?terea Competitivit??ii Economice” co-finan?at prin Fondul European de Dezvoltare Regional?
+„Investi?ii pentru viitorul dumneavoastr?”
+
+
+
+
+ANDREI BUTC?CLAUDIU ISTRATE
+
+
+GESTIONAREA DOCUMENTELOR UNEI INSTITU?II PUBLICE
+
+2011
+
+
+
+
+
+Acest manual a fost realizat în cadrul proiectului”Implementarea în sistem e-learning de programe de formare în domeniul administra?iei publice pentru sprijinirea dezvolt?rii societ??ii informa?ionale” cod SMIS 4376; în cadrul Programul Opera?ional Sectorial “Cre?terea Competitivit??ii Economice”, axa prioritar? 3.
+
+
+
+
+
+
+Agen?ia Na?ional? a Func?ionarilor Publici
+
+CUPRINS
+
+A. CONTEXTUL FORM?RII
+
+B. OBIECTIVELE DE FORMARE
+
+C. CON?INUT
+INTRODUCERE – Managementul documentelor – planificare dinamic?
+MANAGEMENTUL DOCUMENTELOR ?I ALTE DOMENII CONEXE
+
+i. Gestionarea documentelor ?i managementul modern al organiza?iei publice
+ii. Gestionarea documentelor ?i managementul institu?iilor publice
+iii. Gestionarea documentelor ?i strategia comunica?ional? a unei organiza?ii publice
+iv. Gestionarea documentelor ?i strategia informa?ional? a unei organiza?ii publice
+v. Gestionarea documentelor ?i rela?ia cu beneficiarii serviciilor publice (ghi?eu unic, audien?e, transparen?? decizional?)
+
+GESTIONAREA DOCUMENTELOR – SISTEM CLASIC (PE SUPORT DE HÂRTIE)
+
+vi. Crearea ?i clasificarea documentelor
+vii. Procedurile de lucru ?i circuitul documentelor
+viii. P?strarea, arhivarea ?i casarea documentelor pe hârtie
+ix. Studiu de caz – procedura privind peti?iile
+
+GESTIONAREA DOCUMENTELOR – SISTEM ELECTRONIC (DOCUMENT MANAGEMENT SYSTEM - DMS)
+x. Ce este DMS
+xi. Avantaje si argumente pentru utilizarea DMS.
+xii. Fluxuri de documente
+xiii. Document management în termeni tehnici
+xiv. Arhivarea electronic? a documentelor
+xv. Sistemul de c?ut?ri ?i raport?ri al DMS
+xvi. Securitatea datelor
+xvii. Studiu de caz – CNIPA Italia
+xviii. Scanarea documentelor ?i semn?tura digital?
+
+CONCLUZII
+
+D. REFERIN?E / BIBLIOGRAFIE
+
+E. ANEXE
+Anexa 1 – Proceduri Anexa 2 – Exerci?ii
+
+CONTEXTUL FORM?RII
+
+Manipularea ?i gestionarea documentelor se întrep?trund cu activitatea zilnic? din cadrul unei institu?ii. De la actele constitutive, la cele de naturã financiar?, juridic? ?i pân? la coresponden?a zilnic?, toate trebuie gestionate într-un mod care s? eficientizeze procesul.
+Managementul documentelor sau gestionarea documentelor este procesul de creare, stocare, organizare, identificare, manipulare, editare ?i utilizare a documentelor unei organiza?ii pentru a servi intereselor acesteia;
+* face parte din strategia comunica?ional? ?i informa?ional? a unei institu?ii;
+* asigur? flexibilitatea ?i adaptarea organiza?iei la dinamica evolu?iei IT;
+* influen?eaz? ?i este influen?at de cultura organiza?ional?;
+* se poate realiza prin
+o sistem top – down – prin crearea unui instrument unic ?i unitar
+o sau bottom – top – prin unificarea progresiv? a metodelor ?i sistemelor deja implementate la nivelul fiec?rei celule organiza?ionale.
+Implementarea unei solu?ii informatice care sã realizeze acest proces s-a impus în ultima perioadã ca o solu?ie salvatoare.
+Acest modul descrie managementul documentelor unei institu?ii publice prin folosirea aplica?iilor în scopul îmbun?t??irii fluxurilor interne de comunicare a informa?iilor, prin cre?terea eficien?ei opera?ionale ?i sc?derea costurilor de procesare a documentelor, dar ?i ob?inerea de servicii mai eficiente, îmbun?t??irea comunic?rii ?i transparen?ei.
+
+
+OBIECTIVELE DE FORMARE
+
+
+
+Obiectiv general:
+
+Cre?terea capacit??ii administra?iei publice de a gestiona în mod eficient documentele, asigurând ordine, transparen?? ?i celeritate în servirea interesului public.
+
+Obiective specifice:
+
+* cunoa?terea conceptelor de baz? privind managementul documentelor;
+* aplicarea instrumentelor de planificare, gestiune ?i arhivare a documentelor, pe suport de hârtie ?i în format electronic;
+* cunoa?terea diferitelor tipuri de arhitecturi ?i platforme, nivelele de interoperabilitate precum ?i metode de realizare a interoperabilit??ii;
+* studierea domeniilor conexe ale managementului care influen?eaz? sistemul de gestionare a documentelor unei institu?ii publice (no?iuni de management modern, management al institu?iilor publice, managementul informa?iei etc.);
+* cre?terea eficien?ei ?i transparen?ei în gestionarea documentelor în cadrul rela?iei cu cet??enii (audien?e, ghi?eu unic etc.).
+* 
+
+INTRODUCERE
+Managementul documentelor – planificare dinamic?
+
+                              “Lucrurile de mare însemn?tate nu trebuie niciodat? l?sate în voia lucrurilor neînsemnate.” (Goethe)
+
+Autorit??ile ?i institu?iile publice, prin esen?a lor, gestioneaz? interesul general al societ??ii pentru ca statul s? se asigure c? interesul indivizilor, în suma lor sau în particular, este sus?inut sau m?car ap?rat. Un concept atât de important conduce la crearea unor suporturi func?ionale importante de oglindire a rolului esen?ial al statului – documentele.
+Una dintre caracteristicile importante ale modelului de organizare a institu?iilor publice este aceea c? se bazeaz? pe documente scrise. Nu ne putem imagina nici o organiza?ie public?, cât de mic?, f?r? ca aceasta se gestioneze documente. Ini?ial îns??i esen?a aparatului birocratic al statului era legat? de modul în care func?ionarii angaja?ii reu?eau s? gestioneze serviciile publice prin conexiunea dintre nevoile cet??enilor (?i documentele scrise emise de c?tre ace?tia) cu documentele ?i procedurile interne ?i externe create de organiza?ia public?, pentru rezolvarea problemelor.
+Astfel, din punct de vedere func?ional, rolul de baz? al serviciilor publice sau administrative a fost considerat ca fiind acela de a primi, de a procesa ?i de a transmite sau difuza informa?ii.
+Prin urmarea, managementul documentelor într-o institu?ie publice este strâns legat de managementul informa?iei.
+
+Informa?ia, conform Dic?ionarului explicativ al limbii române are mai multe sensuri:
+* comunicare, veste, ?tire care pune pe cineva la curent cu o situa?ie;
+* l?murire asupra unei persoane sau asupra unui lucru; totalitate a materialului de informare ?i de documentare; izvoare, surse;
+* fiecare dintre elementele noi, în raport cu cuno?tin?ele prealabile, cuprinse în semnifica?ia unui simbol sau a unui grup de simboluri (text scris, mesaj vorbit, imagini plastice, indica?ie a unui instrument etc.);
+* date, indica?ii despre ceva sau cineva;
+* semnal material capabil s? declan?eze o reac?ie a unui sistem;
+* 
+* no?iune central? a teoriei comunica?iilor ?i a ciberneticii, desemnând elementele noi în raport cu cuno?tin?ele prealabile, cuprinse în structura unui mesaj, în semnifica?ia unui simbol.
+Dac? analiz?m aceste în?elesuri constat?m faptul c? informa?ia este descris? atât de no?iuni statice cât ?i de elemente dinamice, de comunicare a mesajului. Astfel, informa?ia privit? ca un mesaj structurat, cu scop de a men?ine un sistem sau de a declan?a un stimul acestuia, are tr?s?turi asem?n?toare documentului care o cuprinde. Documentele trebuie s? se constituie cu un con?inut clar ?i un scop clar. Dac? leg?m scopul documentului de interesul public ce ?ine de puterea statului gestionat? în intermediul autorit??ilor publice, în?elegem de ce gestiunea documentelor în cadrul institu?iilor publice dobânde?te o mare însemn?tate.
+De aceea, am deschis aceast? lucrare prin remarca lui Goethe – nu putem l?sa la voia întâmpl?rii (sau acorda o importan?? sc?zut?) modului în care o organiza?ie public? se îngrije?te de documentele care cuprind dreptul ?i obliga?ia statului de a avea grij? de interesele cet??enilor s?i.
+
+Modalit??ile ?i amploarea cu care informa?ia este produs?, colectat?, prelucrat?, p?strat? ?i difuzat? au evoluat odat? cu dezvoltarea societ??ii omene?ti. La toate acestea se adaug? “mariajul” dintre calculator ?i telecomunica?ii, determinant pentru amplificarea comunic?rii. Cele dou? tehnologii (tehnologia calculatoarelor ?i aceea a telecomunica?iilor), luate împreun?, sunt denumite tehnologie informa?ional?1.
+
+Ca orice activitate uman? contemporan?, activitatea din sfera institu?iilor publice este o imens? surs? generatoare de hârtii, indiferent c? este vorba de documente interne, care organizeaz? modul de a func?iona al autorit??ii publice, sau, de cele mai multe ori, de documente prin care este livrat serviciul public.
+Prin urmare, managementul documentelor trebuie s? asigure, în primul rând gestiunea eficient? a hârtiei fizice. Apoi, pe m?sur? ce cantitatea de informa?ii introdus? în sistem, necesar? a fi comunicat? beneficiarilor serviciilor publice sau mass-mediei, a crescut a ap?rut nevoia de a gestionare documentelor prin intermediul solu?iilor oferite de tehnologia informa?iei (IT).
+
+
+1 Sisteme informa?ionale de birou - Georgescu M.
+
+Ca o defini?ie, general acceptat? de teoreticienii ?i practicienii din domeniu, managementul documentelor este procesul de administrare a documentelor unei organiza?ii, pentru a servi intereselor acesteia, pe parcursul întregii lor durate de via??, de la început, prin procesul de creare, revizuire, organizare, stocare, utilizare, partajare, identificare, arhivare ?i pân? la distrugerea lor.
+Acesta,
+* face parte din strategia comunica?ional? ?i informa?ional? a unei institu?ii;
+* asigur? flexibilitatea ?i adaptarea organiza?iei la dinamica evolu?iei tehnologiei informa?iei (IT);
+* influen?eaz? ?i este influen?at de sistemul de management ?i cultura organiza?ional?;
+* se poate realiza prin proceduri tip:
+o „top – down” – prin crearea unui instrument unic ?i unitar transmis c?tre func?ionarii de execu?ie, de c?tre conduc?torii institu?iei
+o sau „bottom – top” – prin unificarea progresiv? a metodelor ?i sistemelor deja implementate la nivelul fiec?rei celule organiza?ionale, fiec?rui departament ?i crearea unui sistem unic, aprobat de conducere.
+
+?inând cont de aceste tr?s?turi, am considerat c? sistemul de gestiune a documentelor unei institu?ii publice nu func?ioneaz? f?r? s? fie interconectat cu celelalte sisteme manageriale ale unei astfel de organiza?ii. De aceea, în cuprinsul acestui curs este impetuos necesar s? conect?m no?iunile ce ?in de managementul documentelor de celelalte mijloace aflate la dispozi?ia managerului unei institu?ii publice pentru a asigura buna func?ionare a acestei, adic? pentru a asigura conducerea eficient?. Astfel, crearea ?i transmiterea unui document se bazeaz? pe procedurile administrative tipice managementului institu?iilor publice. Mai mult, nici o astfel de procedur? nu ar putea func?iona dac? nu ar exista un sistem comunica?ional ?i informa?ional viabil în cadrul organiza?iei.
+
+Conducerea institu?iilor publice este realizat? de c?tre demnitarul numit prin algoritm politic sus?inut de c?tre managerii – func?ionarii publici. Conducerea la vârf este responsabil? de stabilirea direc?iei ?i obiectivelor generale, de strategia ?i planificarea organiza?iei. Managerii din e?alonul urm?tor (înal?ii func?ionari publici sau func?ionarii publici de conducere) sunt responsabili cu implementarea planurilor ?i cu motivarea angaja?ilor pentru atingerea
+
+obiectivelor. Este important ca fiecare nivel de conducere s? aib? o imagine clar? a propriului nivel de responsabilitate ?i domeniu de competen??, dup? cum este important ca acest lucru s? fie clar comunicat în toat? institu?ia. Conducerea ar putea fi interpretat? în termeni simpli drept “angrenarea celorlal?i s? te urmeze” sau “convingerea celorlal?i s? ac?ioneze de bun?voie”, sau, mai precis, “utilizarea autorit??ii în procesul de luare a deciziilor”. Poate fi exercitat? în virtutea pozi?iei, sau datorit? cuno?tin?elor sau experien?ei acumulate. Dar întotdeauna ea se bazeaz? pe strategii ?i obiective.
+Pe baza acestor sisteme ?i strategii se asigur? toate cele cinci func?ii ale managementului oric?rei organiza?ii publice sau private (previziunea, organizarea, antrenarea-motivarea, coordonarea ?i controlul-evaluarea). În cadrul fiec?reia dintre aceste etape intervine o procedur? scris? ?i, implicit, un sistem de gestionare a documentelor sau altor mijloace de comunicare formal? sau informal?.
+
+În consecin??, nu vom avea un sistem performant de gestionare a documentelor într-o institu?ie public? dac? toate celelalte sisteme manageriale sunt haotice. Dar, managementul documentelor ?i a informa?iei, în general, este una dintre pietrele de temelie a bunei func?ion?rii u a unei institu?ii publice.
+
+
+MANAGEMENTUL DOCUMENTELOR ?I ALTE DOMENII CONEXE
+Gestionarea documentelor ?i managementul modern al organiza?iei publice
+
+      Este de notorietate faptul c? administra?ia public? european? ?i, în special, cea româneasc?, se confrunt? cu cerin?e sporite de eficientizare ?i reorganizare. Cet??enii, companiile particulare ?i societatea civil? solicit? introducerea bunelor practici din sistemul privat în sistemul public, ca o modalitate de responsabilizare ?i eficientizare a acestuia.
+Administra?ia public? româneasc? are nevoie de buni manageri/lideri care s? cunoasc? realit??ile sistemului, s? dezvolte proiecte de îmbun?t??ire a acestuia ?i s? le implementeze. Ace?tia trebuie s? implementeze sistemul translator de la vechea birocra?ie descris? de Max Weber la un sistem bazat pe ceea ce se cheam? New Public Management (Noul Management Public) ?i, mai nou, administrare prin parteneriate public-privat. Astfel, conduc?torul unei organiza?ii publice este obligat prin presiunile generate de cet??eni, societatea civil? ?i mass- media, s? reorganizeze institu?ia pe baza unor sisteme manageriale bazate pe obiective, planificare strategic? ?i proceduri. Managementul documentelor este unul dintre elementele unei astfel de sistem strategic.
+
+      De la începutul secolului ?i pân? la începutul anilor 1980 în statele americane ?i europene (2000 în administra?ia public? româneasc?), munca în sectorul public a fost v?zut? ca o îns?rcinare deosebit? pentru func?ionarii publici special preg?ti?i în acest sens. Modelul tradi?ional al administra?iei publice – birocra?ia – era v?zut ca fiind cea mai eficient? modalitate de a asigura obiectivitatea, controlul ?i responsabilizarea pentru activit??ile de natur? public?.
+   Modelul weberian1, descrie ?ase principii fundamentale ale sistemului birocratic modern, derivate din conceptul de autoritate legal?/ra?ional?:
+* principiul teritoriilor stabile aflate sub o jurisdic?ie specific? (stabilite în general prin legi sau regulamente administrative);
+* principiul ierarhiei oficiale ?i a nivelelor de autoritate (presupune o subordonare a cadrelor inferioare celor superioare);
+
+
+1 citat în Managementul Institu?iilor Publice – Marinescu P. et. al.
+
+* managementul birocra?iei moderne (se bazeaz? pe documente scrise, „dosare” ce sunt p?strate);
+* managementul birocratic (presupune o preg?tire de specialitate);
+* persoanele implicate în aceste activit??i le pun pe primul plan;
+* 	managementul birocratic urmeaz? anumite legi, mai mult sau mai pu?in stabile sau exhaustive, care pot fi invalidate.
+   Aici s-a n?scut sistemul clasic al gestion?rii documentelor pe suport de hârtie prin îndosariere ?i p?strare în fi?ete. ?i putem spune c? este înc? tipic pentru multe autorit??i publice, fie ele centrale sau locale. Circuitul documentelor se realiza manual, înregistrarea lor se acceseaz? pe baza marilor cataloage de intr?-ie?iri, iar identificarea unui document presupunea proceduri greoaie de clasare, arhivare ?i, ulterior, de „scoatere” din Arhiva institu?iei.
+Pentru o lung? perioad? de timp acest tip de sistem birocratic a p?rut func?ional, de?i chiar de la început unele defecte au fost vizibile. Totu?i, a fost v?zut ca cea mai bun? alegere ?i sus?inut? ca fiind cea mai bun? cale pentru asigurarea îndeplinirii interesului public. Ordinea ?i procedura scris? ?i formal? domneau peste acest sistem.
+
+      Cu trecerea timpului, îns?, statul a trebuit s? preia sarcina furniz?rii cât mai multor servicii, sfâr?ind prin a fi „sufocat” de multitudinea de sarcini pe care le avea de îndeplinit. În acela?i timp, ierarhia a început s? fie v?zut? ca fiind o cale pentru func?ionarul public de a evita luarea unor decizii riscante sau nepopulare, ac?iune ce ar putea expune managerul public unor critici vehemente ale superiorilor sau publicului1. De aici au ap?rut pove?tile nepopulare ce avea un centru un func?ionar public sup?rat ?i atent la respectarea procedurii, iar nu la livrarea ?i calitatea serviciului public.
+Disfunc?ionalit??ile sistemului birocratic s-au reflectat în modelul de management2:
+* 	stilul de management era privit ca fiind autoritar, cu un înalt grad de control, astfel încât documentele se puteau întoarce pe circuit nesemnate, dar f?r? indica?ii privind rezolvarea problemei;
+* 	comunicarea era deficitar?, aproape absent?, iar managementul era unidirec?ional: de sus în jos, fluxul de informa?ii fiind astfel blocat în ceea ce prive?te feedbackul;
+
+1 „The Effective Public Manager: Achieving Success in a Changing Government” – Cohen S. ?i Eimicke W.
+2 adaptat dup? Public Administration: From Bureaucratic Culture to Citizen-oriented Culture – Claver E. et. al.
+
+* 	angaja?ii din sistem c?utau stabilitate, fiind orienta?i spre îndeplinirea de ordine ?i având pu?ine domenii de ini?iativ? - pe circuitul documentelor nu se puteau transmite decât informa?ii de strict? specialitate ?i nu se puteau identifica erorile;
+* 	sistemul de luare a deciziilor era repetitiv ?i centralizat, bazându-se pe comunicarea scris? ?i fiind extrem de formal;
+* 	exista reticen?? fa?? de ini?ierea unor noi proiecte, astfel încât un sistem de DMS ar fi avut slabe ?anse de implementare.
+   Astfel, în literatura de specialitate1 birocra?ia era vizualizat? ca un dinozaur care domnea peste p?mânt înainte ca Noul Management Public (New Public Management) s? apar?. Precum un dinozaur sistemul birocratic era prea mare, prea încet, prea insensibil, insuficient adaptabil ?i serios afectat din punct de vedere al inteligen?ei. Mesajelor le trebuia prea mult pentru a-?i descoperi drumul de la vârful ierarhiei în jos, de la micul creier insuficient dezvoltat, pân? picioarele uria?e; sau invers, c?l?toria informa?iei de la parterul piramidei ierarhice pân? la creierul care gândea constituia un drum agonizant de lung. Mai mult, dimensiunile uria?e ale acestui dinozaur solicitau o continua ?i nes?tul? procurare de resurse, pentru a-l hr?ni2.
+
+   Organiza?iile din sectorul privat s-au aflat mereu sub atenta supraveghere a politicienilor, cet??enilor ?i a mass-media ?i de aceea toate aceste defecte ale sistemului birocratic tradi?ional nu au trecut neobservate, creându-se astfel presiunea pentru ini?ierea unor schimb?ri. Schimbarea s-a produs prin introducerea în sectorul public a unor elemente de management din sectorul privat, care s? eficientizeze activitatea statului ?i s? îl transforme într-o
+„ma?in?rie profitabil? (eficient?)”: managementul strategic ?i teoria Noului Management Public.
+   Pentru a eficientiza activitatea sectorului public ?i pentru a o orienta mai mult c?tre cet??ean a fost propus?, în doctrin?, o „reinventare a guvern?rii” în sensul transform?rii
+
+
+
+1 The Essential Public Manager – Pollit C.
+2 Textul original este: Bureaucracy was pictured as ruling the pre-New Public Management earth like a dinosaur. Like a dinosaur it was too big, too slow-moving, too insensitive, insufficiently adaptable and seriously underpowered as far as brains were concerned. Massages took too long to get all the way down the hierarchy from the tiny little head to the cumbersome feet and claws, and, by the same token, information travelled up from the ground level to the brain, at an agonisingly slow peace. The large size demanded huge and continuously supply of resources.
+
+sistemului birocratic într-un sistem modern u?or de manageriat. Osborne ?i Gaebler1 formuleaz? zece principii care trebuie urmate pentru a se ob?ine acest rezultat:
+* guvernul ar trebui s? fie coordonatorul celorlalte organiza?ii care asigur? furnizarea serviciilor publice; rela?iile formale ierarhice ar trebui substituite, pe arii extinse, cu parteneriate ?i asocia?ii de tip contract2;
+* cet??enii ar trebui consulta?i ?i cointeresa?i prin transferarea controlului de la sistemul birocratic c?tre comunitate;
+* executivul ar trebui s? promoveze ?i s? încurajeze competi?ia între diferi?ii furnizori de servicii publice;
+* executivul ar trebui s? fie motivat de adev?rata sa misiune ?i nu de regulamente ?i conven?ii;
+* executivul ar trebui s? î?i m?soare performan?ele prin intermediul rezultatelor ?i nu al resurselor atrase ?i investite;
+* orientându-se spre clien?i/cet??eni, executivul se va asigura c? nevoile cet??enilor sunt îndeplinite;
+* executivul trebuie s? devin? o întreprindere care s? câ?tige bani ?i nu s? îi cheltuiasc?;
+* executivul ar trebui s? fie pro-activ ?i nu reactiv, prevenind probleme în loc s? încerce s? le rezolve;
+* parte a activit??ilor guvernului ar trebui descentralizate, ducând într-un fel la ?tergerea grani?elor dintre sectorul public ?i cel privat;
+* pie?ele sau mecanismele de tip pia??, în livrarea serviciului public, ar trebui s? fie preferate în locul mecanismului birocratic3.
+   Aceste reforme ar trebui s? duc? la un control îmbun?t??it al serviciilor publice, o reducere a cheltuielilor din banii publici ?i performan?e mai ridicate – un sector public mai economic, eficient ?i eficace. Acestea sunt ideile esen?iale ale teoriei Noului Management Public.
+
+   Partea practic? a Noului Management Public este denumit? management strategic ?i prin intermediul acestuia s-a încercat dezvoltarea ?i adaptarea modelelor de management din sectorul privat în sectorul public.
+
+
+1 cita?i în Bureaucracy and Market in Public Services Management - Rose A. & Lawton A.
+2 vezi The Essential Public Manager – Pollit C.
+3 idem
+
+   Managementul strategic „este o modalitate de a cointeresa cet??enii, de a ob?ine angajamentul acestora, pentru a direc?iona organiza?ia în viitor, subliniind eforturile de reorganizare ?i redresare în vederea ob?inerii de eficien?? ?i calitate sporit?, formând parteneriate ?i realizând proiecte comune cu alte organiza?ii1”.
+   Managementul strategic încorporeaz? managementul prin obiective ?i planificare ?i face loc procedurilor ce acoper? fluxurile de documente. Orientarea spre rezultat este o cerin?? nou? pentru institu?iile publice. În acest fel documentele depuse prin sistemul de registratur? de c?tre cet??ean trebuie s? urmeze un traseu fix dar ?i eficient pentru ca managerul autorit??ii s? se asigure c? serviciul public a fost livrat, în termenele cerute de lege ?i la calitatea dorit? de beneficiar.
+De la apari?ie, managementul strategic s-a dezvoltat acoperind arii vaste de la
+„banalul” model de planificare ra?ional? pân? la cele mai complexe previziuni strategice manageriale. Sistematizarea ideilor despre Noul Management Public conduce la concluzia c? sectorul public ar trebui s? devin? asemenea unei organiza?ii private, al c?rei interes primordial sa fie interesul cet??eanului ?i ob?inerea de profit. Îns?, exist? critici care sus?in c? sectorul public trebuie s? îndeplineasc? scopuri speciale, iar interesul cet??eanului nu este acela?i lucru cu interesul privat. În ciuda acestor critici ideea esen?ial? r?mâne aceea c? sistemul tradi?ional birocratic este dep??it ?i trebuie reformat, iar sectorul public trebuind s? devin? mai eficient, mai orientat c?tre cet??ean, transparent financiar ?i procedural.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1 „Strategic Management for the Public Services” – Joyce P.
+
+
+Gestionarea documentelor ?i managementul institu?iilor publice
+
+       Pentru a putea în?elege sistemul de elaborare ?i implementare a managementului documentelor într-o organiza?ie public? ar trebui s? analiz?m succint ce sunt acelea institu?ii publice ?i care este contextul puterii executive a statului în care acestea func?ioneaz?.
+Constitu?ia României consacr? principiului separa?iei puterilor în stat, conform c?ruia func?iile puterii statale, respectiv puterea legislativ?, puterea executiv? ?i puterea juridic?/judec?toreasc? (legislativ, executiv, juridic) nu trebuie s? se afle în aceea?i mân?.
+Acest principiu a fost anun?at înc? de c?tre John Locke ("Two treatises on government" 1690) ?i mai ales de C. de Montesquieu ("De l'esprit des lois" 1748) în lupta împotriva statului absolutist, constituind baza statului constitu?ional modern. Prin transmiterea func?iilor c?tre Parlament, guvern ?i administra?ie, precum ?i c?tre judec?tori independen?i, puterea statal? este ?inut?, prin intermediul unor controale reciproce, în echilibru (echilibrul puterilor), cet??enii fiind astfel ap?ra?i de poten?ialele interven?ii despotice ale statului.
+
+   Puterea executiv?, reprezentat? în România prin bicefalismul Primul ministru (?i Guvernul s?u) ?i Pre?edintele se ocup? de:
+* guvernare – trasarea deciziilor politice referitoare la prezentul ?i viitorul t?rii ?i
+* administrarea nevoilor curente ale statului ?i serviciilor publice– administra?ia public?.
+
+Guvernarea se bazeaz?, sau ar trebui s? se bazeze pe 2 componente esen?iale:
+* programul de guvernare1, pe baza c?ruia este ales de c?tre cet??eni partidul/partidele care vor avea majoritatea în parlament ?i vor constitui guvernul ?i
+* principiul bunei guvern?ri.
+   Acesta este o no?iune în vog?, a c?rui defini?ie mai comport? înc? dezbateri. Exist? foarte multe abord?ri si defini?ii pentru buna guvernare. Asocia?iile ?i organiza?iile2 care fac parte din proiectul „Parteneriat pentru buna guvernare” au definit buna guvernare ca fiind modul de guvernare care:
+* se bazeaz? pe respectarea legilor ?i aplicarea regulamentelor;
+
+1 pentru con?inutul programului de guvernare a se vedea website-ul Guvernului României: www.gov.ro
+2 http://bunaguvernare.eu/cine_suntem.php
+1 
+* presupune asumarea deplin? a r?spunderii fa?? de membrii comunit??ii;
+* permite participarea echitabil? a tuturor factorilor interesa?i în elaborarea ?i formularea politicilor;
+* permite participarea cet??enilor la buna func?ionare a institu?iilor publice;
+* este transparent;
+* asigur? integritatea reprezentan?ilor administra?iei publice;
+* livreaz? servicii publice în mod eficient.
+
+   În ceea ce prive?te no?iunea de serviciu public, în limbaj curent, aceasta este utilizat? pentru a desemna o activitate de interes general, prestat? de un organism, adic? de o persoana juridica, autorizata de o autoritate a administra?iei publice.
+Doctrina dreptului administrativ1 consacr? dou? accep?iuni în leg?tur? cu definirea no?iunii de serviciu public:
+* sens material, ca tip de activitate de interes general pe care administra?ia ?i-o asum? sau
+* sens organic, organismul prin intermediul c?ruia se realizeaz? o activitate de interes general.
+   Autorit??ile publice care pun în practic? deciziile luate în baza programului de guvernare ?i a bunei guvern?ri, pentru crearea ?i func?ionarea serviciilor publice sau a politicilor publice, sunt împ?r?ite în mod tradi?ional pe 2 nivele:
+Autorit??ile administra?iei publice de stat:
+* guvernul;
+* administra?ia de specialitate: ministerele, autorit??ile administrative autonome, serviciile publice deconcentrate, alte autorit??i publice;
+* institu?ia prefectului.
+Autorit??ile administra?iei publice locale:
+* consiliul jude?ean;
+* consiliul local;
+* pre?edintele consiliului jude?ean;
+* primarul;
+
+
+1 Drept administrativ – Alexandru I., C?r?u?an M ?i Bucur S.
+
+* serviciile publice locale.
+   Peste aceast? clasificare se suprapun totu?i marile principii care guverneaz? administra?ia public? modern?: descentralizarea ?i autonomia local?, pe de o parte ?i centralizarea ?i deconcentrarea, pe de alt? parte.
+
+       Prin urmare, pentru realizarea sarcinilor ?i func?iilor ce-i revin, statul organizeaz? o vast? re?ea de institu?ii publice. Acestea nu desf??oar?, în principiu, activit??i productive, obiectul lor de activitate plasându-se, de regul?, în sfera nematerial?.
+De-a lungul acestor re?ele externe ale administra?iei publice se desf??oar? o lung? re?ea de comunicare a informa?iilor apar?inând domeniului public, lato sensu. De aceea, pentru a construi un sistem eficient de management al documentelor , într-o institu?ie public?, este absolut necesar s? observ?m rela?ionarea acestuia, în mediul extern al s?u, cadrul sistemului descris mai sus, pe vertical?, de-a lungul liniilor ierarhice ?i pe orizontal?, prin parteneriatele cu organiza?iile publice de acela?i nivel, cu organiza?iile private ?i cu cet??enii.
+
+      Abia dup? ce am pozi?ionat institu?ia au autoritatea public? în vastul sistem al mediului extern unde se desf??oar?, trebuie s? analiz?m mediul intern pentru a vedea ce proceduri ?i fluxuri de documente gestioneaz? acea institu?ie.
+Ceea ce înseamn? c? analiz?m organigrama ?i rela?iile structurale din cadrului acesteia precum ?i obiectivele acesteia în ceea ce prive?te livrarea serviciului public.
+Organizarea unui institu?ii publice, ca func?ie managerial?, care apar?ine conduc?torului autorit??ii – demnitar sau func?ionar public, const? în delimitarea proceselor de munc? în componente primare (sarcini sau atribu?ii), gruparea acestora pe posturi (func?ii publice sau contractuale) ?i compartimente (birouri, servicii, compartimente, direc?ii, direc?ii generale) ?i atribuirea lor spre exercitarea personalului organiza?iei în vederea realiz?rii obiectivelor.
+Aceast? organizare formal? se reflect? în 3 instrumente principale:
+* structura organizatoric? descris? prin organigram?;
+* statul de func?ii/personal;
+* fi?a de post.
+   Dintre acestea, primele dou? elemente sunt cele mai importante în descrierea unui sistem de gestionare a documentelor. al treilea (fi?a de post) intervine accidental, pentru posturile ?i
+   
+persoanele care au stabilite atribu?ii excep?ionale ce implic? construc?ii sau proceduri speciale în procesul de gestionare a actelor administrative.
+
+   Structur? organizatoric? reprezint? configura?ia intern? a unei institu?ii sau autorit??i publice format? din persoane, subdiviziuni organizatorice ?i rela?ii. Structura organizatoric? reune?te dou? segmente, aflate într-o interdependen?? permanent?: structura de conducere a institu?iei/autorit??ii publice ?i structura de execu?ie a institu?iei/autorit??ii publice1.
+
+   Rela?iile organizatorice reprezint? leg?turile care se stabilesc prin reglement?ri oficiale între componentele structurii organizatorice din cadrul institu?iilor ?i autorit??ilor publice. În acest sens, modalitatea de reprezentare organizatoric? o reprezint? organigram?.
+
+   Iar conform Dic?ionarului explicativ al limbii române, organigrama este definit? ca fiind redarea schematic? (grafic?) în toate detaliile a organiz?rii, a subordon?rii ?i a leg?turilor dintre compartimente din cadrul unei întreprinderi sau al unei organiza?ii.
+   Vizualizarea structurii organizatorice se asigur? de organigram?. Ca reprezentare grafic? a structurii organizatorice, organigrama ilustreaz? (eviden?iaz?), practic, toate componentele structurale – de la post la rela?iile organizatorice. Cel mai r?spândit tip de organigram? este organigrama piramidal?, ordonat? de sus în jos, ce se elaboreaz? folosindu-se ca principale forme geometrice, dreptunghiurile ?i liniile, orizontale ?i verticale.
+   Organigrama autorit??ii/institu?iei publice solicitante, trebuie s? cuprind?: func?iile publice de execu?ie ?i de conducere, posturile contractuale de conducere ?i de execu?ie; num?rul de posturi pe fiecare departament (direc?ie general?, direc?ie, serviciu, birou etc.), compus din 1 conduc?tor + nr. posturi execu?ie.
+
+   Rela?iile nu sunt uniforme ?i cunosc diferen?ieri având particularit??i în func?ie de componentele între care se stabilesc. Astfel, s?ge?ile verticale reprezint? rela?ii de subordonare între departamente sau între departamente de nivel inferior ?i func?ia de la nivel superior; s?ge?ile orizontale reprezint? rela?ii de colaborare între departamente de acela?i nivel. De fapt se deosebesc patru tipuri de rela?ii în interiorul unei institu?ii publice:
+* rela?ii de autoritate, ce pot fi
+
+1 „Managementul Institu?iilor Publice” de Marinescu P. et al.
+
+o rela?ii ierarhice (bazate pe transmiterea deciziei pe cale ierarhic?) ?i
+o rela?ii func?ionale (bazate pe transmiterea de indica?ii metodologice)
+* rela?ii de cooperare, ce se stabilesc între posturi ?i compartimente de pe acela?i nivel ierarhic, pentru derularea unor ac?iuni complexe;
+* rela?ii de control, care apar între posturi/compartimente cu atribu?ii de control ?i audit ?ui celelalte structuri indiferent de scara organiza?ional? unde se situeaz?;
+* rela?ii de reprezentare, între conducerea de nivel superior ?i postul de management cu atribu?ii de reprezentarea a intereselor institu?iei în rela?iile cu ter?ii.
+
+   Aten?ie, pe lâng? aceast? organizare oficial?, exist? ?i o structur? informal?, care se creeaz? ?i permite realizarea unor interese personale. Componen?a sa de baz? este grupul informal - mai multe persoane, reunite sub unul sau mai mul?i lideri informali, grupare care se realizeaz? pe baza unor interese comune, apartenen?? organizatoric?, preg?tire profesional? etc.
+   Astfel, orice manager care dore?te s? conduc? eficient o organiza?ie trebuie s? aib? în aten?ie cultura organiza?ional? a institu?iei ?i s? nu uite c? informa?iile, dar ?i documentele, circul? ?i printr-o astfel de re?ea. De altfel, despre comunicarea informal? vom vorbi într-unul dintre subcapitolele de mai jos.
+   
+
+Gestionarea documentelor ?i strategia comunica?ional? a unei organiza?ii publice
+
+         Comunicarea, considerat? fundamentul rela?iilor interumane, constituie o parte a comportamentului social al omului modern ?i a lumii în care tr?ie?te. Transmiterea unei idei ?i verificarea modului în care a fost receptat?, receptarea unei idei ?i în?elegerea sensului acesteia, reac?iile voluntare ?i involuntare pe care le avem în cadrul schimbului de mesaje realizat cu membrii familiei, cu prietenii, cu colegii de serviciu, imaginea pe care ne-o facem despre noi în?ine ?i despre ceilal?i, toate înseamn? comunicare.
+      Comunicarea este un concept „la mod?”. Asociat? cu informa?ia, cu mass-media, cu prietenia, cu transparen?a, comunicarea tinde s? devin? r?spuns pentru multe dintre întreb?rile care implic? rela?iile dintre oameni. De multe ori când ceva nu merge bine d?m vina pe lipsa de comunicare. Prima axiom? a comunic?rii ne spune îns? c? „non-comunicare nu exist?”. Prin urmare nu poate fi invocat? lipsa de comunicare ci, mai degrab?, comunicarea ineficient?. Dac? nu încerc?m s? îi în?elegem mecanismele, comunicarea r?mâne o no?iune abstract?, despre care nu vom ?ti cu siguran?? dac? este o cauz?, un efect, un mijloc sau un scop.
+
+         Comunicarea, schimbul de informa?ii, idei ?i sentimente, a fost definit ca un proces interpersonal de transmitere ?i recep?ie de simboluri care au ata?ate în?elesuri. Comunicarea este deci acel fenomen care permite crearea de leg?turi între oameni, între institu?ii ?i între institu?ii ?i oameni, leg?turi asem?n?toare unor pun?i invizibile de esen?? informa?ional?1. Managerul este persoana cu autoritate asupra unei organiza?ii sau a unei subunit??i a acesteia ?i care trebuie s? î?i asume una sau mai multe dintre func?iunile manageriale identificate de H. Fayol: planificare, organizare, conducere, coordonare ?i control. Comunicarea este vital? în fiecare dintre ele.
+         Comunicarea reprezint? unul dintre cele mai dificile aspecte ale muncii unui manager în administra?ia public? ?i, de aceea, una dintre cele mai mari provoc?ri atunci când acesta stabile?te circuitul ?i procedurile de gestionare a documentelor.
+Sursa majorit??ii problemelor de comunicare o constituie diferen?a dintre con?inutul mesajului sau impactul pe care managerul inten?ioneaz? s?-l transmit? ?i modul în care ceilal?i membri
+
+1 Managementul Institu?iilor Publice – Marinescu P et. al.
+
+ai organiza?iei recep?ioneaz? mesajul. Nu de multe ori introducerea unor proceduri noi sau chiar a sistemului electronic de management al documentelor a creat o rezisten?? deosebit? la schimbarea ?i a stabilit un climat ostil lucrului în institu?ia public?. Func?ionarii de execu?ie au avut senza?ia c? nu sunt asculta?i când comunic? cât este de dificil s? lucrezi cu un soft de DMS ?i cât de imposibil este s? îl implementezi!
+
+      Sistemul comunica?ional are tr?s?turi specifice proprii care difer? de la o institu?ie la alta, de la un tip de organiza?ie la altul sau chiar în interiorul organiza?iei, de la un departament la altul. Astfel, se eviden?iaz? ceea ce numim cultura comunica?ional?. Iar pentru c? paradigmele culturale proprii institu?iilor publice prezint? caracteristici aparte, este indicat a se analiza tr?s?turile sistemului de comunicare din cadrul autorit??ii publice înainte de a implementa un sistem de gestionare a documentelor.
+Deoarece procedurile de gestionare a actelor într-o organiza?ie public? implic? o îmbinare între elementele de management ?i cele de teorie a comunic?rii, abordarea temei trebuie s? fie interdisciplinar?, pe de o pare, dar ?i posibil de aplicat într-un cadru complex, dat de sistemul rigid ?i birocratic al organiz?rii institu?iilor publice.
+
+      Este de re?inut faptul c? institu?iile publice se confrunt? cu probleme specifice date de cadrul legislativ strict, de o posibil? lips? de speciali?ti în domeniu, de rezisten?a aparatului administrativ la schimbare ?i mai ales de haosul creat prin aplicarea mai multor tehnici de reformare a sistemului, care uneori sunt contradictorii.
+
+      De aceea, putem spune c? implementarea noilor forme de management al institu?iilor publice ?i renun?area la unele elemente ale sistemului birocratic care lipsesc de flexibilitate sistemul de circuit al informa?ie ar trebui s? fie o prioritate a unui manager, în procesul de creare al strategiei comunica?ionale într-o institu?ie public?. Pe de alt? parte, odat? pornit? o astfel de strategie de mai sus, de la nivelul Guvernului ?i ministerelor, este mai u?or pentru demnitarul care conduce o organiza?ie public? s? implementeze un sistem de proceduri conexat cu un sistem mai coerent de comunicare intra ?i extra institu?ie public?.
+
+         În primul rând trebuie s? discut?m despre comunicare ca proces ata?at mediului de existen?? al oric?rei organiza?ii. Dup? cum se ?tie orice institu?ie nu func?ioneaz? izolat,
+         
+doar prin activit??ile interne ale membrilor s?i, institu?iile sunt o îmbinare între activit??ile interne ale salaria?ilor ?i leg?turile acestora cu mediul extern al organiza?iei: alte institu?ii similare, clien?i, autorit??i publice, componen?i ai societ??ii civile.
+Prin urmare re?ele de comunicare se desf??oar?
+* în mediul intern sau
+* prin conectarea la mediul extern.
+    Comunicarea intern? se refer? la schimbul de mesaje ce are loc în interiorul organiza?iei, implicând persoane ?i grupuri ?i poate fi formal? ?i informal?. Altfel spus, comunicarea intern? poate s? urm?reasc? liniile de putere ?i organizare ierarhic? ale organigramei ?i atunci este o comunicare oficial?. Comunicarea este formal? atunci când mesajele sunt transmise prin canale prestabilite ?i ia forma, de exemplu, a rapoartelor, notelor, circularelor, prezent?rilor, ?edin?elor.
+      În orice organiza?ie exist? îns? o mare cantitate de informa?ie ce circul? pe canale informale, sub forma discu?iilor în afara contextului rela?iilor de subordonare. Astfel, procesul de comunicare implic? ?i numero?i factori emo?ionali, de factur? psihologic?, factori care nu î?i g?sesc mediul adecvat transmiterii în cadrul comunic?rii prin canalele formale din organiza?ie. De aceea, managerul trebuie s? cunoasc?, s? analizeze, s? influen?eze ?i s? foloseasc? un alt tip de canale de comunicare, canale existente inevitabil acolo unde exist? oameni inter-corela?i: canalele informale.
+         Pentru o bun? în?elegere a conceptului de comunicare intern? formal? într-o organiza?ie trebuie precizat? modalitatea optim? de func?ionare a sistemului de comunicare: între cine se realizeaz? comunicarea, care structuri ocup? un loc central ?i care sunt marginale în procesul de comunicare1. În literatura de specialitate profesorii Tran ?i St?nciugelu au identificat dou? tipuri de re?ele de comunicare:
+
+* re?ele centralizate – în cadrul c?rora informa?ia merge spre centru ?i se adreseaz? unor activit??i relativ simplu de executat
+* re?ele descentralizate unde schimbul de informa?ii nu are o matrice important?, comunicarea fiind adecvat? unor situa?ii complexe
+      Aceste tipuri de re?ele pot fi identificate prin diferite forme de instrumente manageriale, necesare pentru a analiza mediul intern ?i extern al organiza?iei. Astfel, pentru
+
+1 Teoria comunic?rii – Tran V. ?i St?nciugelu I.
+
+în?elege interiorului organiza?iei, teoreticienii au construit o serie de instrumente de analiz? a structurilor de putere, a leg?turilor dintre ele, leg?turi pe baza c?rora se formeaz? apoi conexiunile comunica?ionale formale ?i informale, centralizate sau descentralizate.
+
+      În ceea ce prive?te comunicarea extern?, aceast? este conexiunea care se realizeaz? între organiza?ie ?i diversele forme de organizare ale societ??ii din exteriorul acesteia. În zilele noastre, mediul de operare al organiza?iei se caracterizeaz? printr-un înalt grad de informatizare ?i printr-o schimbare extrem de rapid?. Conectarea organiza?iei la acest mediu este posibil? numai printr-o comunicare managerial? extern? eficace ?i eficient?.
+      În exteriorul organiza?iei managerul comunic? cu elemente de ordin economic, social ?i politic: clien?i, furnizori, concuren?i, ac?ionari, asocia?i, comunitatea local?, publicul general, mas-media, guvern, partide. Managerul trebuie s? fie o veriga de leg?tur? a organiza?iei cu acest mediu pentru a putea asigura procesul de orientare a organiza?iei, procesul de continu? schimbare ?i progres.
+
+Modalit??ile de comunicare pot fi grupate ?i dup? cum urmeaz?:
+* comunicare oral?
+* comunicare în scris
+* comunicare non-verbal?
+   Tipic pentru un sistem de management al documentelor ar trebui s? fie comunicarea în scris. Unul din scopurile cre?rii ?i implement?rii procedurilor ?i DMS-ului este acela de a regla erorile care pot ap?rea în comunicarea oral? referitoare la atribu?iile de serviciu. „Vorba volant” ?i de aceea ea trebuie reglementat? prin proceduri. Acestea se refer? atât la rela?iile cu clien?ii institu?iei publice, prin departamentele de rela?ii cu publicul, cât ?i la cele cu mass- media (care reprezint? un subiect sensibil pentru orice institu?ie public?) dar ?i la cele interne între departamente, între ?efi ?i subalterni, între manageri, între colegi.
+
+         Strategia comunica?ional? este implicat? în toate func?iile managementului, de la planificare ?i organizare pân? la monitorizare ?i control. Astfel, atribu?iile managerului nu pot fi îndeplinite dac? întreprinderea sa nu beneficiaz? de un sistem comunica?ional eficient.
+         
+      Ini?ial, teoriile de management puneau accent pe organizarea activit??ilor în scopul profitului ?i productivit??ii. Treptat teoreticienii ?i practicienii în domeniu au început s? acorde importan?? rela?iilor interumane ?i re?elelor de comunicare din diferitele categorii de salaria?i, pentru c? au în?eles rolul comunic?rii organiza?ionale în orice tip de întreprindere.
+      Cu alte cuvinte, procesul de comunicare organiza?ional? se adapteaz? modului de manifestare, de existen?? a mediului organiza?iei: intern – comunicarea cu ?i între salaria?ii cu diferite func?ii de execu?ie sau conducere, ?i mediul extern – comunicarea cu clien?ii, celelalte companii ?i organiza?ii ale mediului de afaceri, institu?iile publice ?i toate celelalte componente ale societ??ii.
+
+În ceea ce prive?te comunicarea din mediul intern, profesorul Johns1 observa:
+„comunicarea eficient? apare atunci când oamenii potrivi?i primesc la timp informa?iile potrivite”. Dar în spatele acestei simple afirma?ii trebuie s? se ascund? un sistem bine constituit din re?ele formale ?i informale de transmitere a mesajelor între manageri ?i subordona?i ?i/sau între categorii de personal de acela?i rang.
+      Comunicarea se realizeaz?, ca ?i sistemul de gestionare a documentelor, prin circuite de transmitere a informa?iei. A ?tii care sunt aceste circuite, unde apar blocajele ?i ce îmbun?t??ire trebui aduse sistemului pentru ca procesul de transmitere a informa?iei s? decurg? lin este arta managerului.
+
+Am amintit mai sus despre comunicarea formal? ?i cea informal?.
+      Comunicarea formal? este cea recunoscut? de c?tre organiza?ie pentru c? se formeaz? prin implicare structurilor oficiale ale institu?iei, se bazeaz? pe rela?iile prestabilite între diferitele tipuri de angaja?i ?i se constituie pe baza actelor ?i normelor oficiale ale întreprinderii.
+      Teoretic, comunicarea în organiza?ie ca si circuitul documentelor ar trebui s? urm?reasc? strict circuitul ierarhic. În acest sistem pot fi realizate trei forme necesare de comunicare2:
+
+
+
+
+
+1 Comportament organiza?ional – Johns G.
+2 idem.
+
+* comunicarea de sus în jos: fluxul de informa?ii circul? de la vârf spre baza organiza?iei prin mesajele generate de managerii de la nivelurile cele mai înalte ale institu?iei ?i adresate celor de la nivelurile inferioare. Aceste mesaje se concretizeaz? prin decizii, instruc?iuni, proceduri, memorii oficiale, reglement?ri interne, norme, rapoarte etc. ?i, a?a cum am v?zut în capitolele anterioare, constituie baza procedurilor tipice managementului documentelor într-o institu?ie public?;
+* comunicarea de jos în sus porne?te de la baza organiza?iei spre vârf, de la subordona?i c?tre nivelele de conducere Prin intermediul acestor canale de comunicare ar trebui s? fie furnizate informa?ii pentru fundamentarea deciziilor ?i verificarea validit??ii acestora;
+* comunicarea orizontal? are loc între departamente sau unit??i func?ionale, între persoane care ocup? pozi?ii situate la acela?i nivel ierarhic în sistemul de management, ?i este de obicei ca mijloc de coordonare a eforturilor.
+
+În plus fa?? de aceste tipuri de re?ele de flux informa?ional, profesorul Marinescu 1
+introduce ?i ideea de:
+* comunicarea oblic? care apare, de obicei între persoane ce ocupa posturi situate pe niveluri ierarhice diferite, f?r? ca între acestea s? existe rela?ii de autoritate de tip ierarhic.
+      Totu?i, realitatea comunic?rii arat? c? circuitul ierarhic formal este o cale de comunicare incomplet? ?i adesea ineficient?. De aceea, în paralel cu re?elele formale se constituie linii de comunica?ii informale, între angaja?ii cu pozi?ii similare sau diferite în ierarhia organiza?ional?.
+
+Comunic?rii informal? îi sunt proprii urm?toarele caracteristici:
+* se constituie spontan pe baza unor interese ?i preocup?ri comune, a nemul?umirilor resim?ite în comun fa?? de ?efi sau a unor tipuri de tr?s?turi comune ale angaja?ilor;
+* are o natur? preponderent subiectiv?, care ?ine de p?rerile personale ale emi??torului ?i destinatarului
+
+
+1 Managementul institu?iilor publice - Marinescu P et al.
+
+* exist? în orice organiza?ie, dar este folosit? op?ional, în special pentru vehicularea unor informa?ii care nu pot fi propagate pe cale oficial?
+* managerul trebuie s? îi acorde aten?ie pentru a încerca s? în?eleag? factorii care influen?eaz? salaria?ii, în afara politicilor oficiale ale întreprinderii.
+
+      Ambele forme de comunicare sunt utile organiza?iei. Astfel, exist? situa?ii când p?rerile sau chiar nemul?umirile salaria?ilor nu se pot transmite pe cale formal? pentru a nu leza structurile oficial constituite. Trebuie s? nu uit?m c? organiza?iile sunt formate din oameni, cu personalit??i diferite, supu?i gre?elilor ?i orgoliilor, ?i se pot utiliza canalele informa?ionale neoficiale pentru a transmite mesaje într-o form? diplomatic?.
+
+      Exist? îns? ?i o serie de perturba?ii în comunicarea organizatoric?, formal? sau informal?. Astfel, nu toate comunic?rile informale slujesc organiza?iei. Johns1 numea aceast? comunicare „bursa zvonurilor”. „Bursa nout??ilor” este re?eaua de comunicare informal? care exist? în fiecare organiza?ie, ... ea traverseaz? liniile de comunicare formal? recunoscute de conducerea organiza?iei ?i poate r?spândi prin întreaga organiza?ie zvonuri incorecte ?i de un gust îndoielnic, perturbând comunicarea organiza?ional?.
+      De asemenea, comunicarea poate fi perturbat? ?i de o prea mare încetineal? a sistemului (aceasta este una dintre criticele sistemului birocratic, dac? analiz?m descrierea
+„monstrului” birocratic a lui Pollit). Astfel, chiar ?i atunci când prin circuitul ierarhic informa?iile se transmit cu bun? credin??, procesul poate fi dureros de lent ?i î?i pierde eficacitatea.
+      O alt? modalitate de a crea distorsiuni ale comunic?rii interne în cadrul institu?iei este folosirea filtr?rii. Filtrarea este tendin?a de a dilua sau de a opri un mesaj aflat în curs de transmitere ?i este o sabie cu dou? t?i?uri. Pe de o parte, se a?teapt? de la subordonat s? filtreze informa?iile... Pe de alt? parte, filtrarea prea zeloas? va împiedica oamenii potrivi?i s? capete informa?iile potrivite ?i organiza?ia va suferi în consecin??2. Filtrarea de jos în sus are loc de obicei pentru c? subordona?ii se tem c? ?eful va folosi informa?ia împotriva lor. Filtrarea de sus în jos se datoreaz? în special crizei de timp sau neaten?iei la detalii, dar pot interveni ?i motive de rea credin??. Dup? cum se spune „informa?ia înseamn? putere” astfel
+
+1 Comportament organiza?ional – Johns G.
+2 Comportament organiza?ional – Johns G.
+
+încât unii manageri filtreaz? informa?iile de sus în jos pentru a-?i men?ine un ascendent în fa?a subordona?ilor.
+      Pentru a preveni filtrarea informa?iilor unii manageri încearc? scurtcircuitarea verigilor din lan?ul ierarhic prin „politica u?ilor deschise: posibilitatea oferit? angaja?ilor de a comunica direct cu un manager f?r? a parcurge circuitul ierarhic”. Aceasta este o modalitate eficient? de a afla mersul organiza?iei de-a lungul structurilor ierarhice, dar, din nefericire, este utilizat? de foarte pu?ini manageri ?i de ?i mai pu?ini demnitari ai sistemului administra?iei publice
+      Ca exemplu, vom prezenta tipurile de re?ea comunica?ionale identificate de Marinescu et al.1, tipuri care pot fi perfect adaptate pentru a cunoa?te modul în care fluxul de informa?ii (generate în cadrul procedurilor pe suport de hârtie sau în sistem IT) func?ioneaz? în cadrul managementului documentelor:
+
+TIP DE RE?EACARACTERISTICITip lan?* dezavantaj  –  distorsiunea  mesajului  datorat?
+serialit??ii fluxului informa?ionalTip Y* dou? persoane au acela?i statut
+* feedback rapid, eficient
+* num?r redus de leg?turi
+* exist? un grad de centralizareTip cerc* reducere grad de interac?iune grup – un membru comunic? doar cu al?i doi
+* feedback dificil
+* organizare stabil?, satisfac?ie mareTip roat?* model centralizat de comunicare în grup
+* dependen?? mare de lider la calitatea deciziei
+* structur? stabil? dar rapid?Tip stea* descentralizare comunicare
+* informa?ie liber?
+* implicare egal? între membrii – decizii bune
+* feedback rapid ?i eficient
+
+1 Managementul institu?iilor publice - Marinescu P. et. al.
+
+* vitez? transmitere informa?ie mic?
+
+
+      De exemplu, în re?eaua în stea toate fluxurile sunt controlate de persoana de la centru, pe când în re?eaua cu comunicare integral (tip lan?), indivizii pot comunica între ei simultan. Pe de alt? parte, re?eaua tip stea are grad redus de interdependen??, pe când cea tip lan?, un grad mai mare de interdependen??.
+
+      Pe lâng? aceste tipuri de comunicare, se deosebe?te ?i comunicarea grafic?. Grafica managerial? urm?re?te ordonarea ?i prezentarea unui ansamblu de date referitoare la o anumit? problem? într-o manier? sintetic?, u?or de perceput. Nu întotdeauna este indicat a se apela la comunicarea grafic?, dar utilizarea ei poate îmbun?t??ii percep?ia ?i trezi interesul, aten?ia receptorului. Imaginile folosite trebuie sa fie relevante, clare ?i în concordan?? cu con?inutul mesajului.
+
+         Iar în capitolul ulterior vom vorbi despre comunicarea în sistem informatic. Comunicarea prin sisteme informatice este tendin?a de ultim? or? a institu?iilor publice ?i private, care mizeaz? pe rapiditatea difuz?rii mesajelor în mediul informatic. Pe de alt? parte exist? ?i dezavantaje ale acestei modalit??i de comunicare, deoarece ea se dovede?te impersonal? ?i mult mai greu de controlat. Managerul transmite informa?ii prin intermediul limbajului scris sau oral; dar, am ar?tat c? el comunic? mesaje ?i prin mimic?, gesturi sau paralimbaj. Toate aceste caracteristici se pierd în comunicarea informa?ional?.
+Totu?i, pentru a fi eficient? comunicarea sistemul informatic trebuie s? îndeplineasc? cumulativ patru func?ii în cadrul organiza?iei1:
+
+* func?ia decizional? – menirea sistemului informa?ional de a asigura elementele informa?ionale necesare lu?rii deciziilor;
+* func?ia opera?ional? – sistemul informa?ional are drept scop declan?area mul?imii de ac?iuni necesare realiz?rii obiectivelor organiza?iilor; prin aceast? func?ie sistemul informa?ional asigur? opera?ionalizarea deciziilor, metodelor manageriale etc., realizarea obiectivelor cuprinse în strategia organiza?iei;
+
+
+1 Managementul modern al organiza?iei - Nicolescu O. ?i Nicolescu L.
+
+* func?iunea educa?ional? – duce la proliferarea organiza?iilor care înva?? („learning organisations”), adic? a acelor organiza?ii în care însu?irea intens? de cuno?tin?e este o preocupare permanent?, cu efecte directe în planul performan?elor;
+* func?ia de documentare a sistemului informa?ional exprim? menirea sa gnoseologic?, în virtutea c?reia se înregistreaz? o serie de informa?ii care servesc îmbog??irii cuno?tin?elor personalului care, numai ulterior, este posibil s? fie utilizate pentru a lua decizii sau pentru efectuarea anumitor opera?iuni.
+
+      În concluzie, elaborarea ?i implementarea unui sistem eficient de gestionarea a documentelor trebuie s? se bazeze pe re?elele de comunicare dintr-o institu?ie, astfel încât mesajul informa?ional transmis s? ajung? la receptori, f?r? a fi distorsionat de sistemele de perturbare a comunic?rii, a?a cum le-am descris mai sus.
+      
+
+Gestionarea documentelor ?i strategia informa?ional? a unei organiza?ii publice
+
+       Sistemul informa?ional al managementului serviciilor (administra?iei) publice cuprinde ansamblul de date, informa?ii con?inute în documente, circuite informa?ionale, fluxuri informa?ionale ?i mijloace de tratare a informa?iilor implicate în procesul de fundamentare a deciziilor elaborate în domeniul serviciilor publice ?i care, prin con?inutul lor, conduc la satisfacerea necesit??ilor generale ale popula?iei.
+       Principalele componente ale sistemului informa?ional al managementului serviciilor publice sunt:
+?	datele primare de analiz?;
+?	informa?iile	care	circul?	între	diferitele	componente	ale	sistemului organizatoric, inclusiv mijloacele de tratare a acestuia;
+?	proceduri informa?ionale specifice;
+?	circuitele	informa?ionale	stabilite	între	elementele	componente	ale sistemului organizatoric;
+?	fluxurile informa?ionale în raport cu rela?iile stabilite intr? componentele sistemului administra?iei publice;
+?	Mijloacele de prelucrare a informa?iilor.
+Func?iile sistemului informa?ional sunt:
+- func?ia decizional?;
+- func?ia opera?ional?;
+- func?ia documentar?.
+       Deficien?ele majore ale sistemului informa?ional sunt: distorsiunea, filtrajul, redundan?a, supraînc?rcarea canalelor informa?ionale.
+Principiile sistemului informa?ional sunt:
+a) Principiul conceperii si restructur?rii sistemului informa?ional
+       b) Principiul	corel?rii	strânse	a	sistemului	informa?ional	cu, organizarea structurala ?i cu sistemul decizional din institu?iile publice
+c) Principiul unit??ii metodologice de tratare a informa?iilor
+d) Principiul concentrat asupra informa?iilor esen?iale,
+a) 
+       e) Principiul asigur?rii unui timp corespunz?tor de reac?ie ca componentelor sistemului
+f) Principiul asigur?rii unui maxim de informa?ii finale dintr-un fond limitat
+g) Principiul flexibilit??ii
+
+
+REGULI DE BAZA PENTRU REALIZAREA UNUI SISTEM INFORMATIC EFICIENT
+
+Abordarea globala modulara
+       La proiectarea sistemului trebuie avut? în vedere legatura acestuia cu lumea exterioar?, posibilitatile de comunicare cu alte sisteme similare, compatibilitatea cu sisteme de alt? natur?, posibilitatea includerii sistemului într-un sistem mai complex, sau posibilitatea includerii altor sisteme.
+
+Criteriul eficientei economice
+      Principalul criteriu ce st? la baza realiz?rii sistemului este cel economic. Cu alte cuvinte, la proiectare trebuie avut în vedere c? raportul dintre rezultatul sau rezultatele directe sau indirecte obtinute prin implementarea ?i folosirea sistemului economic ?i totalitatea costurilor de realizare s? fie cât mai mare. Cu alte cuvinte, trebuie s? fie rentabil.
+
+Orientarea spre utilizatori
+      La realizarea sistemului trebuie s? se aiba în vedere în primul rând nivelul de cuno?tin?e al utilizatorilor, cerintele ?i preferin?ele lor. În acest sens, trebuie purtat? o discutie cu utilizatorii în prealabil ?i pe baza sugestiilor lor s? se treaca la proiectarea propriu zis?.
+
+Asigurarea unicit??ii introducerii datelor
+      De cele mai multe ori o serie de date trebuiesc utilizate în mai multe locuri în cadrul sistemului informatic. La proiectarea sistemului, trebuie ca datele sa fie introduse o singura data, iar sistemul sa distribuie automat datele în celelalte locuri în care este nevoie de ele.
+      
+Antrenarea beneficiarului la realizarea sistemului
+      Acest principiu decurge tot din orientarea spre utilizator. Trebuie discutat cu utilizatorul înainte de a trece la proiectare, pentru a înl?tura de la început o serie de neajunsuri. Trebuiesc discutate modalit??ile de introducere a datelor ?i adaptarea aplica?iei la nevoile utilizatorului, modul de calcul ?i prelucrare al datelor.
+
+Solu?ie general?, independent? de configura?ia actual? a sistemului informatizat
+      Sistemul proiectat trebuie s? ia în considerare posibilitatea de achizi?ionare de echipamente noi, performante, dac? este posibil, iar daca nu, s? se adapteze cele existente.
+
+Posibilitatea de dezvoltare ulterioar?
+      Trebuie avut? în vedere posibilitatea ca sistemul s? poata fi înbunat??it în raport de cerintele viitoare ale firmei beneficiare.
+      Sistemele informatice pun probleme serioase la realizarea lor. În functie de modul de abordare, costurile pot fi mai mici sau mai mari, rezultatele mai bune sau mai putin bune.
+
+STRATEGII DE REALIZARE A UNUI SISTEM INFORMATIC EFICIENT
+
+De-a lungul timpului s-au conturat dou? tipuri de astfel de strategii :
+• Ascendent? (“bottom-up” de jos în sus, de la mic la mare)
+• Descendent (“top-down” de sus în jos, de la mare la mic).
+
+
+Strategia ascendenta
+      În conformitate cu aceast? strategie, rezolvarea unei anumite probleme începe cu rezolvarea problemelor de detaliu, minore. Solu?iile sunt agregate în vederea solu?ion?rii unei probleme mai complexe. Se procedeaz? asfel pâna ce se ajunge la vârf, la solu?ionarea problemei globale.
+      Dezavantajul acestei metode const? în necesitatea cunoa?terii în detaliu al domeniului problemei de rezolvat înainte de trecerea la rezolvarea propriuzis?.
+      
+
+
+jos.
+
+Strategia descendent?
+Este opus? celei ascendente, abordând problema de la general la particular, de sus în
+
+
+Este studiata problema global, încercând descompunerea ei în probleme mai mici si se
+
+trece la rezolvarea subproblemelor astfel rezultate. Rezolvarea subproblemelor se face prin aceia?i metoda, adic? prin descompunerea lor în alte subprobleme, ?i tot a?a pâna se ajunge la probleme a c?ror rezolvare este cunoscut?..
+      Aceast? strategie prezint? avantajul c? ofer? în orice moment o imagine de ansamblu asupra problemei de rezolvat.
+      Pentru realizarea unui sistem informatic sunt implicate multe persoane, materiale, timp, etc., ceea ce implic? în final costuri ridicate. Din acesta cauz?, modul de abordare a problemei proiect?rii este foarte important. În decursul timpului s-au cristalizat câteva metodologii standard de proiectare.
+
+Etapele realiz?rii unui sistem informatic
+Principalele etape de parcurs pentru realizarea unui sistem informatic sunt :
+      • Analiza sistemului existent - se studiaz? sistemul informatic existent ?i se stabilesc neajunsurile sale ?i cerin?ele ce urmeaz? a fi satisf?cute de viitorul sistem informatic. În acest? etap? se stabile?te rentabilitatea folosirii sistemului informatic.
+      • Proiectarea sistemului informatic - se concepe sistemul, elementele componente ale acestuia, structura lor ?i modul de realizare.Datorita complexit??ii, aceast? etapa este la rândul ei descompus? în dou? etape :
+      • Proiectarea de ansamblu - se stabileste arhitectura de ansamblu, modul de descompunere pe componente, intr?rile ?i iesirile sistemului. Se finalizeaz? printr-o schem? de ansamblu a sistemului în care sunt incluse toate aceste elementele.
+• Proiectarea de detaliu - fiecare element descris în etapa anterioara este descris în
+• 
+detaliu.
+
+
+
+sa.
+
+
+• Elaborarea programelor - se scriu programele sistemului într-un limbaj ales anterior.
+• Implementarea sistemului - dup? ce a fost realizat sistemul, se trece la implementarea
+• 
+      • Exploatarea ?i întretinerea sistemului - aceasta este faza final? a proiectului în care se trece la exploatarea acestuia. Este necesar? în paralel ?i o serie de opera?ii de întretinere a acestuia.
+      • 
+
+Gestionarea documentelor ?i rela?ia cu beneficiarii serviciilor publice (ghi?eu unic, audien?e, transparen?? decizional?)
+
+      Sistemul de gestionare a documentelor într-o institu?ie public? are implica?ii ?i aduce beneficii ?i în ceea ce prive?te alte domenii conexe, ce ?in de rela?ia direct? cu beneficiarii serviciilor publice: cet??eni sau persoane juridice de drept public ?i privat.
+Astfel, odat? implementat „document management system” ?i stabilite procedurile scrise prin care se elaboreaz?, circul? ?i se arhiveaz? electronic documentele, se poate încerca implementarea conceptului de „ghi?eu unic”.
+      Prin acest sistem, solicitan?ii de servicii publice vor avea posibilitatea s? depun? documentele necesare ?i s? primeasc? dintr-un singur loc mai multe acte, într-o perioad? de timp redus? de timp.
+      Integrarea cu pagina de web a institu?iei ?i cu celelalte mijloace de informare (de exemplu info-chio?curile) pot pune în vedere solicitan?ilor de servicii publice actele ?i procedurile necesare a fi urmate înainte de a se prezenta la registratura-ghi?eu unic.
+Totodat? în cadrul ghi?eului unic se pot oferi, de c?tre persoane autorizate, în limita mandatului acordat conform procedurii, ?i informa?ii referitoare la rezolvarea cererilor sau referitoare la documentele aflat în lucru la nivelul institu?iei publice. Având în vedere faptul c? managementul documentelor în format electronic stabile?te proceduri inclusiv pentru nivelele de acces, este posibil ca cet??enii s? poat? ob?ine informa?iile necesare f?r? a fi necesar s? parcurg la toate etapele birocratice.
+
+      În ceea ce prive?te audien?ele, marea majoritate a furnizorilor de solu?ii software pentru DMS, fumizeaz? ?i module destinate facilit?rii rela?iilor conduc?torilor institu?iilor publice cu cet??enii.
+
+De obicei pa?ii descri?i de astfel de module:
+* depunerea ?i înregistrarea solicit?rii de audien??;
+* programarea audien?ele ?i listarea diverselor rapoarte;
+* întocmirea fi?ei solicitantului ?i a audien?ei.
+* 
+* întocmirea ?i comunicarea dispozi?iilor interne legate de audien?e privind modul de rezolvare a audien?elor.
+* eventual înregistrarea cererilor în DMS ?i/sau urm?rirea rezolv?rii acestora.
+
+   Pentru efectuarea audientelor se va specifica un program de lucru si se va proiecta un modul de planificare a acestora pe baza cererilor venite de la cet??eni. La finalul unei ?edin?e de audien?? se va genera un document ce va cuprinde rezolu?ia conduc?torului referitoare la problema audiat?
+Audientele on-line se pot desf??ura sub forma unui forum de discu?ii sau unui sistem FAQ1 care va fi f?cut public pe site-ul instituitei.
+
+      Acela?i sistem se poate aplica ?i pentru a respecta procedurile privind transparen?a decizional?. Aderarea la sistemul democra?iei participative presupune interven?ia cet??eanului la decizia public?. Cadrul legal privind accesul la informa?ia public? (Legea nr. 544/2001) ?i cel privind transparen?a decizional? în administra?ia public? (Legea nr. 52/2003) introduce câteva elemente de rigoare pentru dialogul .public, venind în sprijinul inform?rii ?i implic?rii cet??eanului în via?a public?.
+      Fiecare dintre urm?toarele etape, ce apar?in structurii minimale de consult?ri publice la nivelul autorit??ii publice2, pot fi desf??urate ?i raportate prin DMS:
+
+1. etapa preparatorie, în care autoritatea public? eviden?iaz? public, clar ?i pe în?elesul cet??eanului:
+* cum fundamenteaz? pertinent necesitatea ?i oportunitatea proiectului de act normativ ini?iat,
+* cum identific? p?r?ile interesate / afectate de c?tre acesta,
+* cum stabile?te în mod clar, simplu ?i u?or de utilizat modalitatea formul?rii propunerilor ?i sugestiilor, a modului de colectare ?i prelucrare a opiniilor ?i sugestiilor;
+2. etapa desf??ur?rii efective a procesului consultativ, ce presupune:
+
+
+
+1 frequently asked questions
+2 http://www.advocacy.ro/
+
+* anun?ul public adecvat al consult?rii publice ce urmeaz? a fi organizate, astfel încât s? fie informate toate p?r?ile interesate / afectate;
+* stabilirea concret? a tuturor detaliilor tehnice, de logistic? privind organizarea evenimentului, inclusiv documenta?ie de tip bibliografic, modalitatea de înscriere la cuvânt, timpul alocat ?i modul de procesare a opiniilor colectate, parcursul ulterior al acestora ?i modalit??ile de verificare din partea cet??eanului privind recomand?rile acceptate
+3. etapa evalu?rii ?i disemin?rii rezultatelor consult?rii publice, în care, în urma sintetiz?rii opiniilor ?i sugestiilor colectate:
+* s? fie punctate clar ?i corect contribu?iile pertinente acceptate ?i asumate de c?tre ini?iator;
+* s? fie argumentate sugestiile neacceptate;
+* s? fie diseminat? larg sinteza consult?rii publice, în scopul con?tientiz?rii impactului acesteia în procesul deliberativ al autorit??ilor publice;
+* s? fie creat? memoria institu?ional? asupra problemei reglementate, cu inventarierea experien?elor anterioare, accesibil? publicului larg.
+
+   Dar, a?a cum evaluasem ?i anterior, este important ca un sistem de management al documentelor s? fac? parte dintr-o strategie general?, aprobat? la nivelul institu?iei publice. Nu este posibil ca procedurile de gestionare a documentelor într-o institu?ie public? s? func?ioneze într-un vid de obiective; el se integreaz? într-o cultur? organiza?ional? care apreciaz? ?i respect? sistemul ra?ional de implementare a politicilor publice.
+   
+
+GESTIONAREA DOCUMENTELOR – SISTEM CLASIC (PE SUPORT DE HÂRTIE)
+Crearea ?i clasificarea documentelor
+
+      Un document se define?te ca un pachet de date structurate în scopuri informa?ionale, o colec?ie de indicatori ?i reguli care pot angaja simultan un num?r de diferite componente informatice ?i de ac?iuni 1.
+      Mai putem identifica ?i o alt? defini?ie – dat? de ISO: documentul este un “ansamblu coerent ?i finit de informa?ii structurate, lizibile ?i cu destina?ie precis? aflat pe un anumit suport”.
+      Documentele ce de?in o putere incredibil? în mediile de activitate guvernamental?, trec printr-o evolu?ie major? care marcheaz? ?i reformeaz? activit??ile institu?iilor publice. De fapt, gestionarea documentelor într-o manier? nou?, sistematic? ?i legat? de tehnologia informa?iei este modalitatea în care societ??ile încearc? s? fac? fa?? tendin?elor impuse de era informa?iei.
+      De aceea, se identific? o leg?tur? intrinsec? între procesul de creare ?i clasificare a documentelor ?i tipurile de informa?ie de?inut? în cuprinsul lor.
+
+      Informa?ia reprezint? o parte integral? a activit??ii în cadrul oric?rui departament sau agen?ii de guvern?mânt. Totalitatea serviciilor publice furnizeaz? c?tre clien?i-cet??eni, c?tre persoanele juridice de drept privat sau chiar c?tre celelalte institu?ii ?i autorit??i publice institu?ii sunt bazate pe informa?ii.
+      Puterea legiuitoare, executiv? sau judec?toreasc? ale unui stat au la dispozi?ie o cantitate uria?? de informa?ii pe care s? fundamenteze aspectelor tuturor programelor ?i serviciilor accesate de c?tre public sau destinate acestuia.
+      Ceea ce managementul informa?iei face este s? asigure fluxul liber de informa?ii între puterile statului, cet??eni ?i mediul privat. Efectuat în mod corespunz?tor, managementul informa?iilor reprezint? fundamentul pentru desf??urarea majorit??ii activit??ilor de guvern?mânt.
+      De aceea, controlul ?i distribuirea documentelor esen?iale în manier? sistematic? au devenit din ce în ce mai importante ?i, în mod similar, necesitatea unui acces sigur la aceste documente a devenit un imperativ1.
+
+1 Managementul documentelor - UNPAN – Re?eaua de administra?ie public? a Na?iunilor Unite
+
+      Procesul de gestionare al con?inutului documentelor depinde de ciclului de via?? al informa?iilor. Cerin?ele specifice ale fiec?rei etape din cadrul procedurilor interne sau externe de creare, manipulare ?i arhivare a documentelor sunt definite de natura ?i de modurile de folosire a informa?iilor cuprinse în ele.
+Peter Drucker2, diferen?iind între informa?ie ?i date sus?ine c? informa?ia constituie
+„date înzestrate cu semnifica?ie ?i scop” ?i iar datele prin ele însele sunt lipsite de semnifica?ie sau scop. De aceea, documentul con?ine ?i se diferen?iaz? în func?ie de informa?ia con?inut? în ele. Datele, ca ?i metadatele3 sunt utile unui organiza?ii doar dac? ele sunt ordonate în documente fizice sau pe alte suporturi (magnetice sau internet – inclusiv „cloud computing”4).
+Informa?ia poate fi privit? din trei unghiuri de vedere5:
+* pe baza percep?iei umane - care presupune legarea informa?iei de efectele ce pot apare în urma unei recept?ri;
+* pe baza unui sistem analitic - lingvistic, informa?ia poate se descrie prin termeni cu referire la sensul sau structura ei;
+* din punct de vedere ingineresc, informa?ia poate fi descris? în termenii manifest?rilor sale fizice de emitere, p?strare sau recep?ie.
+
+   Procedurile ?i circuitul documentelor urmeaz? etapele principale ale ciclului de via?? al informa?iilor: planificare, colectare, creare, primire - input, captare, organizare, utilizare, ?i r?spândire, depozitare - conservare ?i, eventual, distrugere.
+Informa?ia clasific? astfel documentul pe tipologii diferite, în func?ie de criteriul de analiz? re?inut.
+
+      Astfel vom exemplifica prin adaptarea tabelului privind clasificarea informa?iilor elaborat de profesorul universitar Mircea Georgescu6:
+
+
+
+
+1 idem
+2 Drucker, P. - Societatea postcapitalist?
+3 „date despre date”
+4 concept de ultim? genera?ie în domeniul informaticii, reprezentând un ansamblu de servicii de calcul, aplica?ii, acces la informa?ii ?i stocare de date, f?r? ca utilizatorul s? aib? nevoie s? cunoasc? amplasarea ?i configura?ia fizic? a sistemelor care furnizeaz? aceste servicii, localizate în afara sediului beneficiarului;
+5 Bazele prelucr?rii informa?iilor ?i tehnologie informa?ional? - sub redac?ia Ni?chi ?. ?i Racovi?an D.
+6 în lucrarea Sisteme informa?ionale de birou
+
+criteriul de analiz?tipul informa?ieiexemple de informa?iioriginea- informa?iile interne provin din organiza?ia în care circul?;
+- informa?iile externe provin
+din mediul extern organiza?ieinote de serviciu, instruc?iuni
+
+
+comenzi, scrisori, cataloagesensul circula?iei în ierarhieinforma?iile (interne) pot fi:
+* descendente;
+* ascendente;
+* laterale.
+fi?e de instruc?iuni, circulare; note informative, rapoarte telefoane, note de informarereprezentareadiverse semne ?i simboluri utilizate pentru reprezentarea informa?iei:
+* texte;
+* numere;
+* grafice;
+* coduri
+* sunete
+
+
+
+          scrisori, rapoarte, note rapoarte/eviden?e cu date statistice
+   scheme, desene cifre, litere telefoane, reuniunidurata de via??- informa?ii variabile al c?ror con?inut evolueaz? în timp;
+- informa?ii permanente ce
+au un con?inut fix.cifra de afaceri, vârsta
+
+
+
+numele, data na?teriipozi?ia în procesul prelucr?rii- informa?ii brute, numite ?i elementare sau de baz?;
+informa?ii elaborate, ce rezult? prin prelucrarea unor date de baz?;
+- informa?ii pentru procesul de decizie, al c?ror con?inut este necesar s?-l cunoa?tem pentru
+a prelucra datele de baz?           documente, cataloage rapoarte de sintez? a documentelor
+
+obiectul rapoartelor de sintez?
+destinataruldup? func?ia sau rolul destinatarului deosebim:
+* informa?ii individuale;
+* informa?ii de mas? (pentru un ansamblu de persoane);
+* informa?ii institu?ionale
+
+ fi?e cu atribu?ii note de serviciu
+
+
+
+rapoartegradul de
+institu?ionalizare- informa?ii formale - furnizate de c?tre sau c?tre organiza?ie ?i au caracter obligatoriu;
+- informa?ii informale - ap?rute în mod spontan sau inten?ionat din cauza condi?iilor de lucru
+?i rela?iilor inter-personale.note de serviciu, rapoarte
+
+
+
+sfaturi, proceduri informalefinalitatea- informa?ii de func?ionare – informa?ii	indispensabile execu?iei unei activit??i;
+- informa?ii privind evolu?ia – ce permit organiza?iei s? anticipeze evolu?ia mediului în care func?ioneaz? ?i s? sesizeze oportunit??ile;
+- informa?ii de influen?? - ce vizeaz? influen?area comportamentului	indivizilor ?i		prezint?	importan??	pt institu?ie în ceea ce prive?te coeziunea social?, spiritul de
+echip?, etcproceduri
+
+
+
+propuneri ale clien?ilor documente de analiz? a mediului public
+
+
+
+
+indiscre?ii, coduri de conduit?,
+zvonuri, etc
+      Regulile ?i considerentele de baz? care s? îndrume utilizatorii în cadrul acestor etape ?in de managementul performan?ei, bazat pe obiective ?i sunt responsabilitatea, dar ?i r?spunderea1, managerului organiza?iei publice, om politic sau înalt func?ionar public.
+      Prima etap? în procesul de gestionarea a documentelor este poate fi fie acela al elabor?rii documentelor interne fie acela al primirii documentelor provenite din mediul extern organiza?iei.
+
+      În etapa de elaborare a documentelor este bine ca liderul autorit??ii publice s? instituie reguli clare ?i ferme de redactare, care s? conduc? la o armonizare în modul de întocmire a documentelor. Reguli ?i chiar proceduri în aceast? materie, exist? în toate organiza?iile publice, chiar dac? ele comport? varia?ii de la directive exacte ?i precise, pân? la forme mai vagi sau chiar cutumiare. Se recomand? astfel un model bazat pe 5 reguli de aur:
+* în cuprinsul antetului sau subsolului se vor men?iona datele primare de identificare ale institu?iei (denumire, adres?, telefon, fax, email) precum ?i o dat? de creare a documentului;
+* documentele se semneaz? de cel pu?in o persoan? – conduc?torul institu?iei (de regul?, cel pu?in al doilea exemplar cuprinde men?iunea întocmirii, aviz?rii, aprob?rii etc. de c?tre toate persoanele implicate);
+* documentele se întocmesc în cel pu?in 2 exemplare, astfel încât institu?ia public? s? de?in? un exemplar în arhiva sa;
+* documentele trebuie concepute pe sistem introducere – cuprins - concluzie sau sumarizare;
+* fiecare documente presupune un plan de creare al acestuia pentru a se integra în seria de obiective ?i activit??i ale departamentului ?i institu?iei (chestiuni legate de competen??).
+
+      Procesarea, crearea (conceperea) ?i clasarea documentelor necesit? o organizare ra?ional? care s? asigure o manier? de tratare unitar? a documentelor, o uniformitate a formularisticii, respectarea acelora?i reguli de clasare, etc., toate acestea fiind menite s? confere coeren?? ac?iunii administrative.
+
+1 ceea ce britanicii numesc „responsibility and accountability” – concept ce apar?in managementului modern ce va fi tratat în capitolul IV al prezentei lucr?ri
+
+
+      Clasificarea documentelor este o ?tiin?? ce apar?ine taxonomiei1 - iar importan?a acestui proces cre?te cu cât num?rul ?i diversitatea documentelor este mai mare. Astfel, se impune definirea unor clasific?ri prestabilite ?i, ulterior, utilizarea regulilor de clasificare a documentelor atât în format fizic (pe hârtie), cât ?i în format electronic prin transformarea în proceduri atunci când documentele devin “mobile” ?i parcurg circuitul de semn?turi.
+
+S-au descris diferite criterii de clasare a documentelor, dintre care amintim:
+* criteriul cronologic – gruparea documentelor în ordinea întocmirii lor (calendaristic);
+* criteriul alfabetic – clasarea în acela?i dosar a documentelor ?inând seama de denumirea unit??ii la care se refer? documentele;
+* criteriul geografic – gruparea documentelor dup? jude?ul, municipiul sau ora?ul unde î?i au sediul unit??ile subordonate;
+* criteriul dup? obiect sau pe grupe de opera?iuni – const? în aranjarea documentelor pe categorii de probleme.
+
+   Scopul cre?rii oric?rui document este acela de a asigura conectarea între membrii organiza?iei publice precum ?i ale acesteia cu mediul extern. La cel mai simplu nivel de reprezentare mecanismul circula?iei documentelor într-o institu?ie public? poate fi exprimat pe baza unei scheme circulare tip input/output.
+   Input-urile reprezint? totalitatea documentelor care intr? oficial în institu?ie. Acestea provin din mediul extern sau pot fi create în institu?ie ?i înregistrate ca intr?ri.
+   Etapa urm?toare se refer? la procesarea documentelor, crearea de noi documente (din oficiu) ?i orice alte ac?iuni care vizeaz? gestionarea documentelor.
+   Output-urile se identific? cu “produc?ia” de documente pe care institu?ia le emite înspre mediul extern, o parte dintre acestea putând fi destinate unui circuit intern.
+
+
+
+
+
+
+
+
+
+1 ?tiin?a legilor de clasificare ?i sistematizare (conform Dic?ionarului explicativ al limbii române)
+
+
+
+
+
+INPUT:
+* intrare documente
+
+
+
+* p?strarea
+* clasarea
+* stocarea
+* arhivarea documentelor
+* 
+procesarea documentelor intrate
+* crearea de noi documente
+* crearea de documente cu circula?ie intern?
+
+
+
+
+
+
+
+
+
+
+
+OUTPUT:
+* r?spuns
+* transmiterea / difuzarea de documente
+* 
+   În ceea ce prive?te procesarea documentelor func?ionarul public poate adopta una din urm?toarele patru atitudini1:
+* ac?iunea – s? r?spund? la o adres? (scrisoare), s? întocmeasc? un raport, s? caute date complementare;
+* transmiterea (redirec?ionarea) c?tre persoana sau serviciul public competent, eventual înso?it? de adnotare sau rezolu?ie;
+* clasarea fiind o referire la un document deja utilizat sau în vederea unei utiliz?ri ulterioare;
+* eliminarea – în cazul în care documentul nu prezint? interes (exemplu al unor reclame sau bro?uri care nu intereseaz? direct institu?ia).
+
+   Pe întreaga existen?? ?i func?ionare a unui document, pe de o parte cât si în activitatea gestion?rii generale a acestor suporturilor de informa?ii apar o serie de factori care pot influenta pozitiv sau negativ performan?ele organiza?iei care le gestioneaz?.
+
+Factorii pozitivi precum:
+* birocra?ia ce impune func?ionarilor publici care lucreaz? cu documente fizice s? le înregistreze, clasifice, semneze ?i ?tampileze, etc.;
+* obligativitatea sistemului ierarhic tipic institu?iilor publice de a transmite documentele pe circuitul de semn?turi ?i aviz?ri, pe flux ierarhic;
+* obligativitatea reconstituirii sau înlocuirii uni document distrus din eroare;
+* norma legal? care impune oric?rei institu?ii publice organizarea documentelor în arhive fizice, care pot cuprinde un imens impresionant de documente si care vor fi gestionate si depozitate conform legii si deciziei conducerii organiza?iei.
+
+Factori negativi, mai ales cauza?i de manipulare fizic? a documentelor, ar fi:
+* birocra?ia excesiv?, care impune crearea unui num?r mare de documente ce supraîncarc? spa?iul fizic al institu?iei ?i îngreuneaz? clasificarea ?i identificarea suporturilor informa?ionale;
+* lipsa procedurilor de lucru care s? stabileasc? atât atribu?iile fiec?rui manipulator al documentului (întocmitor, avizator, aprobator) cât ?i circuitul ferm al acestuia;
+1 Gestionarea documentelor în administra?ia public? - St?nic? V.
+
+* apari?ia fenomenului de supraînc?rcare a	persoanelor responsabile ?i astfel de strangulare a fluxurilor de lucru;
+* slaba formalizare (standardizare) a documentelor interne organiza?iei cât ?i cele transmise în exteriorul acesteia;
+* inexistenta unui program, în cele mai multe cazuri, sau a unor proceduri si standarde privind distrugerea documentelor, ceea ce poate cauza erori grave sau fraude etc.
+
+   În vederea men?inerii pe cât posibil a acestor factori pozitivi ?i în scopul elimin?rii factorilor negativi s-au eviden?iat dou? solu?ii:
+1. instituirea în mod obligatoriu a unor proceduri de management a informa?iei ce apar?ine ca atribu?ie institu?iei publice ?i fiec?rui departament constitutiv al acesteia1;
+2.  ?achizi?ionarea sau crearea de c?tre institu?ia public? a unui sistem electronic de managementul al documentelor, care s? ofere accesul rapid la versiunea corect? a unui document din cadrul organiza?iei pentru a satisface cerin?ele de dezvoltare organizatoric? ale acestui mediu bogat în informa?ii2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1 proceduri ce vor face obiectul subcapitolului urm?tor
+2 sistem electronic de management al documentelor – DMS – va face obiectul capitolului III al prezentei lucr?ri
+
+Procedurile de lucru ?i circuitul documentelor
+
+   Sistemul de management al institu?iei publice trebuie s? garanteze faptul c? circuitul documentelor intrate sau generate de departamentele organiza?iei urmeaz? un ciclu periodic al activit??ilor, stabilit de c?tre normele legale de creare ?i organizare a institu?iei.
+
+   Orice procedur? este ciclic?. La început se asigur? stabilirea obiectivelor proprii misiunii legale a institu?iei precum ?i conformitatea cu standardelor de performan??; realizarea de evalu?ri ?i dezvoltarea planurilor de adaptare ?i corectare a erorilor au loc spre finalul ciclului.
+
+   Diagrama prezentat? mai jos ilustreaz? cum procedurile de lucru într-o institu?ie public? nu sunt instrumente de sine st?t?toare. Ele decurg din necesitatea implement?rii principiilor stabilite prin politica na?ional? ce încorporeaz? obiectivele strategice ale administra?iei publice române?ti, normele legale ce modeleaz? deciziile din interiorul institu?iei publice ?i procedurile individuale ce ofer? mecanismul practic de implementare a activit??ilor zilnice ale organiza?iei publice.
+   
+ politica na?ional?
+
+
+
+
+
+obiectivele strategice ale administra?iei publice române?ti Institu?ional
+
+Etapa prim? a stabilirii unei proceduri este cea a analizei situa?ionale care conduce la definirea obiectivelor strategice la nivel de putere executiv?, adoptarea priorit??ilor, angajamentul fa?? de ac?iuni & programe ?i
+confirmarea responsabilit??ilor
+
+
+
+
+
+
+
+
+
+
+normele legale ?i deciziile institu?ionale si opera?ionale
+
+A doua etap? este analiza bazei legale pentru ac?iuni ce indic?
+responsabilit??ile institu?ionale ?i conduce la elaborarea cadrului
+opera?ional de implementare
+
+
+
+
+
+Procedurile cuprind în mod obligatoriu:
+* scopului care trebuie realizat
+* descrierea clar? a ac?iunilor ?i a succesiunii lor logice, ciclice
+* documenta?ia anex? ?i produsele rezultate în urma activit??ilor
+
+Implementarea consecvent? – eficien?a se bazeaz? pe:
+* angajament în vederea realiz?rii scopurilor propuse
+* coordonarea dintre departamente
+* în?elegerea succesiunii ac?iunilor
+* competen?e tehnice pentru realizarea activit??ilor solicitate
+* accesul la resursele, documenta?ia ?i sistemele necesare
+
+
+
+
+   Procedura, definit? de DEX ca „ansamblu de reguli de organizare a administra?iei, folosite în vederea atingerii unui anumit rezultat”, cuprinde etapele detaliate în cadrul c?rora personalul institu?iei particip? ?i r?spunde de elaborarea, avizarea, transmiterea, stocarea, arhivarea ?i distrugea documentelor.
+   O procedur? de lucru cu documentele va trebui s? cuprind? în mod obligatoriu o serie de elemente care, fie sunt tipice oric?ror formalit??i de lucru, fie sunt impuse de c?tre managementul institu?iei publice în vederea atingerii scopului propus.
+   
+   Astfel recomand?m urm?toarele list? de men?iuni ?i sisteme necesare, în opinia noastr?, pentru a crea sistem viabil de management al documentelor:
+* datele primare de identificare ale institu?iei ?i ale departamentului emitent;
+* scopul procedurii - de a stabili unui set unitar de reguli;
+* domeniul de aplicare ?i departamentele sau persoanele angajate c?rora procedura se adreseaz?;
+* cadrul normativ de operare;
+* descrierea detaliat? a tuturor opera?iunilor procedurale ?i a succesiunii lor în timp;
+* indicarea fluxurilor de documente ?i a actelor ?i faptelor obligatorii ce trebuie s? înso?easc? fiecare document în cadrul fiec?rei etape;
+* stabilirea alternativelor în cazul solu?iilor negative (lipsa aprob?rii/aviz?rii documentului, pierderea acestuia etc.);
+* stabilirea termenelor de rezolvare ?i expedi?ie pentru fiecare etap? ?i sub-etap?;
+* indicarea condi?iilor de acces la documente ?i la diferitele c?i de expedi?ie ale acestora (preluare direct? de c?tre destinatar, po?t? special?, fax, email etc.);
+* reguli cu privire la casarea, arhivarea ?i distrugerea documentelor;
+* indicarea semnatarilor ?i a responsabililor cu implementarea, monitorizarea ?i evaluarea procedurii;
+* indicarea num?rului de exemplare originale în care s-a editat procedura ?i a loca?iilor de p?strare a acesteia.
+
+   Pe baza analizei elementelor descrise mai sus putem identifica urm?toarele func?ii ale unei proceduri:
+* de gestionare a documentelor – de la cele scrise de mân? ?i arhivate în fi?ete de dosare pân? la cele editate pe calculator ?i gestionate prin sistemele electronice care lucreaz? cu procesoare de texte ?i aplica?ii grafice;
+* gestionarea ?i dirijarea mesajelor inter-institu?ionale dar ?i de comunicare cu mediul exterior – care a evoluat de la serviciile telefonice clasice ?i a sistemul clasic de transmitere a mesajelor cu po?ta la po?ta electronic? ?i serviciile electronice de informare;
+* sprijinirea grupurilor eterogene de lucru, prin intermediul întâlnirilor de lucru, dar ?i al tehnologiilor comunica?ionale tip videoconferin??;
+* 
+* rezolvarea problemelor colectivelor de lucru, exercitat? prin folosirea în comun a informa?iilor, stabilirea c?ilor de autorizarea a fluxurilor de documente ?i programarea activit??ilor colectivului prin obiective ?i planuri de ac?iune anuale sau multianuale.
+
+   În ceea ce prive?te circula?ia documentelor într-o institu?ie public?, din cauza sistemului ierarhic-piramidal ?i, în general, tipic organiz?rii weberiene – birocratice, se poate descrie un circuit unic, general valabil în orice organiza?ie a administra?iei. Etapele acestui circuit ar fi:1
+
+1. Înregistrarea prin registratura general? a organiza?iei
+   Pentru primirea, înregistrarea ?i expedierea documentelor, în cadrul fiec?rei institu?ii din administra?ia public? se organizeaz? un compartiment distinct, registratura proprie. Prin intermediul acestui compartiment, fiecare act primit sau creat în cadrul institu?iei, se înregistreaz? primind un singur num?r de înregistrare, într-un registru general, f?r? ca num?rul respectiv s? se repete.
+   Exist? cazuri speciale, în care în anumite institu?ii publice, primirea, expedierea ?i p?strarea actelor cu regim special se face prin registratur? separat? (exemplu: documente secrete, acte de stare civil?, etc.).
+   Înregistrarea documentelor se face în ordinea cronologic? a primirii lor la registratur?. Primirea se poate face prin po?t?, fax, telex, curieri, direct de la peti?ionari, sau prin po?ta electronic?. În cazul cererilor sau altor acte prezentate direct de peti?ionari, se comunic? pe loc acestora din urm?, num?rul de înregistrare.
+
+2. Repartizarea, predarea ?i expedierea coresponden?ei
+   Dup? înregistrarea documentelor, acestea se transmit de c?tre registratur? conducerii institu?iei (pre?edinte, prefect, director, inspector ?ef, manager, etc.) sau dup? caz, compartimentelor c?rora sunt adresate, dac? acest lucru este prev?zut în regulamentul intern. Conduc?torul institu?iei deschide coresponden?a ?i repartizeaz? actele spre solu?ionare, aplicând rezolu?ia în partea superioar? a fiec?rui document. De remarcat faptul c? rezolu?ia, la început fiind doar o ?tampil? – apostil? care marca repartizarea documentului de c?tre persona competent?, a devenit o cutum? obligatorie în institu?iile publice ?i trebui s? cuprind?, sub
+
+
+1 a se vedea Gestionarea documentelor în administra?ia public? - St?nic? V.
+
+semn?tur?, nu numai departamentul/persoana care va avea competen?a ?i obliga?ia de solu?ionare a actului, ci ?i indica?ii privind rezolvarea spe?ei.
+   Întreaga coresponden??, cu rezolu?ia conduc?torului, este reluat? de registratur? ?i predat? compartimentelor sau func?ionarilor indica?i în rezolu?ie.
+   Deschiderea ?i repartizarea actelor cu caracter „personal” ori „confiden?ial” adresate conduc?torilor se face de c?tre ace?tia sau de c?tre înlocuitorii lor de drept; în aceste cazuri, registratura aplic? parafa cu num?rul de înregistrare pe plic, urmând ca dup? restituire s? se completeze în registru datele necesare.
+   Repartizarea coresponden?ei de c?tre registratur? c?tre fiecare compartiment se face utilizându-se indicativul numeric al compartimentului (cifre sau numere stabilite pentru fiecare compartiment din structura organizatoric?), prin înscrierea acestuia în col?ul din dreapta sus al fiec?rui act sau document. În condica de eviden?? se trec toate actele repartizate departamentelor sau angaja?ilor (care semneaz? de primire), f?r? a se admite ?ters?turi. Coresponden?a transmis? gre?it se restituie tot prin registratur?.
+   La nivelul compartimentelor se ?ine, în mod obligatoriu, o eviden?? (chiar sumar?) a actelor intrate sau ie?ite. Actele procesate sau expediate au un singur num?r de înregistrare, care este cel al registraturii generale.
+   Toate actele care privesc aceea?i problem? se conexeaz? în ordine cronologic? la primul act înregistrat.
+   Expedierea actelor ce constituie r?spuns la un document primit anterior, se face de registratura general?, cu acela?i num?r cu care a fost înregistrat actul la intrare. Documentele create în interiorul institu?iei se înregistreaz? ca ?i celelalte acte în registrul de intr?ri-ie?iri, men?ionându-se în rubrica de intr?ri faptul c? document a fost generat de organiza?ia public?.
+   Dup? semnarea coresponden?ei de c?tre persoanele competente, aceasta se pred? împreun? cu condica de eviden??, la registratura general?, pentru expediere. Copia actului expediat se înapoiaz? compartimentului care l-a întocmit, care-l p?streaz? pân? la solu?ionarea definitiv? ?i clasarea întregii lucr?ri. Dup? rezolvarea unui caz, la nivelul compartimentului de activitate actele se claseaz? în dosare, pe probleme ?i se p?streaz? pân? la predarea la arhiv?.
+
+3. P?strarea, arhivarea ?i casarea documentelor
+Despre aceste opera?iuni vom discuta mai pe larg în subcapitolul urm?tor.
+
+      Totu?i, ca o concluzie, putem afirma c? un sistem eficient de proceduri de lucru cu documente conduce la îmbun?t??irea ?elurilor finale ale organiza?iei, creeaz? sisteme transparente de gestionare a informa?iei mediului intern ?i extern organiza?iei, îmbun?t??e?te comunicarea între angaja?i ?i cu beneficiarii ?i, per total, creeaz? un management performant al întregii institu?ii publice.
+      
+
+Schema circula?iei actelor in institu?ia administra?iei publice1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1 adaptat dup? Gestionarea documentelor în administra?ia public? - St?nic? V.
+
+
+P?strarea, arhivarea ?i casarea documentelor pe hârtie
+
+      Fiecare institu?ie public? sau fiecare departament al acesteia î?i creeaz? un sistem de p?strarea a documentelor. Acesta presupune aranjarea documentelor într-o anumit? ordine, potrivit unor reguli predefinite ?i preaprobate, în vederea asigur?rii conserv?rii lor în bune condi?ii ?i pentru a fi u?or identificate, în vederea ob?inerii informa?iilor necesare la un moment viitor în timp.
+      Pentru a fi p?strate în cadrul subdiviziunii organizatorice, înainte de a fi transmise c?tre arhiva institu?iei, documentele se claseaz?, se ordoneaz?, a?a cum am discutat în subcapitolele anterioare. Clasarea documentelor se bazeaz? pe un plan ra?ional ?i precis (no?iune care apar?ine sistemului de managementul modern al unei organiza?ii publice).
+O clasare eficient? trebuie
+* s? asigure posibilitatea identific?rii cu u?urin?? ?i celeritate a oric?rui document,
+* s? fie simpl?,
+* precis?,
+* flexibil?,
+* s? se poat? utiliza la un num?r mai mare de documente,
+* s? fie potrivit? specificului documentelor.
+Putem identifica dou? tipuri de sisteme de clasare1
+* un sistemul alfabetic, numeric ?i cronologic, tipic administra?ie pentru marea majoritate a documentelor, fi?elor ?i dosarelor.
+* sau un sistemul ideologic ?i zecimal care prezint? multiple avantaje, printre care figureaz? posibilit??ile multiple de aranjare, facilit??i de c?utare ?i mai ales posibilit??ile de extensie f?r? a perturba ordinea stabilit?. Acest sistem nu exclude alte sisteme ?i poate chiar s? le încorporeze par?ial pentru anumite documente.
+
+   Procesul de clasare a documentelor precede, a?a cum am ar?tat, procesul de arhivare a acestora, adic? de ordonarea în vederea p?str?rii în cadrul departamentului specializat în conservarea tuturor actelor importante ale institu?iei. Arhiva reprezint? deci „totalitatea documentelor stocate în format hârtie dintr-o organiza?ie, potrivit unor reguli predefinite”
+
+1 adaptat dup? Gestionarea documentelor în administra?ia public? - St?nic? V.
+
+
+   Cadrul legal privind arhivarea documentelor emise de c?tre autorit??ile române?ti cuprinde:
+* legea nr. 16/1996 a Arhivelor Na?ionale, cu modific?rile ?i complet?rile ulterioare,
+* instruc?iuni privind activitatea de arhiv? la creatorii ?i de?in?torii de documente, aprobate de conducerea Arhivelor Na?ionale prin ordin;
+* legea nr. 82 /1991 privind contabilitatea, cu modific?rile ?i complet?rile ulterioare (pentru documentele financiar contabile);
+* legea nr. 135 /2007 privind arhivarea documentelor in forma electronic?;
+* norme privind înregistrarea, gruparea si arhivarea documentelor precum si a p?str?rii sigiliilor ?i ?tampilelor;
+* regulamente sau norme ?i nomenclatoarele arhivistice aprobate de institu?ia public?.
+
+
+   Astfel, dup? procesarea la nivelul structurii organiza?iei publice, actele cu acela?i termen de p?strare se claseaz? în dosare, pe probleme, conform unui nomenclator cu indicatori care st? la baza procesului de arhivare. Acest nomenclator cuprinde urm?toarele tipuri de informa?ii:
+* codul indicator al departamentului – structurii care a emis documentele;
+* grupele de documente, ordonate pe tipuri de activit??i:
+* termenului de p?strare al fiec?rei grupe.
+   Grupele de documente se redau pe capitole, subcapitole ?i subdiviziuni ale acestora. Capitolele se numeroteaz? cu cifre romane, subcapitolele cu litere majuscule, subdiviziunile acestora cu litere mici, iar grupele cu cifre arabe. (Exemplu: II/B/a/6). În dreptul grupelor de documente cu regim de p?strare permanent se trece cuvântul „permanent”, iar pentru cele care se p?streaz? temporar, cifra arab? care reprezint? num?rul anilor cât se p?streaz?.
+
+   Documentele se p?streaz? astfel pân? la predarea lor la arhiv?, care se face de regul? în prima lun? a anului urm?tor.
+   De re?inut faptul c? doar documentele care nu mai sunt exploatabile, dar care trebuie p?strate din ra?iuni juridice, sunt arhivate. Cele care, chiar vechi fiind, sunt înc? necesare func?ion?rii departamentului nu se transmit c?tre Arhiv?, pentru a nu îngreuna activitatea
+   
+arhivarului ?i a îl obliga s? desf??oare procedura eliber?rii unui act din Arhiv? ori de câte ori apare nevoia de consultare a unor documente înc? utile.
+   Pentru Arhiv? institu?ia trebuie s? asigure spa?ii speciale care s? ofere condi?ii corespunz?toare de rezisten??, igien?, temperatur? umiditate ?i de securitate.
+
+   Potrivit cadrului legal în materie, dosarele constituite în baza nomenclatorului se predau la Arhiva institu?iei publice, dup? expirarea fiec?rui an.
+
+Opera?iunile premerg?toare pred?rii sunt:
+* ordonarea cronologic? sau dup? alte criterii stabilite, a documentelor în dosar;
+* îndep?rtarea accesoriilor metalice (ace, agrafe, etc.) ?i filelor nescrise;
+* legarea documentelor în coper?i de carton în dosare, cu un num?r care s? nu dep??easc? 250-300 de file;
+* scrierea indicativului pe copert?;
+* numerotarea filelor din dosar, num?rul acestora fiind înscris sub semn?tura arhivarului pe o pagin? sigiliu.
+   Predarea documentelor se face pe baz? unui proces-verbal. Modelul ini?ial al acestuia este supus spre aprobare conducerii institu?iei ?i spre apoi direc?iei jude?ene a Arhivelor Statului competent? teritorial.
+
+   Distrugerea documentelor c?rora le-a expirat termenul de p?strare, se face de c?tre o comisie de selec?ionare ?i casare, constituit? la nivelul organiza?iei. În aprecierea importan?ei documentelor, comisiile verific? respectarea termenelor de p?strare conform nomenclatorului aprobat. Inventarierea dosarelor avizate de comisia de selec?ionare spre a fi eliminate, înso?ite de procesul-verbal aprobat de conduc?torul organiza?iei, se înainteaz? spre confirmare la Arhivelor Statului. Dup? primirea confirm?rii, documentele pot fi eliminate pe baza unui proces-verbal, în care se men?ioneaz? categoria de documente, anii extremi ?i cantitatea.
+
+   Arhivarea clasic? a documentelor a prezentat inconvenientul aloc?rii unui spa?iu fizic de depozitare. De aceea, institu?ia poate încheia contracte de cu prestatori de servicii care dispun de condi?ii corespunz?toare pentru arhivarea documentelor. Ace?tia le poate scana ?i pune la
+   
+dispozi?ia institu?iei în format PDF. La cerere, într-un termen prestabilit, se poate pune la dispozi?ie ?i în format fizic.
+
+   ?i acum pare întrebarea omniprezent? a zilelor noastre. Este necesar? p?strarea documentelor pe suport de hârtie. Cât de departe suntem de dezideratul „biroului f?r? hârtii” ?i cât de viabil se dovede?te un astfel de sistem?
+Raportul “Orizonturi - Solu?ii în Biroul Digital 2000”1 a relevat faptul c?:
+* aproape dou? treimi din directorii europeni (61%) prefer? s? consulte documentele decât s? citeasc? de pe monitorul calculatorului;
+* ?ase din zece (60%) corecteaz? mai bine documentele tip?rite pe hârtie decât fi?ierele aferente acestora;
+* o treime (33%) înc? prefer? s? tip?reasc? mesajele electronice ?i paginile de WEB înainte de a le citi;
+* femeile sunt în medie cu 15% mai mult în favoarea hârtiei;
+* 65% din responden?i prefer? s? p?streze copii de hârtie ale documentelor importante,
+* unul din zece directori pierd sau r?t?cesc lunar documente importante,
+* o femeie manager în Europa prime?te ?i proceseaz? zilnic 106 documente combinate – de hârtie ?i digitale – comparativ cu 79 pentru managerii b?rba?i.
+
+   Hârtia este privit? înc? ca o adev?rat? comoar?, iar de?inerea unei biblioteci personale plin? de c?r?i scrise pe suport de hârtie stârne?te admira?ia oric?rui profan în materie.
+   Pe Wikipedia se define?te ,,hârtia ca fiind un material plan ?i sub?ire, având ca element esen?ial suprafa?a sa pe care se poate scrie, ale c?rei dimensiuni sunt mult mai mari decât grosimea sa. Hârtia este ob?inuta din fibre de celuloz? amestecate, care se men?in împreuna f?r? un alt liant cu excep?ia leg?turilor de hidrogen ?i a împletirii fibrelor. De?i cele mai c?utate materiale celulozice pentru fabricarea hârtiei sunt pulpa lemnoasa a unor specii de arbori de esen?? moale, în special cea coniferelor, datorit? existen?ei fibrelor de celuloza în structura multor plante, de la ierburi pân? la arbori, se pot folosi ?i multe alte fibre, a?a cum ar fi cele ale plantelor de bumbac, in, cânep? sa u orez.’’
+
+
+
+1 citat în Sisteme informa?ionale de birou – Georgescu M.
+
+   Se poate spun? c? hârtia are înc? avantajul extraordinar: este simplu de folosit ?i la îndemân?, cu toate c? politicile în domeniul protec?iei mediului încearc? s? con?tientizeze institu?iile publice, dar ?i cet??enii, asupra impactul asupra mediului. De?i folosim mai pu?ine bancnote decât în trecut ?i prefer?m cardurile, ne este mult mai greu s? renun??m la siguran?a chitan?ele de hârtie. Profesorul Georgescu, în lucrarea de mai sus concluziona c? pe m?sur? ce societatea se îndreapt? spre comer?ul electronic ?i sisteme bancare pe Internet, consumatorii continu? s? prefere documente de hârtie care s? certifice tranzac?iile f?cute.
+   Dar poate ar trebui s? oprim abuzul de hârtie, cu pa?i mici dar siguri. De aceea capitolul urm?tor este dedicat sistemelor de informatizare a circuitului de documente ?i gestion?rii acestor acte exclusiv prin tehnologia informa?iei.
+   
+
+Studiu de caz – procedura privind peti?iile
+
+      Pentru a exemplifica ciclul activit??ilor descrise în cadrul acestui capitol, dedicat, în general, cre?rii ?i circuitului documentelor pe suport de hârtie, am ales s? red?m o procedur? tipic? oric?rei institu?ii publice: procedura privind gestionarea peti?iilor1.
+Fiind un drept consacrat de Constitu?ie oric?rui cet??ean român2 Guvernul a stabilit o procedur? separat? pentru tratarea acestui tip de document în cadrul tuturor autorit??ilor ?i institu?iilor publice.
+
+      Astfel, prin Ordonan?a Guvernului nr. 27/2002 privind reglementarea activit??ii de solu?ionare a peti?iilor se stabile?te cadrul în care poate fi exercitat acest drept constitu?ional. În primul rând se instituie compartimente pentru rela?ii cu publicul în cadrul institu?iilor ?i autorit??ilor publice ?i proceduri cu termene clare pentru formularea de r?spunsuri la peti?iile primite de la cet??eni.
+
+      De asemenea, se stabilesc responsabilit??i în sarcina celor implica?i pe tot parcursul procedurii ?i se reglementeaz? obligativitatea întocmirii de rapoarte semestriale privind derularea acestui proces.
+
+      R?spunderea pentru buna desf??urare	a acestei activit??i revine managerilor autorit??ilor ?i institu?iilor publice.
+
+
+
+
+
+
+
+
+
+
+1procedura ?i diagrama au fost preluate din Manualul de Resurse Umane - livrabila c?tre Agen?ia Na?ional? a Func?ionarilor Publici în cadrul Programului PHARE „Implementing Civil Service Reform in Romania” 2Art. 51 al Constitu?iei din 2003 prevede:
+„ (1) Cet??enii au dreptul s? se adreseze autorit??ilor publice prin peti?ii formulate numai în numele semnatarilor.
+  (2) Organiza?iile legal constituite au dreptul s? adreseze peti?ii exclusiv în numele colectivelor pe care le reprezint?.
+(3) Exercitarea dreptului de peti?ionare este scutit? de tax?.
+(4) Autorit??ile publice au obliga?ia s? r?spund? la peti?ii în termenele ?i în condi?iile stabilite potrivit legii.”
+(2) 
+
+
+
+Act normativ /Procedur? - descrierea activit??ilor de realizatResponsabilDocument standardObserva?ii, excep?ii, studii de cazart. / alin. / lit.OG 27/2002
+Art. 4 ?i 6Organizarea unui compartiment distinct pentru rela?ii cu publicul care s? primeasc?, s? înregistreze, s? se îngrijeasc? de rezolvarea peti?iilor ?i s? expedieze r?spunsurile c?tre peti?ionari.
+Conduc?torii autorit??ilor ?i institu?iilor publice sunt direct r?spunz?tori de buna organizare ?i desf??urare a activit??ii de primire, eviden?iere ?i rezolvare a peti?iilor ce le sunt adresate, precum ?i de legalitatea solu?iilor ?i comunicarea acestora în termenul legal.Conduc?torul autorit??ii sau a
+institu?iei publiceAct normativ / administrativ prin care se aprob? organigrama (ex.
+Hot?râre de Guvern / Ordin / Decizie)OG 27/2002Primirea ?i înregistrarea peti?iei – peti?ia poate fi formulat? de orice cet??ean ?i de orice organiza?ie legal constituit?.
+Peti?ia poate fi transmis? în scris sau prin po?t? electronic?Compartimentul pentru rela?ii cu publiculNum?r ?i dat? de înregistrareOG 27/2002
+Art. 7 ?i 10(2)Clasarea peti?iilor anonime, a peti?iilor care nu con?in datele de identificare ale peti?ionarului sau a peti?iilor cu acela?i con?inut ?i de la acela?i peti?ionar primite dup? ce a fost transmis un r?spunsCompartimentul pentru rela?ii cu publicul Compartimentele de specialitate c?rora le-au fost
+repartizate peti?iileNot? intern?
+(peti?iile ulterioare se claseaz? la num?rul ini?ial ?i se
+face men?iune c? s-a r?spuns)
+
+
+
+
+Act normativ /Procedur? - descrierea activit??ilor de realizatResponsabilDocument standardObserva?ii, excep?ii, studii de cazart. / alin. / lit.OG 27/2002 Art. 6(4)Expedierea r?spunsului c?tre peti?ionarCompartimentul pentru rela?ii cu publiculAdres?OG 27/2002
+Art. 14Întocmirea semestrial? a unui raport privind activitatea
+de solu?ionare a peti?iilorCompartimentul
+pentru rela?ii cu publiculRaport semestrial
+privind implementarea normelor disciplinare
+
+
+
+
+
+
+
+GESTIONAREA DOCUMENTELOR SISTEM ELECTRONIC (DOCUMENT MANAGEMENT SYSTEM - DMS)
+
+Ce este DMS
+
+   Sistemele de management al documentelor sunt folosite de organiza?ii din toate sectoarele publice ?i private pentru a organiza ?i structura documentele electronice precum ?i pentru a urm?rii fluxul acestora în cadrul organiza?iei ?i în punctele de intrare/iesire ale acesteia.
+
+   Sistemele de management al documentelor sunt pachete software realizate pentru a ajuta organiza?iile de orice tip în managementul documentelor stocate în form? electronic? precum ?i de a realiza trecerea de la documente ?i organiz?ri de documente (dosare, bibliorafturi) din forma tradi?ional? pe hartie în forma electronic?.
+
+   Ele sunt ?i un mijloc prin care se gestioneaz? foarte eficient proprietatea intelectual? a organiza?iei, chiar businessul ei, ?inuta în documentele organiza?iei raspândite în diverse re?ele, pe diverse sta?ii de lucru, servere, unele pe hârtie, altele în diferite conturi de mail, în filiale ale organizatiei, etc.
+
+   Aceste sisteme gestioneaz? întregul ciclu de viata al unui document, de la crearea sa, multiplele sale versiuni realizate în maniera multi-user, stocarea tuturor versiunilor precum ?i realizarea ?i stocarea fluxului acestui document în cadrul organiza?iei, repartizarea la utilizatori, birouri, filiale sau entit?ti externe organiza?iei.
+
+   Un modul important al unui astfel de sistem este modulul de registratur? electronic?, modul prin care se realizeaz? înregistrarea electronic? pe registrele organiza?iei a tuturor documentelor în intrare sau ie?ire, precum ?i a documentelor interne supuse regulamentului de înregistrare pe registre.
+
+   În zilele noastre, tot mai multe intitu?ii consider? inevitabile organizarea ?i arhivarea documentelor, în vederea sistematiz?rii ?i transparentiz?rii eviden?ei facturilor ?i contractelor. Majoritatea vede managementul documentelor ca ?i simpla înregistrare, în format electronic, a informa?iilor, îns? conceptul este mult mai complex.
+   
+   Managementul documentelor implic? tehnologii, mijloace ?i metode cu ajutorul c?rora organiza?iile î?i creeaz?, gestioneaz?, stocheaz?, caut?, transmit ?i, dup? expirarea lor, caseaz? documentele, oferind control asupra ciclului complet de via?? al acestora. Este vorba de un proces de baz? al activit??ii organiza?ionale, deoarece nu prea exist? aspecte în via?a unei afaceri sau institu?ii care s? nu implice crearea anumitor documente.
+   Datorit? faptului c? în secolul 21 lista purt?torilor de date a cunoscut o diversificare semnificativ?, documentele importante provenind din nenum?rate surse variate, precum ?i volumului zilnic crescut al documentelor, cauzat de procesul de digitalizare, gestionarea fizic?, pe suport de hârtie, a documentelor a devenit greoaie. C?utarea informa?iilor consum? minute pre?ioase din timpul de lucru al colegilor administrativi, de multe ori f?r? rezultat... Acestea sunt problemele care au stat la baza dezvolt?rii sistemelor de managementul documentelor (DMS- Document Management System). Aceste sisteme ofer? angaja?ilor posibilitatea de a accesa informa?iile necesare - pe baza drepturilor de autoriza?ie -, tranparentizeaz? rela?iile dintre documente (ex. prin eviden?a sistematizat? a contractelor ?i facturilor, înregistrarea e-mailurilor etc.) ?i faciliteaz? comunicarea rapid? ?i eficient? dintre colegii din diferite departamente (ex. financiar, HR, administrativ etc.) ?i filiale, contribuind la un workflow mult mai transparent.
+   
+
+
+Avantaje ?i argumente pentru utilizarea DMS.
+a) Avantajele unui sistem de document management
+Introducerea unui sistem de document management, în orice institu?ie, ofer?:
+
+* un control mai bun asupra proceselor interne ?i a informa?iilor
+* consolidarea informa?iilor, oferind suport managementului pentru deciziile interne ?i de business
+* o modalitate eficient? de transfer intern de informa?ie, cuno?tin?e, idei
+* imbun?t??irea colabor?rii pe proiecte, a schimbului de documente
+* reg?sirea rapid? a informa?iilor
+* reducerea timpului de aprobare/avizare a unor solicit?ri interne (referate, cereri etc.)
+* reducerea costurilor administrative
+* automatizarea anumitor activit??i în scopul reducerii timpului alocat acestora
+* posibilitatea de arhivare electronic? a informa?iei
+
+   Solu?iile ?i serviciile din aceast? zon? sunt destul de cuprinz?toare ?i acoper? practic orice tip de implementare, plecând de la solu?ii utile în cadrul unui departament la solu?ii care acoper? întreaga institu?ie, indiferent de m?rimea sau distribu?ia geografic? a acesteia; Solu?iile de document management ?i content management pot fi implementate de sine st?t?tor sau pot fi integrate cu alte aplica?ii de business.
+
+b) Argumente pentru managementul documentelor în form? electronic?
+
+   În zilele de azi pentru mai multe institu?ii devine inevitabil de a stoca documentele într- o re?ea informatic?. Pentru cei mai mul?i managementul documentelor este doar înregistrarea informa?iilor în form? electronic?, dar aceast? problem? este mult mai complex?. Pe de o parte înseamn? scanarea ?i înregistrarea electronic? a documentelor pe baz? de hârtie, pe de alt? parte înseamn? gestionarea ?i arhivarea electronic? a documentelor într-o baz? de dat? unitar?.
+   
+o Siguran??
+
+      Siguran?a în via?a de business ?i nu numai a devenit prioritatea num?rul 1: managementul documentelor ne ajut? în construirea unor sisteme de informa?ii mult mai securizate. Pe parcursul fluxului se creaz? ?i istoria documentului, în a?a fel edit?rile ?i persoana care a editat documentul se poate reg?si foarte u?or ?i rapid. Mul?umit? securiz?rii ridicate a sistemului documentele apar?inând institu?iei sunt în siguran?? maxim?, findc? utilizatorii v?d doar o adres? virtual?, locul fizic al documentului este accesibil doar persoanelor cu acest drept. Ave?i posibilitatea de a salva informa?iile în afara biroului sau al centrului institu?iei evitând astfel problemele din viitor. Un sistem electronic de management al documentelor bine ales furnizeaz? o solu?ie fiabil? ?i eficient? pentru institutiile care activeaz? într-un domeniu în care securitatea informa?iilor este reglementat? prin lege.
+
+o C?utare ?i accesare mai eficient?
+
+      În afar? de securitate stocarea ordonat? a datelor este un aspect la fel de important. O cincime din angaja?ii firmelor din Europa, conform unui studiu efectuat de canon, devin frustra?i dac? caut? un anumit document de mai mult timp în re?eaua companiei. Al?ii 24 % precizeaz? c? cu ajutorul unui un acces rapid ?i simplu biroul lor ar func?iona mult mai eficient. Cu un sistem de managementul documentelor potrivit putem salva în acela?i mod tipuri de documente de la file-uri Excel ?i Word pân? la imagini ?i emailuri. În a?a fel cu ajutorul sistemului de managementul documentelor toate elementele al unui proiect le g?sim într-un sistem unitar. Cu ajutorul metodei de indexare putem accesa informa?iile al?turate unui document. Conform unei studiu recent analiza 1 Gb are pre?ul de 2000 EURO, iar stocarea cost? numai 0,20 EURcen?i: în a?a fel putem în?elege importan?a metodei de stocare ?i al index?rii.
+
+o Avantaje economice ?i ecologice
+
+      Mul?umind accesului rapid, index?rii personalizate ?i al istorii documentelor institu?iile pot, cu un cost mai sc?zut ?i mai rapid, s? r?spund? la cerin?ele ?i întreb?riile cet??enilor. Managementul documentelor modern transform? zilele Dvs. de lucru in unele mult mai u?oare: de exemplu o factur? se poate recep?iona în 24 h, se poate prelucra ?i efectua
+      
+plata. Sistemul de managementul documentelor reduce costurile, dar în acela?i timp cre?te eficacitatea, în a?a fel institu?ia sau firma Dvs. poate s? concentreze pe fluxuri valorice. Solu?ia de managementul documentelor cre?te responsabilitatea angaja?ilor: în a?a fel documentele accesibile instant vor fi imprimate doar la varianta final?. Mul?umit acestor metode scade consumul de hârtie, cerneal?, ?i energie, sistemul este avantajos din punct de vedere economic, dar nu în ultimul rând ecologic. Solu?ia de managementul documentelor furnizeaz? avantaje ?i economisiri semnificante pentru afacerea Dvs.
+
+o Responsabilitate social?
+
+   V-a?i imaginat vreodat? cantitatea de hârtie consumat? de institu?ia Dvs.? S? gândi?i un pic doar la procedurile de achizi?ii publice, ?i s? pune?i unu lâng? altul cutiile de hârtie. O cantitate enorm de mare. ?i înc? nici nu am vorbit despre cheltuielile de tonere, care sunt de?euri periculoase ?i necesit? o metod? de stocare special?. Dar în cazul în care dorim s? digitaliz?m fluxurile administrative, care cuprinde workflow-ul întreg - fiindc? nu exist? nici un segment f?r? documente - am f?cut un pas c?tre protec?ia mediului. Fiindc? informa?iile sunt stocate electronic, nu avem nevoie de exmplare secundare al documentelor, nu suntem nevoi?i s? cump?r?m dosare, scade consumul de hârtie, în paralel cu acestea scad ?i costurile f?când un pas mare c?tre protec?ia planetei noastre.
+
+
+c) Ce trebuie stiut inainte de implementare!
+
+   Digitalizarea, total? sau par?ial?, a proceselor de lucru în vederea îmbun?t??irii workflow- ului, prin introducerea unor solu?ii software pentru accelerarea ?i eficientizarea activit??ii administrative, reprezint? o schimbare major? în via?a unei companii sau institu?ii. O asemenea decizie are efecte semnificative asupra multor aspecte ale func?ion?rii organiza?iilor, de aceea merit? s? analiz?m în detaliu posibilit??ile înainte s? alegem solu?ia optim?.
+
+   Pentru a veni în sprijinul dvs. am elaborat o serie de întreb?ri cu ajutorul c?rora v? va fi mai u?or s? lua?i o decizie întemeiat?. Iat? 18 criterii importante care trebuie analizate înainte s? v? alege?i un software pentru ra?ionalizarea managementului documentelor din institu?ia dvs.:
+
+Întreb?ri legate de calitatea sistemului de managementul documentelor:
+
+1. Asigur? sistemul posibilitatea gestion?rii într-un sistem unitar a documentelor sosite pe diferite purt?toare de date (hârtie, e-mail, fax, fi?ier electronic)?
+
+2. Poate s? eviden?ieze diferitele rela?ii dintre documente?
+
+3. Este capabil? s? gestioneze documentele interioare?
+
+4. Ofer? posibilitatea c?ut?rii printre sarcini ?i documente dup? to?i parametrii procesului (c?utare ad-hoc, urm?rire), respectiv cu interog?ri predefinite?
+
+5. Permite gestionarea termenelor alocate rezolv?rii sarcinilor?
+
+6. Rapoartele se pot exporta?
+
+7. Asigur? eviden?a contractelor, facturilor?
+
+8. Se pot diviza drepturile de utilizator dup? compartimente ?i utilizatori?
+
+9. Se pot distribui sarcinile prin utilizator (a împuternicirea uni utilizator)?
+1. 
+10. Pune la dispozi?ie func?ii care asigur? îndeplinirea mai rapid? ?i mai eficient? a sarcinilor? (Ex.: trunchi de partener, completare automat?)
+11. Poate programul s? administreze diferite documente? (ex. Word, Excel, PDF, TIF, ect.)
+
+12. Permite utilizarea semn?turilor digtale pe formularele electronice (WEB, PDF)?
+
+13. Corespunde standardului recomandat de EU, ?i anume standardul MOREQ (Model Requirements for theManagement of Electronic Records)?
+
+14. Dispune software-ul de certificare; dac? da, de când?
+
+Întreb?ri legate de furnizor:
+
+15. Dispune sistemul de o garan?ie mai lung? de 1 an?
+
+16. Are minim 500 de referin?e? (ideal: peste 1000)
+
+17. Dispune de resurse de speciali?ti, si asigur? suport imediat, chiar ?i peste ani?
+
+18. În general, dupa cât timp se prime?te un r?spuns, respectiv o solu?ie de la suport, dac? apar întreb?ri? (ideal: <20 minute)
+1. 
+
+
+Fluxuri de documente
+
+Definirea fluxurilor de lucru pentru administratia publica nu se realizeaza greu, daca se
+abordeaza corect si organizat.
+
+
+   Depinde de cultura organizationala si standardele de calitate implementate in institutie. Primul pas este definirea necesitatii, a nevoii de standardizare si procedurare. Apoi este important sa fie alocata resursa umana specializata care sa efectueze etapa de analiza. Se definesc activitatile pentru realizarea carora se impune implementarea unor fluxuri de lucru, se stabilesc sarcinile incluse in cadrul fluxului, a aplicatiilor si apoi se aloca documentele in cadrul sistemelor/subsistemelor informatice.
+   Greutatea in definirea fluxurilor de lucru consta in determinarea cu care conducatorul institutiei si managerii subordonati cred in utilitatea comunicarii reale si realiste in cadrul organizatiei.
+   Utilizarea aplicatiilor in care fluxurile de lucru au fost deja implementate reduce riscurile ca fluxurile sa nu fie respectate, respectiv sa se ajunga la disfunctionalitati in structurile respective.
+   Principalul avantaj al folosirii fluxurilor de lucru consta in cresterea eficientei la nivelul intregii institutii datorita standardizarii proceselor, lucru care permite un control mai bun al executiei si, prin urmare, un grad mai mare al calitatii serviciilor oferite. Al doilea avantaj se refera la flexibilitatea de a adapta fluxurile de lucru la nevoile in continua schimbare ale institutiei. Nu in ultimul rand, utilizarea fluxurilor de lucru automatizate permite rafinarea si simplificarea proceselor prin analiza istoricului de executie a fluxurilor si eliminarea etapelor care nu sunt necesare.
+   Circula?ia documentelor electronice pe trasee ierarhice bine precizate sau definite de c?tre autorul documentului, cu posibilitatea aprob?rii sau respingerii documentului la orice nivel ierarhic.
+   Modelarea organigramei ?i structurarea problematicilor care intr? în responsabilitatea fiec?rui departament ?i rutarea automat? a documentelor pe baza acestor asocieri.
+   Înregistrarea documentelor care intr?, ies sau circul? intern in institu?ie, transmiterea lor automat? spre informare, verificare, aprobare pe baza unor fluxuri de lucru precum ?i înregistrarea circula?iei acestora pân? în momentul stabilirii unei rezolu?ii finale.
+   
+   Un program complex pentru urm?rirea documentelor în cadrul administra?iei are urm?toarele caracteristici:
+o abilitatea de a stoca ?i administra în mod eficient documente cu caracter local, coresponden?? intern? ?i extern?, fax-uri, documente în format electronic, documente ini?iate de cet??eni, etc.
+o transparen?a activit??ii administra?iei publice
+o definirea ?i procesarea documentelor pe baz? de fluxuri informa?ionale prestabilite
+o administrarea documentelor pe diverse niveluri de securitate
+o eviden?a complet? a stadiului proces?rii unui anumit document
+
+* Fluxuri de documente:
+o s? permit? proces?ri în paralel a documentelor
+o posibilitatea alegerii de destina?ii diferite pentru documente
+o p?strarea istoricului unui flux
+
+* Urm?rirea documentelor:
+o posibilitatea	ata??rii	documentelor	din	diferite	medii:	fax,	e-mail,	hârtie, videoconferin??, format electronic, sunet
+o vizualizarea în orice moment a stadiului prelucr?rii unui document
+o istoricul documentelor intrate
+o lista documentelor care trebuie procesate de fiecare operator pe categorii de operatori
+o lista documentelor expediate si modului de expediere a acestora
+o istoricul borderourilor de expeditie
+o 
+o înregistrare retur documente
+
+   Înregistrarea tuturor documentelor depuse ?i eliberarea r?spunsurilor c?tre cet??eni utilizând un sistem de management al documentelor este facilitat? prin:
+* pot fi create mai multe posturi de înregistrare a documentelor (pentru fluidizarea procesului de înregistrare sau pentru cazul în care institu?ia are mai multe sedii), numerele fiind date dintr-un registru unic;
+* eliberarea c?tre solicitant a dovezii preluarii ?i înregistrarii actelor;
+* distribuirea documentelor c?tre birourile ?i serviciile corespunzatoare;
+* ob?inerea, la cererea solicitantului, de informa?ii despre stadiul de rezolvare a documentelor, putându-se specifica în orice moment locul în care acesta a ajuns;
+* expedierea documentelor rezolvate ?i a celor emise de c?tre institu?ie.
+   Gestionarea în format electronic a activit??ilor de registratur? pentru dezoltarea unui sistem de management al documentelor complex trebuie s? acopere urmatoarele caracteristici:
+
+   * Înregistrarea tuturor documentelor provenite din exterior, create în interior ?i cele create ca r?spuns în registrul unic al institu?iei cu urm?toarele func?ionalit??i:
+-Num?rul unic pentru fiecare document din institu?ie
+-În cazul documentelor externe, se vor înregistra urm?toarele informa?ii (câmpuri):
+- Nr. ?i data externe, în cazul în care documentul de?ine num?r de înregistrare dat de c?tre o alt? institu?ie
+- CNP sau CUI, dup? caz
+- Provenien?a documentului
+- Adresa complet? a provenien?ei
+- Tipul documentului
+- Termenul de rezolvare (în num?r zile)
+- Con?inutul pe scurt al documentului
+- Observa?ii
+-În cazul documentelor interne, se vor înregistra urm?toarele informa?ii:
+- Tipul documentului
+- Compartimentul emitent ?i persoana
+- Termenul de rezolvare (în num?r zile)
+- 
+- Con?inutul pe scurt al documentului
+- Observa?ii
+-Aplica?ia va utiliza liste de date predefinite pentru: provenien?? (alte institu?ii, ministere etc.), adres? (jude?e, ora?e, str?zi), tipul documentului
+-Termenul de rezolvare a tipului de document selectat de utilizator se va seta automat, dar va putea fi modificat de utilizatori in func?ie de drepturi, dup? caz
+-Generare de cod de bare, pe baza num?rului de registru, care s? se ata?eze suportului fizic (hârtie); utilizatorul va putea selecta documentele pentru care se va tip?ri cod de bare, selec?ia se va face prin specificarea intervalului sau prin selec?ie interactiv? din list? de documente în operare
+-Utilizatorul s? poat? lista un bon (raport) dup? înregistrarea documentului, care s?
+con?in?, pe lâng? datele specificate la înregistrare, ?i num?rul ?i data înregistr?rii; bonul va fi marcat cu numele utilizatorului care a înregistrat solicitarea ?i a preluat actele solicitantului, ?i va fi înmânat solicitantului
+-Num?r special pentru documentele la care legisla?ia prevede acest lucru (similar acces la informa?ia public?). Acest num?r trebuie s? fie generat automat de sistem.
+-Posibilitatea de creare de sec?iuni ?i câmpuri suplimentare acolo unde necesit?
+(formulare dinamice), pentru fiecare tip de act în parte. Aceste câmpuri precum ?i tipul ?i denumirea lor vor putea fi construite de c?tre administratorul de solu?ie
+-Ata?are de documente de orice tip, inclusiv cele scanate.
+-Înscrierea automat? în dosarele de arhivare, a?a cum sunt definite în Nomenclatorul de Arhiv? al institu?iei.
+-Conexarea cu alte documente, inclusiv între ani;
+
+
+   * Operarea documentelor aflate în lucru la un anumit user din organigram?, prin trimiterea c?tre alt user/nivel sau aplicarea rezolu?iei finale :
+-Administratorul trebuie s? poat? defini pentru un user ce deleg?ri poate avea în sistem; toate opera?iile vor avea marcat atât userul delegat cât ?i cel pentru care s-a f?cut delegarea; în acest fel, utilizatorul va putea avea acces pe unul sau mai mul?i useri din organigram?, pentru care s? opereze
+-Lista documentelor aflate în lucru s? se poat? ordona dup? num?r, tip document, num?r de zile r?mase pân? la termen, persoana de la care a fost primit
+-Utilizatorii trebuie s? poat? selecta ?i trimite/rezolva mai multe documente în bloc
+-Utilizatorii trebuie s? poat? marca observa?ii înainte de operarea (trimiterea sau rezolvarea) documentelor.
+-Aplica?ia trebuie s? ofere lista de documente aflate în lucru sub form? de paginare, iar utilizatorii s? poat? seta num?rul de înregistr?ri pe pagin? (inclusiv op?iunea de afi?are a tuturor documentelor din list?).
+-Utilizatorii trebuie s? se poat? pozi?iona direct pe un anumit num?r de înregistrare f?r? a c?uta prin paginile listei de documente aflate in lucru
+-Un document poate fi procesat (operat) de c?tre un singur utilizator la un moment dat, asigurându-se astfel coeren?a datelor existente în sistem. Un document se poate afla doar într-o singur? stare la un moment dat, ?i doar la un singur utilizator (nivel din
+organigram?) în lucru la un moment dat.
+-Solu?ia software trebuie s? fie capabil? s? trimit? automat în?tiin??ri de tip e-mail sau
+
+SMS la apari?ia unui document în lucru nou; în acest sens solu?ia trebuie s? dispun? de un modul propriu intern capabil s? efectueze astfel de servicii de transmisie; se va detalia modul cum sunt implementate aceste mecanisme.
+
+* Vizualizarea documentelor înregistrate, rezolvate, primite sau trimise :
+-Utilizatorul trebuie sa poat? vizualiza sub form? de list? toate documentele care au trecut pe la el în anul selectat.
+-Utilizatorii cu anumite drepturi s? poat? genera ?i lista rapoarte cu documentele înregistrate dup? user/nivel, tip document, dintr-o anumit? perioad?, ?i
+trimise/rezolvate/expediate/în operare într-o perioad? de anumite nivele/useri grupate dup? diverse categorii
+-Administratorul aplica?iei trebuie s? poat? reveni asupra deciziei de rezolvare (închidere)
+a unui document ?i s?-l poat? repune în lucru pe nivelul de pe care a fost rezolvat; aceast? opera?ie va putea fi auditat? ?i se va vedea acest lucru pe Log-ul documentului
+-Utilizatorul s? poat? vizualiza sub form? de list? paginat? toate documentele pe care le-a
+trimis c?tre alte persoane cu eviden?ierea sursei ?i destina?iei documentelor
+
+   * Vizualizarea tuturor detaliilor unui document (detaliile înregistr?rii, circula?iei, rezolv?rii), indiferent de starea acestuia sau de anul în care a fost înregistrat
+   * 
+-Utilizatorul trebuie s? poat? vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) detaliile specificate la înregistrarea documentului.
+-Utilizatorul trebuie s? poat? vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) detaliile circula?iei documentului:
+-Utilizatorul care a efectuat opera?iunea
+-
+- Data plec?rii+Nivel destina?ie
+- Dac? este expirat
+-Observa?ii
+- Rezolu?ii
+-Mod rezolvare (stare document)
+-Utilizatorul sa poat? vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) detaliile expedierii documentului:
+- Data expedierii
+-Tipul expedierii
+- Nume ?i adres? destinatar
+-Utilizatorul sa poat? vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) observa?iile specificate de al?i utilizatori cu privire la acel document:
+-Observa?ia (nota f?cut?)
+- rul care a f?cut observa?ia
+- ?
+-Utilizatorul s? poat? vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) documentele cu care acesta se conexeaz?, ?i s? poat? efectua în orice moment conexiuni cu alte documente din registru, indiferent de anul înregistr?rii.
+-Utilizatorul s? poat? desc?rca ?i vizualiza din orice fereastr? (în care se afi?eaz? liste cu documente din registrul electronic) ata?amentele unui document, în cazul în care are drept de vizualizare a acestora.
+
+   * Crearea fi?ierelor electronice, prin ata?area de mai multe documente (fi?iere) la un anumit num?r de înregistrare :
+   * 
+-Utilizatorul trebuie s? poat? ata?a fi?iere în diferite formate la o anumit? pozi?ie dintr- un registru specificat (de ex Registru I/E, Registru Audien?e, Registru Hot?râri, Registru Peti?ii etc.)
+-Pentru fiecare fi?ier ata?at în parte, aplica?ia trebuie s? permit? specificarea utilizatorilor cu drept de vizualizare/editare a acelui fi?ier;
+-Pentru fiecare fi?ier ata?at în parte, aplica?ia trebuie s? permit? men?inerea versiunilor pentru fi?ierele modificate;
+-Con?inutul fiec?rui ata?ament indiferent de tipul fi?ierului trebuie s? fie salvat ?i indexat în baza de date în vederea c?ut?rii
+-Înscrierea în dosare de arhiv? conform nomenclatorului de arhivare
+
+* R?sfoirea rapid? a actelor dintr-un document ?i semnarea lor digital? :
+-Utilizatorul care are documentul în lucru s? poat? r?sfoi ?i vizualiza toate fi?ierele ata?ate unui document; r?sfoirea trebuie s? fie accesibil? ?i pe mapele cu documente deschise pentru citire
+-Pe baza acestor fi?iere utilizatorul trebuie s? poat? efectua rapid urm?toarele opera?ii accesibile dintr-un buton: rezolu?ie/trimitere/repartizare, semnare electronic?,
+informa?ii despre semnatar, rezolvare/îndosariere, distribuire, salvare local?, editare (check-out), repunere (check-in), s? scrie o not?
+-Din interfa?a de r?sfoire utilizatorul trebuie s? poat? semna electronic fi?ierul pe care îl vizualizeaz?
+-Dac? fi?ierul aflat curent în opera?ie de r?sfoire este semnat electronic, se vor afi?a detaliile legate de cine l-a semnat, când, cu ce autoritate, comentarii
+-Dac? fi?ierul curent aflat în opera?ia de r?sfoire este semnat electronic, se va afi?a con?inutul lui original, numai dac? semn?tura nu a fost alterat?
+-Dac? fi?ierul curent aflat în opera?ia de r?sfoire este semnat electronic, se va putea aplica o contrasemn?tur? electronic?
+-Fi?ierele semnate electronic vor fi automat înc?rcate pe server în locul fi?ierelor originale nesemnate
+
+
+Document management în termeni tehnici
+
+DMS - Document Management Sistem, presupune adminstrarea electronic? a documentelor de-a lungul ciclului lor de via??.
+
+eSM - Managementul Securitatii Sistemului de Informa?ii ?i Comunica?ii (Electronic Security Management)
+
+* este un ansamblu de solu?ii soft-hard-networking ce confer? infrastructurii de informare-comunica?ie atât securitatea cât ?i protec?ia necesar? în timp real.
+* Aceasta se realizeaz? prin speciali?ti, echipamente, programe, aplica?ii ?i protocoale (exp: FIREWALL, SUN-Secure Private Network, Check Point, Aladin, Internet Security System…).
+
+* e-Security este e-activitatea de supraveghere, paz? ?i interven?ie în timp real pentru:
+* men?inerea sistemului în stare de func?ionare optim?,
+* prevenirea, evitarea ?i minimizarea efectelor negative ale incidentelor:
+– previzibile de natur? voluntar? sau involuntar?;
+– imprevizibile (cazuri fortuite, forta majora, dezastre…).
+
+ERP - ENTERPRISE RESOURCE PLANNING
+
+* ERP - Planificarea Resurselor Institu?iei este o solutie informatica complexa si integrata de programare, conducere si supervizare a bunei functionari a intreprinderii.
+
+* ERP are urmatoarele componente:
+* SCM - Supply Chain Management
+* MRP - Manufacturing Resource Planning
+* PM – Project Management,
+* PLM – Product Life Cycle Management
+* HRM - Human Resources Management
+* FAM - Financial Accounting Management
+* 
+Arhivarea electronic? a documentelor
+
+      Arhivarea electronica reprezinta conversia documentelor din format de hartie in format digital. Este solutia ideala pentru a va prelungi durata de viata a documentelor originale, pentru a proteja aceste documente contra degradarii fizice, dumneavoastra putand consulta copia electronica a documentului.
+
+      Sistemul informatic de arhivare electronica trebuie sa raspunda cerintelor definite de catre oricare dintre compartimentele firmei dumneavoastra si sa asigure informarea corecta, completa si in timp util a factorilor de decizie.
+
+
+      Astfel, arhiva electronica a companiei va permite obtinerea informatiilor reale, concrete, completate cu imaginile documentelor gazda din arhiva fizica, oferindu-va numeroase avantaje1:
+
+* Integrarea intr-o singura interfata, usor de utilizat, a tuturor documentelor companiei dumneavoastra
+* Reorganizarea logica a arhivei fizice, intrucat se realizeaza automat o legatura intre arhiva fizica si cea electronica (se pastreaza aceeasi structura de organizare in cazul
+
+1 http://www.vectortelecom.ro/content/servicii/arhivare-electronica/
+
+ambelor tipuri de arhivare, mentionandu-se, in momentul arhivarii si locatia documentului in cauza)
+* Conversie rapida in format digital a documentelor stocate pe hartie (scaner-ul este echipat cu un alimentator automat cu documente)
+* Compresia foarte buna a imaginilor obtinute prin scanare va salveaza resursele de stocare
+* Administrati in mod eficient milioane de documente
+* Modul de vizualizare a arhivei electronice simuleaza situatia unei arhive fizice (fisete, bibliorafturi, dosare, acte)
+* Arhivarea automata a eFax-urilor si a e-mail-urilor
+* Posibilitatea de indexare prin cuvinte cheie sau prin fulltext a fiecarui document; astfel, regasirea unui document va fi extrem de facila
+
+   Fiind supuse unui flux informational din ce in ce mai abundent, companiile cauta cai mai bune, mai eficiente de a distribui informatia atat in cadrul organizatiei cat si in exterior.
+
+   In prezent, in majoritatea institu?iilor informatiile au devenit din ce in ce mai numeroase si greu de controlat. Prea des suntem nevoiti sa ne confruntam cu situatii in care documente importante se pierd sau se gasesc dupa indelungi cautari. Studii recunoscute vin sa sustina aceasta afirmatie: 15% din timpul petrecut de un angajat la birou este dedicat regasirii documentelor salvate pe hartie, iar 8,5% din documentele scrise sunt pierdute din cauza erorilor din timpul arhivarii fizice1.
+
+   Pentru a evita astfel de situatii si pentru a creste eficienta si productivitatea angajatilor exista o solutie foarte practica, numita: arhivare electronica.
+
+   Principala functionalitate oferita de un sistem de arhivare electronica si administrare a documentelor este realizarea conversiei, preluarii, stocarii, organizarii si regasirii informatiei din cadrul companiei intr-un mod structurat si securizat. Odata ce documentele au fost convertite in format electronic si arhivate, cautarea, localizarea si redarea informatiei devine un proces facil si rapid.
+
+
+
+1 http://www.ekeep.ro/
+
+   Fiecare document electronic arhivat va fi insotit de o fisa electronica ce va cuprinde informatii caracteristice acelui document (emitent, proprietar, istoric, tip si nivel de clasificare, cuvinte cheie pentru identificare, localizarea suportului fizic, identificatorul unic al documentului in cadrul arhivei).
+   Odata creata, arhiva electronica va putea fi securizata si controlata, accesul la documente permitandu-se pe baza drepturilor definite si acordate la nivel de utilizator sau grup de utilizatori. De asemenea, exista posibilitatea de a inregistra si urmari toate versiunile unui document (actiunile efectuate asupra documentelor din cadrul arhivei, persoana care le-a efectuat, data la care au fost luate aceste actiuni).
+
+   Gestiunea complet? a fondurilor arhivistice pe care institu?ia le are, folosind sistemul de management al documentelor, trebuie s? aib? urm?toarele func?ionalit??i conform Legii (Decizie nr. 1130/2008 privind normele tehnice si metodologice pentru aplicarea Legii nr. 135/2007 privind arhivarea documentelor in forma electronica):
+-posibilitatea – pentru ?efii de nivele – de selectare a dosarelor grupate dup? un indicativ ?i realizarea inventarului cu preluarea tuturor pozi?iilor selectate;
+- documentele vor fi grupate pe indicativ, un inventar putând s? con?in? dosare din mai multe indicative dar toate cu acela?i termen de p?strare;
+- pe inventar s? se poat? ad?uga dinamic (f?r? limit?) oricâte pozi?ii;
+- inventarul s? ia num?r unic secven?ial automat din Registrul de eviden?? a unit??ilor arhivistice
+- pe inventar s? se poat? specifica datele de localizare fizic? în arhiv? (loca?ie, rând, poli??, raft, biblioraft)
+- de pe Inventar s? se poat? vizualiza direct înc?perea (loca?ia) cu selectarea
+rândului ?i a poli?ei pe care se afl? p?strat inventarul respectiv sub forma de suprafa?? grafic? web;
+- pe inventar s? se poat? vizualiza datele despre procesul verbal de predare
+primire (date de intrare) cât ?i date despre documentul cu care au ie?it dosarele din gestiunea arhivei;
+
+Documentele arhivate – liste cu documentele arhivate
+- Dup? num?rul de registru si posibilitatea de identificare a inventarului cu care
+- 
+au fost predate
+   - Dup? data arhiv?rii Documente de îndosariat
+- Lista cu documente care nu au fost îndosariate înc?; s? se poat? selecta aceste documente ?i s? se poat? alege (dintr-un meniu arborescent) indicativul unde se arhiveaz? ele
+- Îndosarierea lor efectiv? cu memorarea indicativului pe documentele selectate
+
+Registrul de eviden?? a unit??ilor arhivistice cf legii 16/1996
+- S? con?in? toate elementele de identificare: Nr. crt., Nr. inventar, Data intr?rii,
+Denumirea compartimentului, Datele extreme ale documentului, Nr. de dosare dup? inventar, Nr. dosare primite efectiv, Nr. dosare r?mase la compartiment, Unde s-au predat, Denumire act predat nr. si data, Total dosare ie?ite
+- S? se poat? selecta inventare ?i s? se fac? cu ele intr?ri (proces verbal de predare –primire) sau ie?iri
+- Intr?rile ?i ie?irile s? fie operate automat pe inventarele selectate
+- 
+Registrul de depozit
+- Posibilitatea de specificare a urm?toarelor date: Denumirea fondului, Compartiment, Cota dosar, Scopul scoaterii din depozit, Numele solicitantului,
+Func?ia ?i
+serviciul solicitantului, Data scoaterii, Data restituirii, Observa?ii
+- Generarea automata a Fi?ei de control cu datele introduse
+
+
+Registrul inventar al colec?iei de matrice sigilare
+- cu datele de identificare minimale: Nr. de inventar, Data prelu?rii ?i denumirea organiza?iei de la care s-a preluat matricea, Materialul, Forma, Dimensiunea, Descrierea câmpului, Legenda, Anul conf., Observa?ii.
+
+Registru de Procese verbal de predare-primire
+- Con?ine procesele verbale pe baza c?rora au intrat inventarele in arhiv?
+
+
+Registrul de procese verbale de predare-preluare
+   - Con?ine procesele verbale pe baza c?rora au ie?it documentele din fondul arhivistic
+
+Registrul de procese verbale de selec?ionare
+- Con?ine procesele verbale ale comisiilor de selec?ionare care au aprobat distrugerea documentelor din arhiv?
+- Registru de procese verbale de constatare
+- Con?ine procesele verbale de constatare a lipsei, deterior?rii sau pierderii documentelor
+- 
+Sistemul de c?ut?ri ?i raport?ri al DMS
+
+C?utarea documentelor dup? diferite criterii
+      Sistemele de management al documentelor trebuie s? permita efectuarea de c?ut?ri complexe care sa indeplinesca urmatoarele caracteristici:
+• Cautarea documentelor sa se poata efectua dupa orice camp specificat la inregistrarea documentelor.
+• Aplicatia sa permita cautarea tip full text-search - cautarea sa se poata face dupa cuvinte sau expresii formate din mai multe cuvinte
+• Cautarea nu trebuie sa tina cont de litere mari sau mici
+• Utilizatorii trebuie sa poata cauta si vizualiza documente din registrul electronic din orice an, fara a iesi din fereastra de cautare
+• Aplicatia trebuie sa ofere listele de documente gasite sub forma de paginare
+• Aplicatia trebuie sa informeze utilizatorul despre criteriile de cautare specificate si numarul de inregistrari gasite
+• Mai multe conditii de cautare specificate simultan trebuie sa se ia in calcul cu operatorul si (AND)
+
+Vizualizarea si listarea de rapoarte complexe
+Caracteristici:
+• Utilizatorii sa poata lista rapoarte despre documente dintr-o perioada de timp specificata sau dintr-un anumit an
+• Aplicatia trebuie sa ofere rapoarte si statistici despre documentele inregistrate:
+- Numarul de documente inregistrate intr-o anumita perioada si avand un anumit mod de intrare
+- Numarul de documente inregistrate grupate dupa modul de rezolvare.
+- Numarul de documente inregistrate, grupate dupa tipul documentului si modul de rezolvare
+- Numarul de documente inregistrate, grupate dupa departament inregistrare si tipul documentului
+Aplicatia trebuie sa ofere rapoarte si statistici despre documentele aflate in lucru:
+- Numarul documentele aflate in lucru pe un anumit nivel din organigrama
+- 
+- Numarul de documente aflate in lucru pe un anumit nivel din organigrama, grupate dupa tipul documentului
+- Documentele in detaliu aflate in lucru pe un anumit nivel din organigrama
+
+Aplicatia trebuie sa ofere rapoarte si statistici despre documentele rezolvate:
+- Numarul documentele rezolvate de un anumit nivel din organigrama
+- Numarul de documente rezolvate de un anumit nivel din organigrama, grupate dupa tipul documentului
+- Documentele in detaliu rezolvate de un anumit nivel din organigrama
+- Aplicatia trebuie sa ofere rapoarte si statistici despre documentele expirate:
+- Documentele (detaliu) expirate, aflate in lucru (nerezolvate) pe nivelul selectat:
+- numarul si data inregistrarii, zile depasite, provenienta, tip document, utilizator curent, starea documentului)
+- Numarul documentelor expirate la un anumit nivel din organigrama
+- Numarul de documente expirate la un anumit nivel din organigrama, grupate dupa tipul documentului
+- Documentele (detaliu) expirate, aflate in lucru (nerezolvate) pe toate nivelurile din departamentul selectat
+- Toate documentele (detaliu) expirate, dupa tipul de act selectat, grupate dupa departament si nivel
+- Aplicatia trebuie sa ofere rapoarte si statistici despre documentele lucrate (trimise sau rezolvate):
+- Numarul de documente lucrate (trimise sau rezolvate) de pe nivelul selectat
+- Numarul de documente lucrate (trimise sau rezolvate) de pe nivelurile din departamentul selectat
+- 
+
+Aplicatia trebuie sa ofere rapoarte si statistici despre documentele expediate:
+- Lista de documente expediate direct intr-o anumita perioda completata de utilizator, de o anumita pesoana.
+   - Lista de documente expediate prin posta, grupate dupa tip posta si pe a anumita perioada completata de utilizator
+- Utilizatorii trebuie sa poata lista rezultatul tuturor rapoartele.
+
+Listarea de borderouri de predare – primire a documentelor trimise electronic de la un anumit nivel la altul (sau altele), care sa insoteasca documentele fizice
+• Utilizatorii sa poata lista, in format word sau pdf, borderouri de predare – primire cu detaliile documentelor pe care le-au trimis catre alte niveluri din organigrama
+• Utilizatorii sa poata specifica data si ora sau intervalul de timp in care care au fost trimiseDocumentele. Utilizatorii sa poata selecta fie un anumit nivel catre care au trimis documente, fie toate niveluri le catre care au trimis
+• 
+Securitatea datelor
+
+      Securitatea datelor din sistemele de management al documentelor trebuie sa fie realizata in corcordan?? cu prevederile Legii nr. 182/2002, cu modificarile si completarile ulterioare, precum si ale Standardelor nationale de protectie a informatiilor clasificate in Romania.
+
+      Securitatea documentelor institu?iilor publice se realizeaz? indeplinind urmatoarele caracteristici:
+
+* fiecare document s? aib? o sec?iune unde d? se poat? specifica dac? este secret sau public
+* în cazul documentelor secrete trebuie s? se poat? specifica lista de desecretizare de c?tre cel care încadreaz? documentul
+* accesul la un document secret ?i la toate înregistr?rile derivate din el va fi permis exclusiv persoanelor din lista de desecretizare
+* pentru documentele secret de serviciu s? se poat? specifica date legate de nr. anexe, file/exemplar, exemplare, nr. dosar de clasare.
+* pentru fiecare document în operare, utilizatorul care îl lucreaz? s? poat? bloca accesul altor utilizatori la el în editare (acolo unde e posibil)
+* fiecare document s? poat? avea o list? cu persoane care pot edita rezolu?ii (particip? la r?spunsul comun); persoanele de pe aceast? list? vor avea temporar dreptul de editare pe document pân? când titularul documentului blocheaz? documentul în editare sau documentul nu mai este în operare la respectivul utilizator
+   Atacurile la e-securitatea unei intitu?ii se manifesta prin multiple si diferite procedee, cum ar fi: diversiunea, intoxicarea, penetrarea, extragerea, coruperea, violarea, fraudarea, dezinformarea, inducerea in eroare, abaterea atentiei, inselarea vigilentei, dereglarea- blocarea-distrugerea sistemului.
+Elemente de securitate si tehnicile specifice:
+- Ascultarea comunicatiilor
+- Diversiunea si intoxicarea
+- Furtul parolelor
+- Modificarea datelor
+- Inregistrarea
+- Phising: tip nou de frauda financiara
+- Hackers
+- Pirateria de Software
+- FIREWALL
+- SPAM - AntiSpam
+- SPYWARE - AntiSpyware
+- VIRUS	- AntiVirus
+- 
+Studiu de caz – CNIPA Italia
+
+   CNIPA Italia (Centro Nazionale per l’Informatica nella Pubblica Amministrazione) este un organism de stat din cadrul Guvernului Italian si are ca obiectiv principal consilierea Administratiei Publice din Italia in utilizarea eficienta a mijloacelor societatii informationale cu scopul imbunatatirii serviciilor oferite contribuabililor.
+
+   Astfel CNIPA contribuie la definirea politicii Guvernului si a Ministerului Italian pentru reforme si inovatii in Administratia Publica, ofera consultanta in elaborarea proiectelor de lege din domeniul societatii informationale, elaboreaza norme si criterii de elaborarea a sistemelor informatice din Administratia Publica, defineste norme de interoperabilitate si siguranta/securitate a acestor sisteme.
+
+   Organizativ, CNIPA este condusa de un colegiu constituit dintr-un Presedinte si 4 membri, numiti de Cabinetul Primului Ministru (Presidente del Consiglio dei Ministri).
+
+   Unul din domeniile in care CNIPA contribuie la informatizarea Administratiei Publice din Italia este bineinteles domeniul managementului de documente si al registraturii electronice, avand ca suport un text de lege elaborat si intrat in vigoare inca din 2000 (DPR 445/2000).
+
+   Legea de mai sus defineste termenii de registratura electronica si flux de documente si deasemenea defineste caracteristicile fundamentale pe care un asemenea sistem trebuie sa le implementeze.
+
+   Deasemnea CNIPA monitorizeaza si elaboreaza rapoarte anuale cu privire la implementarea unor astfel de sisteme in Administratia Publica. Raportul este facut public anual si este trimis tuturor Administratiilor.
+
+   Centrul de competenta din cadrul CNIPA a elaborat si actualizeaza periodic un model de referinta al Manualului de Gestiune al Registraturii Electronice si Fluxului de Documente, util tuturor Administratiilor care realizeaza proiecte de gestiune electronica a documentelor.
+
+   Astfel, orice Administratie din Italia cunoaste care sunt caracteristile pe care un produs informatic trebuie sa le respecte pentru a fi in concordanta cu normativele in vigoare si de asemenea a fi interoperabil cu alte sisteme informatice din cadrul Administratiilor.
+   
+   Astfel de manuale sunt apoi realizate si publicate pe site-ul CNIPA si de alte Administratii, sau chiar entitati non-administrative. De exemplu diverse primarii, Ministerul Apararii din Italia, Scoala Superioara de Administratie Publica , Universitatea din Lecce, etc au deja publicat un astfel de Manual.
+   
+Scanarea documentelor ?i semn?tura digital?
+
+      Serviciile de scanare documente si arhivare electronica frecvente includ scanare si arhivare in PDF - "un fisier PDF per dosar scanat", lucrari de scanare rapida dosare, acte si formulare, arhivare electronica pe DVD, scanare in JPEG si TIFF, conversie fisiere in diverse formate digitale.
+
+      Avantajele scanarii sunt evidente: economie de spatiu si hartie si cel mai important - cu un simplu "search" gasiti documentul dorit fara sa fiti nevoit sa cautati in zeci de dosare.
+
+      Serviciul de scanare documente reprezinta preluarea imaginilor de pe documentele originale si trecerea acestor imagini in format electronic in fisiere de formate utilizate in mod usual: PDF, JPEG sau TIFF.
+
+Scanarea documentelor prin sisteme de management al documentelor. Caracteristici :
+* Scanarea direct de pe documentul curent din aplica?ie, f?r? a deschide nici un alt program/utilitar ci doar cu instrumentele proprii sistemului de gestiune de documente propus (interfa?a web)
+* Din documentul curent deschis în operare s? se poat? scana ?i efectua urm?toarele opera?ii pe documentul scanat, direct din interfa?a web: zoom, pan, fit –to-width, aplicare noti?e/post-it uri vizuale, aplicare ?tampile, OCR-izare cu salvarea textului pentru indexare, navigare prin pagini pentru documentele multi-pagin?.
+* Fi?ierele scanate din interfa?a de scanare direct de pe web trebuie s? poat? fi de tip multipagin? TIFF.
+* Fi?ierele astfel scanate trebuie s? poat? fi automat înc?rcate pe server la documentul curent f?r? opera?ii suplimentare ci doar prin ap?sarea unui singur buton (de tip upload)
+* Toat? interfa?a aplica?iei s? fie în limba român?
+* Sistemul trebuie s? dispun? de utilitare externe proprii care s? permit? la ac?iunea clickdreapta ata?area direct din sistemul local de fi?iere a fi?ierului selectat la num?rul specificat din registru
+   Semnatura electronica este un certificat digital este o „carte de identitate” virtual?, care î?i permite identificarea f?r? echivoc pe internet.
+   
+
+
+CONCLUZII
+
+                              “Lucrurile de mare însemn?tate nu trebuie niciodat? l?sate în voia lucrurilor neînsemnate.” (Goethe)
+
+Manipularea ?i gestionarea documentelor se întrep?trund cu activitatea zilnic? din cadrul unei institu?ii publice. De la actele generale de livrarea serviciilor publice, la cele de natur? financiar?, juridic? ?i pân? la coresponden?a zilnic?, toate trebuie gestionate într-un mod care s? conduc? la eficientizarea activit??ii unei organiza?ii publice.
+
+Implementarea unei solu?ii informatice care s? realizeze acest proces s-a impus în ultima perioad? ca o solu?ie salvatoare. Viteza de prelucrare a datelor, capacit??ile mari de stocare disponibile pe pia??, calitatea echipamentelor de scanare ?i chiar cele privind semn?tura electronic? constituie tot atâtea argumente în favoarea trecerii de la sistemul de gestionare a hârtiilor pe suport fizic c?tre mediul electronic.
+O astfel de solu?ie de management al documentelor ofer? trei avantaje esen?iale: economie de timp, spa?iu ?i resurse umane. În condi?iile unui mediu de administra?ie public? asaltat de informa?ii, vehiculate atât în interiorul unei organiza?ii, cât ?i în exterior, un sistem performant de management al documentelor, proiectelor ?i cuno?tin?elor influen?eaz? în mod esen?ial managementul timpului de lucru. Pe de alt? parte, reducerea ponderii hârtiei în circula?ia documentelor genereaz? reducerea substan?ial? a spa?iului de depozitare a arhivelor.
+
+Sigur, un astfel de sistem prezint? ?i dezavantaje, dar substan?ierea lui pe baza procedurilor de lucru ?i a unei strategii generale a institu?iei publice, conduce la organizarea activit??ii pe baza celor trei „E” ai managementului (economie, eficien??, eficacitate).
+Pentru atingerea unor astfel de indicatori este nevoie doar de un sistem robust de management al performan?ei întreprinderii ?i aplicarea filozofiei managementului prin obiective bazat pe paradigma „plan – do – check – act”. Bineîn?eles c? în cazul managementului documentelor accentul cade pe planificarea ?i procedurile privind fluxul de documente.
+
+Mai mult, nu trebuie s? uit?m nici de noile concepte de „administra?ie ecologic?”. Cu to?ii lucr?m înc? excesiv de mult cu hârtii la locul de munc?. Am încercat s? înlocuim suportul scriptic cu cel electronic, îns? hârtiile se tot adun?. Multe autorit??i, în special cele locale, func?ioneaz? înc? pe baz? de proceduri scriptice consumatoare de timp, ineficiente ?i predispuse erorilor. Riscul cel mai mare este de a pierde controlul asupra documentelor cu con?inut esen?ial pentru livrarea serviciului public.
+
+Deciziile importante cer schimb?ri puternice ?i asumate. Consumul iresponsabil ?i neglijen?a ne-au adus azi în punctul in care nu mai avem de ales. Totu?i trebuie sa con?tientiz?m efectul alegerilor noastre asupra naturii. S? ne folosim abilit??ile pentru a crea ?i dezvolta instrumente care sa ne ajute sa r?mânem productivi, dar f?r? s? d?un?m mediului înconjur?tor.
+
+
+REFERIN?E / BIBLIOGRAFIE
+
+* Alexandru Ioan, C?r?u?an Mihaela, Bucur Sorin, Drept administrativ, Editura Lumina Lex, Bucure?ti, 2005;
+* Cohen Steven ?i Eimicke William, The Effective Public Manager: Achieving Success in a Changing Government, Editura CA : Jossey-Bass, San Francisco, 2002;
+* Claver Enrique, Llopis Juan, Gascó José L., Molina Hipólito, Conca Francisco J., Public Administration: From Bureaucratic Culture to Citizen-oriented Culture, The International Journal of Public Sector Management, vol.12, no.5, 1999
+* Drucker Peter, Societatea postcapitalist?, Editura Image, Bucure?ti, 1999
+* Georgescu Mircea, Sisteme informa?ionale de birou, suport de curs, Universitatea
+„Al.I.Cuza” Ia?i, Facultatea de economie ?i administrarea afacerilor, 2008/2009
+* http://bunaguvernare.eu
+* http://www.advocacy.ro
+* Johns Gary, Comportament organiza?ional, edi?ia a II-a, Editura Economic?, Bucure?ti, [1998] (1996)
+* Joyce Paul, Strategic Management for the Public Services, Editura Open University Press, Buckingham, 1999
+* Manualul de Resurse Umane - livrabila c?tre Agen?ia Na?ional? a Func?ionarilor Publici în cadrul Programului PHARE „Implementing Civil Service Reform in Romania”, Bucure?ti, cod EuropeAid/121990/D/SV/RO, 2008
+* Marinescu Paul, Platis Magdalena ?i Papuc R?zvan, Managementul Institu?iilor Publice,	Universitatea	Bucure?ti, http://www.unibuc.ro/eBooks/StiinteADM/marinescu/index.htm, 2003
+* Nicolescu Ovidiu ?i Nicolescu Lumini?a - Managementul modern al organiza?iei,
+Editura Tribuna Economic?, Bucure?ti, 2001
+* Ni?chi ?tefan ?i Racovi?an Dan (sub redac?ia), Bazele prelucr?rii informa?iilor ?i tehnologie informa?ional?, Editura Intelcredo, Deva, 1996
+* Pollit Christopher, The Essential Public Manager, Editura Open University Press, Maidenhead, 2003
+* 
+* Rose Aidan & Lawton Alan, Bureaucracy and Market in Public Services Management, Editura Financial Times/Prentice Hall, Harlow, 1999
+* St?nic?	Viorel,	Gestionarea	documentelor	în	administra?ia	public?,	Revista Transilvan? de ?tiin?e Administrative, nr. 2(11), Cluj Napoca, 2004
+* Tran Vasile ?i St?nciugelu Irina, Teoria comunic?rii, edi?ia a II-a, Editura Comunicare.ro, Bucure?ti, [2003] (2001)
+* UNPAN– Re?eaua de administra?ie public? a Na?iunilor Unite, Managementul documentelor, http://www.unpan.org/
+
+
+
+
+
+
+
+
+
+
+
+
+
+

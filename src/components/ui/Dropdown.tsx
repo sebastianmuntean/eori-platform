@@ -20,8 +20,6 @@ interface DropdownProps {
 }
 
 export function Dropdown({ trigger, items, align = 'right', className }: DropdownProps) {
-  console.log('Step 1: Rendering Dropdown component, align:', align);
-  
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0, right: 0, bottom: 0 });
   const [openAbove, setOpenAbove] = useState(false);
@@ -31,7 +29,6 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
   // Calculate position when dropdown opens
   useEffect(() => {
     if (isOpen && triggerRef.current) {
-      console.log('Step 2: Calculating dropdown position');
       const rect = triggerRef.current.getBoundingClientRect();
       
       // Estimate dropdown height (approximate: ~40px per item + padding)
@@ -42,9 +39,6 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       const shouldOpenAbove = spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
-      
-      console.log(`  Space below: ${spaceBelow}px, Space above: ${spaceAbove}px, Estimated height: ${estimatedDropdownHeight}px`);
-      console.log(`  Should open above: ${shouldOpenAbove}`);
       
       setOpenAbove(shouldOpenAbove);
       
@@ -66,7 +60,6 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
           bottom: 0,
         });
       }
-      console.log('✓ Position calculated');
     }
   }, [isOpen, align, items.length]);
   
@@ -77,7 +70,6 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
       requestAnimationFrame(() => {
         if (!dropdownRef.current || !triggerRef.current) return;
         
-        console.log('Step 2.1: Recalculating position with actual dropdown height');
         const dropdownRect = dropdownRef.current.getBoundingClientRect();
         const triggerRect = triggerRef.current.getBoundingClientRect();
         const actualDropdownHeight = dropdownRect.height;
@@ -112,51 +104,41 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
         triggerRef.current &&
         !triggerRef.current.contains(event.target as Node)
       ) {
-        console.log('Step 3: Click outside dropdown, closing');
         setIsOpen(false);
       }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      console.log('✓ Click outside listener added');
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      console.log('✓ Click outside listener removed');
     };
   }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        console.log('Step 4: Escape key pressed, closing dropdown');
         setIsOpen(false);
       }
     };
 
     if (isOpen) {
       window.addEventListener('keydown', handleEscape);
-      console.log('✓ Escape key listener added');
     }
 
     return () => {
       window.removeEventListener('keydown', handleEscape);
-      console.log('✓ Escape key listener removed');
     };
   }, [isOpen]);
 
   const handleItemClick = (item: DropdownItem) => {
-    console.log('Step 5: Dropdown item clicked:', item.label);
     if (!item.disabled) {
       item.onClick();
       setIsOpen(false);
-      console.log('✓ Dropdown item action executed and dropdown closed');
     }
   };
-
-  console.log('✓ Rendering dropdown');
 
   const dropdownMenu = isOpen && (
     <div
@@ -202,7 +184,6 @@ export function Dropdown({ trigger, items, align = 'right', className }: Dropdow
       <div 
         ref={triggerRef}
         onClick={() => {
-          console.log('Step 6: Toggling dropdown');
           setIsOpen(!isOpen);
         }}
       >

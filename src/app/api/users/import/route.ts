@@ -2,21 +2,20 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword, requireAuth } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
+import { generateVerificationToken } from '@/lib/auth/tokens';
 import { eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { randomBytes } from 'crypto';
 
-/**
- * Generate a secure verification token
- */
-function generateVerificationToken(): string {
-  console.log('Step 1: Generating verification token');
-  const token = randomBytes(32).toString('hex');
-  console.log(`✓ Verification token generated: ${token.substring(0, 8)}...`);
-  return token;
-}
+// File upload validation constants
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const VALID_MIME_TYPES = [
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
+];
+const VALID_EXTENSIONS = ['.xlsx', '.xls'];
 
 /**
  * POST /api/users/import - Import users from Excel file
@@ -25,6 +24,9 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/users/import - Processing Excel import');
 
   try {
+    // Require authentication
+    await requireAuth();
+
     console.log('Step 2: Parsing form data');
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -33,6 +35,34 @@ export async function POST(request: Request) {
       console.log('❌ No file provided');
       return NextResponse.json(
         { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      console.log(`❌ File too large: ${file.size} bytes`);
+      return NextResponse.json(
+        { success: false, error: 'File size exceeds 10MB limit' },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type (MIME type)
+    if (file.type && !VALID_MIME_TYPES.includes(file.type)) {
+      console.log(`❌ Invalid file type: ${file.type}`);
+      return NextResponse.json(
+        { success: false, error: 'Invalid file type. Only Excel files are allowed.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate file extension
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !VALID_EXTENSIONS.includes(`.${fileExtension}`)) {
+      console.log(`❌ Invalid file extension: ${fileExtension}`);
+      return NextResponse.json(
+        { success: false, error: 'Invalid file extension. Only .xlsx and .xls files are allowed.' },
         { status: 400 }
       );
     }
@@ -145,12 +175,13 @@ export async function POST(request: Request) {
         const tempPasswordHash = await hashPassword(tempPassword);
 
         console.log(`  Step 5.${i + 1}.1: Creating user record`);
-        // Insert user with address, city, and phone
+        // Insert user with role, address, city, and phone
         const [newUser] = await db
           .insert(users)
           .values({
             email: email.trim(),
             name: name.trim(),
+            role: role as 'episcop' | 'vicar' | 'paroh' | 'secretar' | 'contabil',
             passwordHash: tempPasswordHash,
             address: address ? address.trim() : null,
             city: city ? city.trim() : null,

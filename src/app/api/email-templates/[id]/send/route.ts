@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { sendEmailWithTemplate } from '@/lib/email';
+import { getCurrentUser } from '@/lib/auth';
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-utils/error-handling';
 
 const sendTestEmailSchema = z.object({
   recipientEmail: z.string().email('Invalid email address'),
@@ -14,49 +17,49 @@ const sendTestEmailSchema = z.object({
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log(`Step 1: POST /api/email-templates/${params.id}/send - Sending test email`);
+  const { id } = await params;
 
   try {
+    // Require authentication
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
+      return createErrorResponse('Not authenticated', 401);
+    }
+
     const body = await request.json();
-    console.log('Step 2: Validating request body');
     const validation = sendTestEmailSchema.safeParse(body);
 
     if (!validation.success) {
-      console.log('❌ Validation failed:', validation.error.errors);
-      return NextResponse.json(
-        { success: false, error: validation.error.errors[0].message },
-        { status: 400 }
-      );
+      logger.warn('Send test email validation failed', { errors: validation.error.errors, templateId: id, userId });
+      const firstError = validation.error.errors[0];
+      return createErrorResponse(firstError.message, 400);
     }
 
     const { recipientEmail, recipientName, variables } = validation.data;
 
-    console.log(`Step 3: Sending test email`);
-    console.log(`  Template ID: ${params.id}`);
-    console.log(`  Recipient: ${recipientEmail} (${recipientName})`);
-    console.log(`  Variables: ${JSON.stringify(variables)}`);
+    logger.info('Sending test email', { templateId: id, recipientEmail, userId });
 
     await sendEmailWithTemplate(
-      params.id,
+      id,
       recipientEmail,
       recipientName,
       variables
     );
 
-    console.log(`✓ Test email sent successfully`);
-    return NextResponse.json({
-      success: true,
-      message: 'Test email sent successfully',
-    });
+    logger.info('Test email sent successfully', { templateId: id, recipientEmail, userId });
+    return createSuccessResponse({ message: 'Test email sent successfully' });
   } catch (error) {
-    console.error('❌ Error sending test email:', error);
-    logError(error, { endpoint: `/api/email-templates/${params.id}/send`, method: 'POST' });
-    return NextResponse.json(formatErrorResponse(error), {
-      status: formatErrorResponse(error).statusCode,
-    });
+    logger.error('Error sending test email', error, { endpoint: `/api/email-templates/${id}/send`, method: 'POST' });
+    logError(error, { endpoint: `/api/email-templates/${id}/send`, method: 'POST' });
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
-
-

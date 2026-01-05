@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { roles } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -11,20 +12,22 @@ const updateRoleSchema = z.object({
 });
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: GET /api/superadmin/roles/${params.id} - Fetching role`);
+  const { id } = await params;
+  console.log(`Step 1: GET /api/superadmin/roles/${id} - Fetching role`);
 
   try {
-    console.log(`Step 2: Querying database for role with id: ${params.id}`);
-    const [role] = await db.select().from(roles).where(eq(roles.id, params.id)).limit(1);
+    await requireRole('superadmin');
+    console.log(`Step 2: Querying database for role with id: ${id}`);
+    const [role] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
 
     if (!role) {
-      console.log(`❌ Role with id ${params.id} not found`);
+      console.log(`❌ Role with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Role not found' },
         { status: 404 }
@@ -38,7 +41,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error fetching role:', error);
-    logError(error, { endpoint: `/api/superadmin/roles/${params.id}`, method: 'GET' });
+    logError(error, { endpoint: `/api/superadmin/roles/${id}`, method: 'GET' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });
@@ -46,9 +49,11 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: PUT /api/superadmin/roles/${params.id} - Updating role`);
+  const { id } = await params;
+  console.log(`Step 1: PUT /api/superadmin/roles/${id} - Updating role`);
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = updateRoleSchema.safeParse(body);
@@ -63,11 +68,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const updateData = validation.data;
 
-    console.log(`Step 3: Checking if role with id ${params.id} exists`);
-    const [existingRole] = await db.select().from(roles).where(eq(roles.id, params.id)).limit(1);
+    console.log(`Step 3: Checking if role with id ${id} exists`);
+    const [existingRole] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
 
     if (!existingRole) {
-      console.log(`❌ Role with id ${params.id} not found`);
+      console.log(`❌ Role with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Role not found' },
         { status: 404 }
@@ -92,7 +97,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
     }
 
-    console.log(`Step 5: Updating role with id ${params.id}`);
+    console.log(`Step 5: Updating role with id ${id}`);
     const updateValues: { name?: string; description?: string | null; updatedAt?: Date } = {};
     if (updateData.name !== undefined) {
       updateValues.name = updateData.name;
@@ -105,7 +110,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const [updatedRole] = await db
       .update(roles)
       .set(updateValues)
-      .where(eq(roles.id, params.id))
+      .where(eq(roles.id, id))
       .returning();
 
     console.log(`✓ Role updated successfully: ${updatedRole.name}`);
@@ -115,7 +120,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error updating role:', error);
-    logError(error, { endpoint: `/api/superadmin/roles/${params.id}`, method: 'PUT' });
+    logError(error, { endpoint: `/api/superadmin/roles/${id}`, method: 'PUT' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });
@@ -123,22 +128,24 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  console.log(`Step 1: DELETE /api/superadmin/roles/${params.id} - Deleting role`);
+  const { id } = await params;
+  console.log(`Step 1: DELETE /api/superadmin/roles/${id} - Deleting role`);
 
   try {
-    console.log(`Step 2: Checking if role with id ${params.id} exists`);
-    const [existingRole] = await db.select().from(roles).where(eq(roles.id, params.id)).limit(1);
+    await requireRole('superadmin');
+    console.log(`Step 2: Checking if role with id ${id} exists`);
+    const [existingRole] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
 
     if (!existingRole) {
-      console.log(`❌ Role with id ${params.id} not found`);
+      console.log(`❌ Role with id ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Role not found' },
         { status: 404 }
       );
     }
 
-    console.log(`Step 3: Deleting role "${existingRole.name}" with id ${params.id}`);
-    await db.delete(roles).where(eq(roles.id, params.id));
+    console.log(`Step 3: Deleting role "${existingRole.name}" with id ${id}`);
+    await db.delete(roles).where(eq(roles.id, id));
 
     console.log(`✓ Role deleted successfully`);
     return NextResponse.json({
@@ -147,7 +154,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('❌ Error deleting role:', error);
-    logError(error, { endpoint: `/api/superadmin/roles/${params.id}`, method: 'DELETE' });
+    logError(error, { endpoint: `/api/superadmin/roles/${id}`, method: 'DELETE' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
     });

@@ -19,8 +19,6 @@ export function Input({
   id,
   ...props 
 }: InputProps) {
-  console.log('Step 1: Rendering Input component, label:', label, 'error:', error);
-  
   const generatedId = useId();
   const inputId = id || generatedId;
   const hasError = !!error;

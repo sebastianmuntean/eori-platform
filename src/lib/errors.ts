@@ -45,7 +45,117 @@ export class RateLimitError extends AppError {
 }
 
 /**
+ * Error type classification for better error handling
+ */
+enum ErrorType {
+  DATABASE_TABLE_NOT_FOUND = 'DATABASE_TABLE_NOT_FOUND',
+  DATABASE_CONNECTION = 'DATABASE_CONNECTION',
+  DATABASE_OPERATION = 'DATABASE_OPERATION',
+  GENERIC = 'GENERIC',
+}
+
+/**
+ * Safely extracts error message from unknown error type
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return String(error);
+}
+
+/**
+ * Classifies error type based on error message patterns
+ */
+function classifyErrorType(errorMessage: string): ErrorType {
+  const lowerMessage = errorMessage.toLowerCase();
+
+  // Database table/relation errors
+  if (
+    lowerMessage.includes('does not exist') ||
+    lowerMessage.includes('relation') ||
+    lowerMessage.includes('failed query') ||
+    (lowerMessage.includes('column') && lowerMessage.includes('does not exist'))
+  ) {
+    return ErrorType.DATABASE_TABLE_NOT_FOUND;
+  }
+
+  // Database connection errors
+  if (
+    lowerMessage.includes('connection') ||
+    lowerMessage.includes('connect econnrefused') ||
+    lowerMessage.includes('timeout') ||
+    lowerMessage.includes('connection refused')
+  ) {
+    return ErrorType.DATABASE_CONNECTION;
+  }
+
+  // Other database operation errors
+  if (
+    lowerMessage.includes('syntax error') ||
+    lowerMessage.includes('permission denied') ||
+    lowerMessage.includes('duplicate key') ||
+    lowerMessage.includes('violates') ||
+    lowerMessage.includes('constraint')
+  ) {
+    return ErrorType.DATABASE_OPERATION;
+  }
+
+  return ErrorType.GENERIC;
+}
+
+/**
+ * Formats error message based on error type and environment
+ * SECURITY: Never expose sensitive information, even in development
+ */
+function formatErrorMessage(
+  errorType: ErrorType,
+  originalMessage: string
+): string {
+  // Log full details server-side only (handled by logError)
+  // Never expose internal details to client, even in development
+
+  switch (errorType) {
+    case ErrorType.DATABASE_TABLE_NOT_FOUND:
+      return 'A database error occurred. Please contact support if this persists.';
+
+    case ErrorType.DATABASE_CONNECTION:
+      return 'Service temporarily unavailable. Please try again later.';
+
+    case ErrorType.DATABASE_OPERATION:
+      return 'A database error occurred. Please try again.';
+
+    case ErrorType.GENERIC:
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
+}
+
+/**
+ * Gets appropriate HTTP status code for error type
+ */
+function getErrorStatusCode(errorType: ErrorType): number {
+  switch (errorType) {
+    case ErrorType.DATABASE_CONNECTION:
+      return 503; // Service Unavailable
+    case ErrorType.DATABASE_TABLE_NOT_FOUND:
+    case ErrorType.DATABASE_OPERATION:
+    case ErrorType.GENERIC:
+    default:
+      return 500; // Internal Server Error
+  }
+}
+
+/**
  * Format error response (secure - don't expose stack traces or sensitive info)
+ * 
+ * This function safely formats errors for API responses, ensuring that:
+ * - Sensitive information is not exposed in production
+ * - Error types are properly classified
+ * - Appropriate HTTP status codes are returned
  */
 export function formatErrorResponse(error: unknown): {
   success: false;
@@ -54,6 +164,7 @@ export function formatErrorResponse(error: unknown): {
 } {
   console.log('Step 1: Formatting error response');
 
+  // Handle known AppError instances
   if (error instanceof AppError) {
     console.log(`✓ Error formatted: ${error.message} (${error.statusCode})`);
     return {
@@ -63,29 +174,34 @@ export function formatErrorResponse(error: unknown): {
     };
   }
 
+  // Handle standard Error instances
   if (error instanceof Error) {
     // Log full error for debugging, but don't expose to client
     console.error('❌ Unexpected error:', error);
+    if (error.stack) {
+      console.error('❌ Error stack:', error.stack);
+    }
 
-    // In production, return generic error
-    // In development, you might want to return more details
-    const message =
-      process.env.NODE_ENV === 'production'
-        ? 'An error occurred'
-        : error.message;
+    const errorMessage = getErrorMessage(error);
+    const errorType = classifyErrorType(errorMessage);
+    const formattedMessage = formatErrorMessage(errorType, errorMessage);
+    const statusCode = getErrorStatusCode(errorType);
 
     return {
       success: false,
-      error: message,
-      statusCode: 500,
+      error: formattedMessage,
+      statusCode,
     };
   }
 
-  // Unknown error type
-  console.error('❌ Unknown error type:', error);
+  // Handle unknown error types
+  // Log full error server-side only
+  const errorMessage = getErrorMessage(error);
+  logError(error, { type: 'unknown_error' });
+  
   return {
     success: false,
-    error: 'An unexpected error occurred',
+    error: 'An unexpected error occurred. Please try again.',
     statusCode: 500,
   };
 }
@@ -100,7 +216,23 @@ export function logError(error: unknown, context?: Record<string, any>): void {
     context,
   });
 
-  // TODO: Send to error tracking service (Sentry, etc.) in production
+  // Send to Sentry in production if DSN is configured
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    try {
+      // Use dynamic import to avoid loading Sentry module if not needed
+      // This prevents errors if Sentry is not properly initialized
+      import('./monitoring/sentry').then(({ captureException }) => {
+        const errorToCapture = error instanceof Error ? error : new Error(String(error));
+        captureException(errorToCapture, context);
+      }).catch((sentryError) => {
+        // Silently fail if Sentry is not available
+        console.warn('Failed to send error to Sentry:', sentryError);
+      });
+    } catch (sentryError) {
+      // Silently fail if Sentry is not available
+      console.warn('Failed to load Sentry module:', sentryError);
+    }
+  }
 }
 
 

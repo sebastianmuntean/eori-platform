@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { userRoles, rolePermissions, permissions, userPermissionOverrides, userResourceAccess } from "@/drizzle/schema/rbac";
+import { userRoles, rolePermissions, permissions, userPermissionOverrides, userResourceAccess, roles } from "@/drizzle/schema/rbac";
 import { eq, and, or } from "drizzle-orm";
 import { logger } from "@/lib/utils/logger";
 
@@ -14,13 +14,31 @@ export async function getUserEffectivePermissions(
   try {
     console.log(`Step 1: Getting effective permissions for user: ${userId}`);
     
-    // Get permissions from user's roles
-    const rolePerms = await db
-      .select({ permissionName: permissions.name })
+    // Get user roles to check for superadmin
+    const userRolesList = await db
+      .select({ roleName: roles.name })
       .from(userRoles)
-      .innerJoin(rolePermissions, eq(userRoles.roleId, rolePermissions.roleId))
-      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
       .where(eq(userRoles.userId, userId));
+    
+    const hasSuperadmin = userRolesList.some((ur) => ur.roleName === 'superadmin');
+    
+    // Get permissions from user's roles
+    let rolePerms;
+    if (hasSuperadmin) {
+      // For superadmin, get all permissions from database
+      console.log(`✓ User has superadmin role, returning all permissions`);
+      const allPerms = await db.select({ name: permissions.name }).from(permissions);
+      rolePerms = allPerms.map(p => ({ permissionName: p.name }));
+    } else {
+      // For regular users, get permissions from their roles
+      rolePerms = await db
+        .select({ permissionName: permissions.name })
+        .from(userRoles)
+        .innerJoin(rolePermissions, eq(userRoles.roleId, rolePermissions.roleId))
+        .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+        .where(eq(userRoles.userId, userId));
+    }
 
     // Get user-specific permission overrides
     const overrides = await db

@@ -20,9 +20,6 @@ export function TemplateTestDialog({
   template,
   onSend,
 }: TemplateTestDialogProps) {
-  console.log('Step 1: Rendering TemplateTestDialog');
-  console.log(`  IsOpen: ${isOpen}, Template: ${template?.name || 'none'}`);
-
   const t = useTranslations('common');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
@@ -33,13 +30,11 @@ export function TemplateTestDialog({
   const handleSend = async () => {
     if (!recipientEmail || !template) return;
 
-    console.log('Step 2: Sending test email');
     setError(null);
     setIsSending(true);
 
     try {
       await onSend(recipientEmail, recipientName || 'Test User', variables);
-      console.log('✓ Test email sent successfully');
       setRecipientEmail('');
       setRecipientName('');
       setVariables({});
@@ -55,7 +50,6 @@ export function TemplateTestDialog({
 
   if (!template) return null;
 
-  console.log('✓ Rendering dialog');
   return (
     <Modal
       isOpen={isOpen}

@@ -1,5 +1,0 @@
-// Parohii domain validation schemas
-
-
-
-

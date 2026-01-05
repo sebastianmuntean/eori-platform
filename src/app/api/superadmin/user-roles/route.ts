@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users, roles, userRoles } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -14,6 +15,7 @@ export async function GET() {
   console.log('Step 1: GET /api/superadmin/user-roles - Fetching users with roles');
 
   try {
+    await requireRole('superadmin');
     console.log('Step 2: Querying database for users with roles');
     
     // Get all users
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/superadmin/user-roles - Creating user-role association');
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createUserRoleSchema.safeParse(body);
@@ -137,6 +140,7 @@ export async function DELETE(request: Request) {
   console.log('Step 1: DELETE /api/superadmin/user-roles - Removing user-role association');
 
   try {
+    await requireRole('superadmin');
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const roleId = searchParams.get('roleId');

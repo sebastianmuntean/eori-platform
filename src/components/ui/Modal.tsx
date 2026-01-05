@@ -21,14 +21,10 @@ export function Modal({
   size = 'md',
   showCloseButton = true,
 }: ModalProps) {
-  console.log('Step 1: Rendering Modal component, isOpen:', isOpen, 'size:', size);
-
   useEffect(() => {
     if (isOpen) {
-      console.log('Step 2: Modal opened, preventing body scroll');
       document.body.style.overflow = 'hidden';
       return () => {
-        console.log('Step 3: Modal closed, restoring body scroll');
         document.body.style.overflow = '';
       };
     }
@@ -37,19 +33,16 @@ export function Modal({
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        console.log('Step 4: Escape key pressed, closing modal');
         onClose();
       }
     };
 
     if (isOpen) {
       window.addEventListener('keydown', handleEscape);
-      console.log('✓ Escape key listener added');
     }
 
     return () => {
       window.removeEventListener('keydown', handleEscape);
-      console.log('✓ Escape key listener removed');
     };
   }, [isOpen, onClose]);
 
@@ -58,15 +51,12 @@ export function Modal({
     md: 'max-w-lg',
     lg: 'max-w-2xl',
     xl: 'max-w-4xl',
-    full: 'max-w-full mx-4',
+    full: 'w-[98vw] h-[98vh] max-w-[98vw] max-h-[98vh]',
   };
 
   if (!isOpen) {
-    console.log('✓ Modal not open, returning null');
     return null;
   }
-
-  console.log('✓ Rendering modal overlay and content');
 
   const modalContent = (
     <div
@@ -85,15 +75,17 @@ export function Modal({
       {/* Modal Content */}
       <div
         className={cn(
-          'relative bg-bg-primary rounded-lg shadow-xl w-full z-[10000]',
+          'relative bg-bg-primary rounded-lg shadow-xl z-[10000] flex flex-col',
           sizeStyles[size],
-          'max-h-[90vh] overflow-hidden flex flex-col'
+          size === 'full' 
+            ? 'h-[98vh]' 
+            : 'w-full max-h-[90vh] overflow-hidden'
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
             {title && (
               <h2 id="modal-title" className="text-xl font-semibold text-text-primary">
                 {title}
@@ -102,7 +94,7 @@ export function Modal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="text-text-secondary hover:text-text-primary transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-bg-secondary"
                 aria-label="Close modal"
               >
                 <svg

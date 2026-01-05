@@ -6,33 +6,116 @@ import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
 export default function SuperadminPage() {
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.ROLES_VIEW);
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('superadmin'));
   console.log('Step 1: Rendering Superadmin overview page');
 
   const [stats, setStats] = useState({
     roles: 0,
     permissions: 0,
     users: 0,
+    emailTemplates: 0,
   });
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     console.log('Step 2: Fetching statistics');
+    setStatsLoading(true);
+    setStatsError(null);
+
     Promise.all([
-      fetch('/api/superadmin/roles').then((r) => r.json()),
-      fetch('/api/superadmin/permissions').then((r) => r.json()),
-      fetch('/api/superadmin/user-roles').then((r) => r.json()),
+      fetch('/api/superadmin/roles')
+        .then(async (r) => {
+          if (!r.ok) {
+            throw new Error(`Failed to fetch roles: ${r.status}`);
+          }
+          return r.json();
+        })
+        .then((data) => {
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load roles');
+          }
+          return data.data.length;
+        })
+        .catch((error) => {
+          console.error('❌ Error loading roles:', error);
+          return 0;
+        }),
+      fetch('/api/superadmin/permissions')
+        .then(async (r) => {
+          if (!r.ok) {
+            throw new Error(`Failed to fetch permissions: ${r.status}`);
+          }
+          return r.json();
+        })
+        .then((data) => {
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load permissions');
+          }
+          return data.data.length;
+        })
+        .catch((error) => {
+          console.error('❌ Error loading permissions:', error);
+          return 0;
+        }),
+      fetch('/api/superadmin/user-roles')
+        .then(async (r) => {
+          if (!r.ok) {
+            throw new Error(`Failed to fetch user-roles: ${r.status}`);
+          }
+          return r.json();
+        })
+        .then((data) => {
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load user-roles');
+          }
+          return data.data.length;
+        })
+        .catch((error) => {
+          console.error('❌ Error loading user-roles:', error);
+          return 0;
+        }),
+      fetch('/api/email-templates?pageSize=1')
+        .then(async (r) => {
+          if (!r.ok) {
+            throw new Error(`Failed to fetch email templates: ${r.status}`);
+          }
+          return r.json();
+        })
+        .then((data) => {
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to load email templates');
+          }
+          return data.pagination?.total || 0;
+        })
+        .catch((error) => {
+          console.error('❌ Error loading email templates:', error);
+          return 0;
+        }),
     ])
-      .then(([rolesRes, permsRes, usersRes]) => {
+      .then(([roles, permissions, users, emailTemplates]) => {
         setStats({
-          roles: rolesRes.success ? rolesRes.data.length : 0,
-          permissions: permsRes.success ? permsRes.data.length : 0,
-          users: usersRes.success ? usersRes.data.length : 0,
+          roles,
+          permissions,
+          users,
+          emailTemplates,
         });
         console.log('✓ Statistics loaded');
       })
       .catch((error) => {
         console.error('❌ Error loading statistics:', error);
+        setStatsError('Failed to load some statistics. Please refresh the page.');
+      })
+      .finally(() => {
+        setStatsLoading(false);
       });
   }, []);
 
@@ -79,7 +162,25 @@ export default function SuperadminPage() {
         </svg>
       ),
     },
+    {
+      title: 'Șabloane Email',
+      description: 'Gestionare șabloane email',
+      href: '/dashboard/superadmin/email-templates',
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
   ];
+
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering superadmin overview');
   return (
@@ -87,8 +188,14 @@ export default function SuperadminPage() {
       <Breadcrumbs items={breadcrumbs} className="mb-6" />
       <h1 className="text-3xl font-bold text-text-primary mb-6">Superadmin</h1>
 
+      {statsError && (
+        <div className="mb-4 p-4 bg-warning bg-opacity-10 border border-warning rounded-md text-warning">
+          {statsError}
+        </div>
+      )}
+
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card variant="elevated">
           <CardBody>
             <div className="flex items-center justify-between">
@@ -136,6 +243,22 @@ export default function SuperadminPage() {
             </div>
           </CardBody>
         </Card>
+
+        <Card variant="elevated">
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-secondary mb-1">Total Șabloane Email</p>
+                <p className="text-2xl font-bold text-text-primary">{stats.emailTemplates}</p>
+              </div>
+              <div className="text-primary">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Quick Links */}
@@ -144,7 +267,7 @@ export default function SuperadminPage() {
           <h2 className="text-lg font-semibold text-text-primary">Acces Rapid</h2>
         </CardHeader>
         <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {quickLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <div className="p-4 border border-border rounded-md hover:bg-bg-secondary transition-colors cursor-pointer">

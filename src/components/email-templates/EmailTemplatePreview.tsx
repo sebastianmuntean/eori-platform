@@ -28,9 +28,6 @@ function replaceTemplateVariables(content: string, variables: Record<string, any
 }
 
 export function EmailTemplatePreview({ template, onSendTest }: EmailTemplatePreviewProps) {
-  console.log('Step 1: Rendering EmailTemplatePreview');
-  console.log(`  Template: ${template.name}`);
-
   const [testRecipientEmail, setTestRecipientEmail] = useState('');
   const [testRecipientName, setTestRecipientName] = useState('Test User');
   const [testVariables, setTestVariables] = useState<Record<string, any>>({});
@@ -89,11 +86,9 @@ export function EmailTemplatePreview({ template, onSendTest }: EmailTemplatePrev
 
   const handleSendTest = async () => {
     if (!testRecipientEmail || !onSendTest) return;
-    console.log('Step 2: Sending test email');
     await onSendTest(testRecipientEmail, testRecipientName, testVariables);
   };
 
-  console.log('✓ Rendering preview');
   return (
     <div className="space-y-4">
       <Card className="p-4">

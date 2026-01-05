@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { SUPERADMIN_PERMISSIONS } from '@/lib/permissions/superadmin';
 
 interface Role {
   id: string;
@@ -19,22 +24,92 @@ interface Role {
   }>;
 }
 
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  description?: string | null;
+}
+
+interface ResourceSectionProps {
+  resource: string;
+  permissions: Permission[];
+  selectedPermissionIds: Set<string>;
+  onToggleResource: () => void;
+  onTogglePermission: (permissionId: string) => void;
+}
+
+function ResourceSection({
+  resource,
+  permissions,
+  selectedPermissionIds,
+  onToggleResource,
+  onTogglePermission,
+}: ResourceSectionProps) {
+  const allSelected = permissions.length > 0 && permissions.every(p => selectedPermissionIds.has(p.id));
+  const someSelected = permissions.some(p => selectedPermissionIds.has(p.id)) && !allSelected;
+  const checkboxRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected]);
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-bg-secondary">
+      <label className="flex items-center gap-2 cursor-pointer hover:bg-bg-primary p-2 rounded mb-3">
+        <input
+          ref={checkboxRef}
+          type="checkbox"
+          checked={allSelected}
+          onChange={onToggleResource}
+          className="w-5 h-5"
+        />
+        <span className="font-semibold text-base text-text-primary">{resource}</span>
+      </label>
+      <div className="space-y-2">
+        {permissions.map((permission) => (
+          <label
+            key={permission.id}
+            className="flex items-center gap-2 cursor-pointer hover:bg-bg-primary p-2 rounded"
+          >
+            <input
+              type="checkbox"
+              checked={selectedPermissionIds.has(permission.id)}
+              onChange={() => onTogglePermission(permission.id)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm text-text-secondary">{permission.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function RolePermissionsPage() {
   console.log('Step 1: Rendering Role Permissions page');
 
+  const params = useParams();
+  const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('rolePermissions') || 'Role Permissions');
+
+  // Check permission to view role permissions
+  const { loading: permissionLoading } = useRequirePermission(SUPERADMIN_PERMISSIONS.ROLE_PERMISSIONS_VIEW);
+
   const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Array<{ id: string; name: string; resource: string; action: string }>>([]);
+  const [permissions, setPermissions] = useState<Array<{ id: string; name: string; resource: string; action: string; description?: string | null }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  // Define fetchData before useEffect (must be before conditional return)
+  const fetchData = useCallback(async () => {
     console.log('Step 2: Fetching roles and permissions');
     setLoading(true);
     setError(null);
@@ -45,15 +120,22 @@ export default function RolePermissionsPage() {
         fetch('/api/superadmin/permissions'),
       ]);
 
+      if (!rolesRes.ok || !permsRes.ok) {
+        throw new Error('Failed to fetch data from server');
+      }
+
       const rolesData = await rolesRes.json();
       const permsData = await permsRes.json();
 
-      if (rolesData.success) {
-        setRoles(rolesData.data);
+      if (!rolesData.success) {
+        throw new Error(rolesData.error || 'Failed to load roles');
       }
-      if (permsData.success) {
-        setPermissions(permsData.data);
+      if (!permsData.success) {
+        throw new Error(permsData.error || 'Failed to load permissions');
       }
+
+      setRoles(rolesData.data);
+      setPermissions(permsData.data);
       console.log('✓ Data loaded');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -61,7 +143,12 @@ export default function RolePermissionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (permissionLoading) return;
+    fetchData();
+  }, [permissionLoading, fetchData]);
 
   const handleOpenModal = (role: Role) => {
     setSelectedRole(role);
@@ -81,31 +168,87 @@ export default function RolePermissionsPage() {
     });
   };
 
+  const handleToggleAllPermissions = () => {
+    const allPermissionIds = permissions.map(p => p.id);
+    const allSelected = allPermissionIds.every(id => selectedPermissionIds.has(id));
+    
+    if (allSelected) {
+      setSelectedPermissionIds(new Set());
+    } else {
+      setSelectedPermissionIds(new Set(allPermissionIds));
+    }
+  };
+
+  const handleToggleResourcePermissions = (resource: string) => {
+    const resourcePermissions = permissionsByResource[resource] || [];
+    const resourcePermissionIds = resourcePermissions.map(p => p.id);
+    const allResourceSelected = resourcePermissionIds.every(id => selectedPermissionIds.has(id));
+    
+    setSelectedPermissionIds((prev) => {
+      const newSet = new Set(prev);
+      if (allResourceSelected) {
+        resourcePermissionIds.forEach(id => newSet.delete(id));
+      } else {
+        resourcePermissionIds.forEach(id => newSet.add(id));
+      }
+      return newSet;
+    });
+  };
+
   const handleSave = async () => {
-    if (!selectedRole) return;
+    if (!selectedRole || isSaving) return;
     console.log('Step 2: Saving role permissions');
 
     const currentPermissionIds = new Set(selectedRole.permissions.map((p) => p.id));
     const toAdd = Array.from(selectedPermissionIds).filter((id) => !currentPermissionIds.has(id));
     const toRemove = Array.from(currentPermissionIds).filter((id) => !selectedPermissionIds.has(id));
 
+    setIsSaving(true);
+    setError(null);
+
     try {
-      // Add new permissions
-      for (const permissionId of toAdd) {
-        await fetch('/api/superadmin/role-permissions', {
+      // Execute all add and remove operations in parallel
+      const addPromises = toAdd.map(async (permissionId) => {
+        const response = await fetch('/api/superadmin/role-permissions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roleId: selectedRole.id, permissionId }),
         });
-      }
 
-      // Remove permissions
-      for (const permissionId of toRemove) {
-        await fetch(
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to add permission ${permissionId}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || `Failed to add permission ${permissionId}`);
+        }
+
+        return data;
+      });
+
+      const removePromises = toRemove.map(async (permissionId) => {
+        const response = await fetch(
           `/api/superadmin/role-permissions?roleId=${selectedRole.id}&permissionId=${permissionId}`,
           { method: 'DELETE' }
         );
-      }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to remove permission ${permissionId}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || `Failed to remove permission ${permissionId}`);
+        }
+
+        return data;
+      });
+
+      // Wait for all operations to complete
+      await Promise.all([...addPromises, ...removePromises]);
 
       await fetchData();
       setIsModalOpen(false);
@@ -115,6 +258,8 @@ export default function RolePermissionsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update permissions');
       console.error('❌ Error updating permissions:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -124,13 +269,22 @@ export default function RolePermissionsPage() {
     }
     acc[perm.resource].push(perm);
     return acc;
-  }, {} as Record<string, typeof permissions>);
+  }, {} as Record<string, Permission[]>);
 
   const breadcrumbs = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Superadmin', href: '/dashboard/superadmin' },
     { label: 'Rol-Permisiuni' },
   ];
+
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Loading...</div>
+      </div>
+    );
+  }
 
   console.log('✓ Rendering role permissions page');
   return (
@@ -195,46 +349,55 @@ export default function RolePermissionsPage() {
           setSelectedPermissionIds(new Set());
         }}
         title={`Configurează Permisiuni - ${selectedRole?.name}`}
-        size="lg"
+        size="full"
       >
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {Object.entries(permissionsByResource).map(([resource, perms]) => (
-            <div key={resource} className="border-b border-border pb-4 last:border-0">
-              <h3 className="font-semibold text-text-primary mb-2">{resource}</h3>
-              <div className="space-y-2">
-                {perms.map((perm) => (
-                  <label
-                    key={perm.id}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary p-2 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedPermissionIds.has(perm.id)}
-                      onChange={() => handleTogglePermission(perm.id)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm text-text-primary">{perm.name}</span>
-                    {perm.description && (
-                      <span className="text-xs text-text-secondary">- {perm.description}</span>
-                    )}
-                  </label>
-                ))}
-              </div>
+        <div className="flex flex-col -mx-6 -my-4 h-[calc(98vh-80px)]">
+          {/* Select All Checkbox */}
+          <div className="border-b border-border pb-4 mb-4 px-6 pt-4 flex-shrink-0">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary p-3 rounded-lg">
+              <input
+                type="checkbox"
+                checked={permissions.length > 0 && permissions.every(p => selectedPermissionIds.has(p.id))}
+                onChange={handleToggleAllPermissions}
+                className="w-5 h-5"
+              />
+              <span className="font-bold text-base text-white">Selectează toate permisiunile</span>
+            </label>
+          </div>
+
+          {/* Permissions Grid in Multiple Columns */}
+          <div className="flex-1 overflow-y-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
+              {Object.entries(permissionsByResource).map(([resource, perms]) => (
+                <ResourceSection
+                  key={resource}
+                  resource={resource}
+                  permissions={perms}
+                  selectedPermissionIds={selectedPermissionIds}
+                  onToggleResource={() => handleToggleResourcePermissions(resource)}
+                  onTogglePermission={handleTogglePermission}
+                />
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="flex gap-2 justify-end mt-4 pt-4 border-t border-border">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setIsModalOpen(false);
-              setSelectedRole(null);
-              setSelectedPermissionIds(new Set());
-            }}
-          >
-            Anulează
-          </Button>
-          <Button onClick={handleSave}>Salvează</Button>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex gap-2 justify-end px-6 pb-4 pt-4 border-t border-border flex-shrink-0">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setIsModalOpen(false);
+                setSelectedRole(null);
+                setSelectedPermissionIds(new Set());
+              }}
+              disabled={isSaving}
+            >
+              Anulează
+            </Button>
+            <Button onClick={handleSave} isLoading={isSaving} disabled={isSaving}>
+              Salvează
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

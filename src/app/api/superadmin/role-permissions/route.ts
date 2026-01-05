@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { roles, permissions, rolePermissions } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireRole } from '@/lib/auth';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -14,6 +15,7 @@ export async function GET() {
   console.log('Step 1: GET /api/superadmin/role-permissions - Fetching roles with permissions');
 
   try {
+    await requireRole('superadmin');
     console.log('Step 2: Querying database for roles with permissions');
     
     // Get all roles
@@ -56,6 +58,7 @@ export async function POST(request: Request) {
   console.log('Step 1: POST /api/superadmin/role-permissions - Creating role-permission association');
 
   try {
+    await requireRole('superadmin');
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createRolePermissionSchema.safeParse(body);
@@ -135,6 +138,7 @@ export async function DELETE(request: Request) {
   console.log('Step 1: DELETE /api/superadmin/role-permissions - Removing role-permission association');
 
   try {
+    await requireRole('superadmin');
     const { searchParams } = new URL(request.url);
     const roleId = searchParams.get('roleId');
     const permissionId = searchParams.get('permissionId');

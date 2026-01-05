@@ -11,8 +11,6 @@ export function Badge({
   size = 'md',
   ...props 
 }: BadgeProps) {
-  console.log('Step 1: Rendering Badge component with variant:', variant, 'size:', size);
-  
   const baseStyles = 'inline-flex items-center font-medium rounded-full';
   
   const variantStyles = {

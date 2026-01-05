@@ -69,6 +69,29 @@ const standardPermissions = [
   // Superadmin resource
   { name: 'superadmin.access', resource: 'superadmin', action: 'access', description: 'Acces la secțiunea Superadmin' },
   { name: 'superadmin.manage', resource: 'superadmin', action: 'manage', description: 'Gestionare completă configurații Superadmin' },
+  
+  // Events resource
+  { name: 'events.view', resource: 'events', action: 'view', description: 'Vizualizare evenimente' },
+  { name: 'events.create', resource: 'events', action: 'create', description: 'Creare evenimente' },
+  { name: 'events.edit', resource: 'events', action: 'edit', description: 'Editare evenimente' },
+  { name: 'events.delete', resource: 'events', action: 'delete', description: 'Ștergere evenimente' },
+  { name: 'events.confirm', resource: 'events', action: 'confirm', description: 'Confirmare evenimente' },
+  
+  // Notifications resource
+  { name: 'notifications.create', resource: 'notifications', action: 'create', description: 'Creare notificări' },
+  
+  // Documents resource (Registratură)
+  { name: 'documents.read', resource: 'documents', action: 'read', description: 'Citire documente' },
+  { name: 'documents.create', resource: 'documents', action: 'create', description: 'Creare documente' },
+  { name: 'documents.update', resource: 'documents', action: 'update', description: 'Actualizare documente' },
+  { name: 'documents.delete', resource: 'documents', action: 'delete', description: 'Ștergere documente' },
+  { name: 'documents.route', resource: 'documents', action: 'route', description: 'Rutare documente' },
+  { name: 'documents.resolve', resource: 'documents', action: 'resolve', description: 'Rezolvare documente' },
+  { name: 'documents.archive', resource: 'documents', action: 'archive', description: 'Arhivare documente' },
+  { name: 'documents.view_secret', resource: 'documents', action: 'view_secret', description: 'Vizualizare documente secrete' },
+  
+  // General Register resource
+  { name: 'general_register.resolve_any', resource: 'general_register', action: 'resolve_any', description: 'Solutionare orice document din registrul general' },
 ];
 
 // Role-permission mappings
@@ -90,6 +113,20 @@ const rolePermissionMappings: Record<string, string[]> = {
     'settings.read',
     'settings.write',
     'settings.manage',
+    'events.view',
+    'events.create',
+    'events.edit',
+    'events.delete',
+    'events.confirm',
+    'notifications.create',
+    'documents.read',
+    'documents.create',
+    'documents.update',
+    'documents.delete',
+    'documents.route',
+    'documents.resolve',
+    'documents.archive',
+    'documents.view_secret',
   ],
   moderator: [
     'users.read',
@@ -99,12 +136,23 @@ const rolePermissionMappings: Record<string, string[]> = {
     'posts.delete',
     'posts.manage',
     'reports.read',
+    'events.view',
+    'events.create',
+    'events.edit',
+    'events.confirm',
+    'notifications.create',
+    'documents.read',
+    'documents.create',
+    'documents.update',
+    'documents.route',
+    'documents.resolve',
   ],
   user: [
     'posts.read',
     'posts.write',
     'profile.read',
     'profile.write',
+    'events.view',
   ],
 };
 
@@ -419,6 +467,367 @@ Sistemul {{app.name}}`,
       category: 'predefined' as const,
       isActive: true,
     },
+    {
+      name: 'Confirmare Eveniment',
+      subject: 'Confirmare eveniment - {{event.typeLabel}}',
+      htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmare eveniment</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+    <h1 style="color: #2c3e50; margin-top: 0;">Confirmare eveniment</h1>
+    
+    <p>Salut <strong>{{recipient.name}}</strong>,</p>
+    
+    <p>Evenimentul tău a fost confirmat cu succes!</p>
+    
+    <div style="background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin: 20px 0;">
+      <h2 style="color: #2c3e50; margin-top: 0; font-size: 18px;">Detalii eveniment:</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Tip:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.typeLabel}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Data:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.date}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Locație:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.location}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Preot:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.priestName}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Parohie:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.parishName}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Observații:</strong><br>
+        {{event.notes}}
+      </p>
+    </div>
+    
+    <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Informație:</strong> Evenimentul tău este confirmat și programat. Te așteptăm cu nerăbdare!
+      </p>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; margin: 0;">
+      Cu respect,<br>
+      {{event.parishName}}
+    </p>
+  </div>
+</body>
+</html>`,
+      textContent: `Confirmare eveniment
+
+Salut {{recipient.name}},
+
+Evenimentul tău a fost confirmat cu succes!
+
+Detalii eveniment:
+Tip: {{event.typeLabel}}
+Data: {{event.date}}
+Locație: {{event.location}}
+Preot: {{event.priestName}}
+Parohie: {{event.parishName}}
+
+Observații:
+{{event.notes}}
+
+Informație: Evenimentul tău este confirmat și programat. Te așteptăm cu nerăbdare!
+
+Cu respect,
+{{event.parishName}}`,
+      variables: ['recipient.name', 'recipient.email', 'event.typeLabel', 'event.date', 'event.location', 'event.priestName', 'event.parishName', 'event.notes'],
+      category: 'predefined' as const,
+      isActive: true,
+    },
+    {
+      name: 'Reminder Eveniment',
+      subject: 'Reminder - {{event.typeLabel}} pe {{event.date}}',
+      htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminder eveniment</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+    <h1 style="color: #2c3e50; margin-top: 0;">Reminder eveniment</h1>
+    
+    <p>Salut <strong>{{recipient.name}}</strong>,</p>
+    
+    <p>Acest este un reminder că evenimentul tău este programat pentru <strong>{{event.date}}</strong>.</p>
+    
+    <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Evenimentul va avea loc peste {{event.daysUntil}} zile.</strong>
+      </p>
+    </div>
+    
+    <div style="background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin: 20px 0;">
+      <h2 style="color: #2c3e50; margin-top: 0; font-size: 18px;">Detalii eveniment:</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Tip:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.typeLabel}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Data:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.date}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Locație:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.location}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Preot:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.priestName}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Parohie:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.parishName}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Observații:</strong><br>
+        {{event.notes}}
+      </p>
+    </div>
+    
+    <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Te rugăm să fii prezent la timp!</strong> Dacă ai întrebări sau modificări, te rugăm să ne contactezi cât mai curând.
+      </p>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; margin: 0;">
+      Cu respect,<br>
+      {{event.parishName}}
+    </p>
+  </div>
+</body>
+</html>`,
+      textContent: `Reminder eveniment
+
+Salut {{recipient.name}},
+
+Acest este un reminder că evenimentul tău este programat pentru {{event.date}}.
+
+Evenimentul va avea loc peste {{event.daysUntil}} zile.
+
+Detalii eveniment:
+Tip: {{event.typeLabel}}
+Data: {{event.date}}
+Locație: {{event.location}}
+Preot: {{event.priestName}}
+Parohie: {{event.parishName}}
+
+Observații:
+{{event.notes}}
+
+Te rugăm să fii prezent la timp! Dacă ai întrebări sau modificări, te rugăm să ne contactezi cât mai curând.
+
+Cu respect,
+{{event.parishName}}`,
+      variables: ['recipient.name', 'recipient.email', 'event.typeLabel', 'event.date', 'event.location', 'event.priestName', 'event.parishName', 'event.notes', 'event.daysUntil'],
+      category: 'predefined' as const,
+      isActive: true,
+    },
+    {
+      name: 'Anulare Eveniment',
+      subject: 'Anulare eveniment - {{event.typeLabel}}',
+      htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anulare eveniment</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+    <h1 style="color: #2c3e50; margin-top: 0;">Anulare eveniment</h1>
+    
+    <p>Salut <strong>{{recipient.name}}</strong>,</p>
+    
+    <p>Ne pare rău să te informăm că evenimentul programat a fost anulat.</p>
+    
+    <div style="background-color: #f8d7da; border-left: 4px solid #721c24; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Eveniment anulat:</strong> {{event.typeLabel}} programat pentru {{event.date}}
+      </p>
+    </div>
+    
+    <div style="background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin: 20px 0;">
+      <h2 style="color: #2c3e50; margin-top: 0; font-size: 18px;">Detalii eveniment anulat:</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Tip:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.typeLabel}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Data:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.date}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Locație:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.location}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Parohie:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{event.parishName}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Motiv anulare:</strong><br>
+        {{cancellationReason}}
+      </p>
+    </div>
+    
+    <div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Informație:</strong> Dacă dorești să programezi un nou eveniment sau ai întrebări, te rugăm să ne contactezi.
+      </p>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; margin: 0;">
+      Cu respect,<br>
+      {{event.parishName}}
+    </p>
+  </div>
+</body>
+</html>`,
+      textContent: `Anulare eveniment
+
+Salut {{recipient.name}},
+
+Ne pare rău să te informăm că evenimentul programat a fost anulat.
+
+Eveniment anulat: {{event.typeLabel}} programat pentru {{event.date}}
+
+Detalii eveniment anulat:
+Tip: {{event.typeLabel}}
+Data: {{event.date}}
+Locație: {{event.location}}
+Parohie: {{event.parishName}}
+
+Motiv anulare:
+{{cancellationReason}}
+
+Informație: Dacă dorești să programezi un nou eveniment sau ai întrebări, te rugăm să ne contactezi.
+
+Cu respect,
+{{event.parishName}}`,
+      variables: ['recipient.name', 'recipient.email', 'event.typeLabel', 'event.date', 'event.location', 'event.parishName', 'cancellationReason'],
+      category: 'predefined' as const,
+      isActive: true,
+    },
+    {
+      name: 'Chitanta Plata',
+      subject: 'Chitanță plată - {{payment.number}}',
+      htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chitanță plată</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+    <h1 style="color: #2c3e50; margin-top: 0;">Chitanță plată</h1>
+    
+    <p>Salut <strong>{{client.name}}</strong>,</p>
+    
+    <p>Confirmăm primirea plății în valoare de <strong>{{payment.amount}}</strong>.</p>
+    
+    <div style="background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin: 20px 0;">
+      <h2 style="color: #2c3e50; margin-top: 0; font-size: 18px;">Detalii plată:</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Număr chitanță:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{payment.number}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Data:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{payment.date}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Suma:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 18px; font-weight: bold; color: #28a745;">{{payment.amount}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Motiv:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{payment.reason}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: bold; color: #666;">Parohie:</td>
+          <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; color: #333;">{{parish.name}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0; font-size: 14px;">
+        <strong>Plata a fost înregistrată cu succes!</strong> Această chitanță confirmă primirea sumei menționate mai sus.
+      </p>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; margin: 0;">
+      Cu respect,<br>
+      {{parish.name}}
+    </p>
+  </div>
+</body>
+</html>`,
+      textContent: `Chitanță plată
+
+Salut {{client.name}},
+
+Confirmăm primirea plății în valoare de {{payment.amount}}.
+
+Detalii plată:
+Număr chitanță: {{payment.number}}
+Data: {{payment.date}}
+Suma: {{payment.amount}}
+Motiv: {{payment.reason}}
+Parohie: {{parish.name}}
+
+Plata a fost înregistrată cu succes! Această chitanță confirmă primirea sumei menționate mai sus.
+
+Cu respect,
+{{parish.name}}`,
+      variables: ['client.name', 'client.email', 'payment.number', 'payment.date', 'payment.amount', 'payment.currency', 'payment.reason', 'parish.name'],
+      category: 'predefined' as const,
+      isActive: true,
+    },
   ];
 
   for (const templateData of templates) {
@@ -450,6 +859,7 @@ async function seed() {
     await seedEmailTemplates();
     
     console.log('✓ Database seed completed successfully!');
+    console.log('Note: Register configurations should be seeded using migration 0028_seed_register_configurations.sql');
     process.exit(0);
   } catch (error) {
     console.error('❌ Database seed failed:', error);

@@ -38,7 +38,8 @@ export async function createSession(
       userAgent: userAgent || null,
     });
 
-    console.log(`✓ Session created with token: ${token.substring(0, 8)}...`);
+    // Don't log token details for security
+    // Use structured logging instead if needed
     return token;
   } catch (error) {
     console.error(`❌ Failed to create session: ${error}`);
@@ -73,11 +74,7 @@ export async function getSessionToken(): Promise<string | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || null;
 
-  if (token) {
-    console.log(`✓ Session token found: ${token.substring(0, 8)}...`);
-  } else {
-    console.log(`❌ No session token found`);
-  }
+  // Don't log token details for security
 
   return token;
 }
@@ -86,7 +83,7 @@ export async function getSessionToken(): Promise<string | null> {
  * Validate session token and return user ID
  */
 export async function validateSession(token: string): Promise<string | null> {
-  console.log(`Step 1: Validating session token: ${token.substring(0, 8)}...`);
+  // Don't log token details for security
 
   try {
     const [session] = await db
@@ -105,13 +102,6 @@ export async function validateSession(token: string): Promise<string | null> {
       return null;
     }
 
-    // Update last_used_at
-    await db
-      .update(sessions)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(sessions.id, session.id));
-
-    console.log(`✓ Session validated for user ${session.userId}`);
     return session.userId;
   } catch (error) {
     console.error(`❌ Failed to validate session: ${error}`);
@@ -125,7 +115,7 @@ export async function validateSession(token: string): Promise<string | null> {
  * Delete session from database
  */
 export async function deleteSession(token: string): Promise<void> {
-  console.log(`Step 1: Deleting session: ${token.substring(0, 8)}...`);
+  // Don't log token details for security
 
   try {
     await db.delete(sessions).where(eq(sessions.token, token));

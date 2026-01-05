@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { formatErrorResponse, logError } from '@/lib/errors';
+import { requireAuth } from '@/lib/auth';
 
 /**
  * GET /api/users/template - Download Excel template for user import
@@ -11,6 +12,8 @@ export async function GET() {
   console.log('Step 1: GET /api/users/template - Generating user import template');
 
   try {
+    // Require authentication
+    await requireAuth();
     // Valid roles from system enum
     const validRoles = ['episcop', 'vicar', 'paroh', 'secretar', 'contabil'];
     console.log(`Step 1.1: Valid roles: ${validRoles.join(', ')}`);

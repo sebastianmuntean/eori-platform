@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { locales, defaultLocale } from '@/i18n/config';
+import { LocaleSetter } from '@/components/LocaleSetter';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -32,12 +33,11 @@ export default async function LocaleLayout({
   console.log('✓ Messages loaded for locale:', locale);
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <>
+      <LocaleSetter locale={locale} />
+      <NextIntlClientProvider messages={messages}>
+        {children}
+      </NextIntlClientProvider>
+    </>
   );
 }

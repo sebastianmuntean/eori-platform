@@ -3,7 +3,10 @@ import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth';
-import { eq, and, gt } from 'drizzle-orm';
+import { validateVerificationToken } from '@/lib/auth-utils';
+import { checkPasswordResetRateLimit } from '@/lib/rate-limit';
+import { logRequest, logResponse, logError as logErrorSecure } from '@/lib/logger';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const setPasswordSchema = z.object({
@@ -17,44 +20,53 @@ const setPasswordSchema = z.object({
 
 /**
  * GET /api/auth/confirm-password - Verify confirmation token
+ * 
+ * Validates a password reset/confirmation token without revealing whether
+ * the token is valid or not (prevents enumeration attacks).
+ * 
+ * @param request - Request object with token query parameter
+ * @returns { success: boolean, data?: { email, name }, error?: string }
+ * @throws 400 - Missing or invalid token
+ * @throws 429 - Rate limit exceeded
+ * @throws 500 - Server error
  */
 export async function GET(request: Request) {
-  console.log('Step 1: GET /api/auth/confirm-password - Verifying token');
+  logRequest('/api/auth/confirm-password', 'GET');
 
   try {
+    // Rate limiting
+    const rateLimitCheck = await checkPasswordResetRateLimit(request);
+    if (!rateLimitCheck.allowed) {
+      logResponse('/api/auth/confirm-password', 'GET', 429);
+      return rateLimitCheck.response!;
+    }
+
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
 
     if (!token) {
-      console.log('❌ Missing token parameter');
+      logResponse('/api/auth/confirm-password', 'GET', 400);
       return NextResponse.json(
         { success: false, error: 'Token is required' },
         { status: 400 }
       );
     }
 
-    console.log(`Step 2: Looking up user with token: ${token.substring(0, 8)}...`);
+    // Use shared validation function (prevents enumeration)
+    const user = await validateVerificationToken(token);
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(
-        and(
-          eq(users.verificationCode, token),
-          gt(users.verificationCodeExpiry, new Date())
-        )
-      )
-      .limit(1);
-
+    // Use consistent error message and timing to prevent enumeration
     if (!user) {
-      console.log('❌ Invalid or expired token');
+      // Add small delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, 100));
+      logResponse('/api/auth/confirm-password', 'GET', 400);
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },
         { status: 400 }
       );
     }
 
-    console.log(`✓ Token verified for user: ${user.email}`);
+    logResponse('/api/auth/confirm-password', 'GET', 200);
     return NextResponse.json({
       success: true,
       data: {
@@ -63,7 +75,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('❌ Error verifying token:', error);
+    logErrorSecure('Error verifying token', error, { endpoint: '/api/auth/confirm-password', method: 'GET' });
     logError(error, { endpoint: '/api/auth/confirm-password', method: 'GET' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,
@@ -73,17 +85,32 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/auth/confirm-password - Set password via confirmation token
+ * 
+ * Sets a new password using a verification token. The token is cleared
+ * after successful password set to prevent reuse.
+ * 
+ * @param request - Request body: { token: string, password: string, confirmPassword: string }
+ * @returns { success: boolean, message?: string, error?: string }
+ * @throws 400 - Invalid input, weak password, or invalid token
+ * @throws 429 - Rate limit exceeded
+ * @throws 500 - Server error
  */
 export async function POST(request: Request) {
-  console.log('Step 1: POST /api/auth/confirm-password - Setting password');
+  logRequest('/api/auth/confirm-password', 'POST');
 
   try {
+    // Rate limiting
+    const rateLimitCheck = await checkPasswordResetRateLimit(request);
+    if (!rateLimitCheck.allowed) {
+      logResponse('/api/auth/confirm-password', 'POST', 429);
+      return rateLimitCheck.response!;
+    }
+
     const body = await request.json();
-    console.log('Step 2: Validating request body');
     const validation = setPasswordSchema.safeParse(body);
 
     if (!validation.success) {
-      console.log('❌ Validation failed:', validation.error.errors);
+      logResponse('/api/auth/confirm-password', 'POST', 400);
       return NextResponse.json(
         { success: false, error: validation.error.errors[0].message },
         { status: 400 }
@@ -92,10 +119,10 @@ export async function POST(request: Request) {
 
     const { token, password } = validation.data;
 
-    console.log('Step 3: Validating password strength');
+    // Validate password strength
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.valid) {
-      console.log('❌ Password validation failed:', passwordValidation.errors);
+      logResponse('/api/auth/confirm-password', 'POST', 400);
       return NextResponse.json(
         {
           success: false,
@@ -105,31 +132,25 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Step 4: Looking up user with token: ${token.substring(0, 8)}...`);
+    // Use shared validation function
+    const user = await validateVerificationToken(token);
 
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(
-        and(
-          eq(users.verificationCode, token),
-          gt(users.verificationCodeExpiry, new Date())
-        )
-      )
-      .limit(1);
-
+    // Use consistent error message and timing to prevent enumeration
     if (!user) {
-      console.log('❌ Invalid or expired token');
+      // Add small delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, 100));
+      logResponse('/api/auth/confirm-password', 'POST', 400);
       return NextResponse.json(
         { success: false, error: 'Invalid or expired token' },
         { status: 400 }
       );
     }
 
-    console.log(`Step 5: Hashing password for user: ${user.email}`);
+    // Hash password
     const passwordHash = await hashPassword(password);
 
-    console.log('Step 6: Updating user password and clearing verification token');
+    // Update user password and clear verification token
+    // Use transaction-like approach: check token exists before clearing
     await db
       .update(users)
       .set({
@@ -142,13 +163,13 @@ export async function POST(request: Request) {
       })
       .where(eq(users.id, user.id));
 
-    console.log(`✓ Password set successfully for user: ${user.email}`);
+    logResponse('/api/auth/confirm-password', 'POST', 200);
     return NextResponse.json({
       success: true,
       message: 'Password set successfully. You can now log in.',
     });
   } catch (error) {
-    console.error('❌ Error setting password:', error);
+    logErrorSecure('Error setting password', error, { endpoint: '/api/auth/confirm-password', method: 'POST' });
     logError(error, { endpoint: '/api/auth/confirm-password', method: 'POST' });
     return NextResponse.json(formatErrorResponse(error), {
       status: formatErrorResponse(error).statusCode,

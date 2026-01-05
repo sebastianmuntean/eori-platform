@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword, requireAuth } from '@/lib/auth';
 import { sendUserConfirmationEmail } from '@/lib/email';
-import { eq, like, or, desc, asc } from 'drizzle-orm';
+import { generateVerificationToken } from '@/lib/auth/tokens';
+import { logCreate, logUpdate, logDelete, extractIpAddress, extractUserAgent } from '@/lib/audit/audit-logger';
+import { eq, like, or, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
 
@@ -22,6 +24,7 @@ const createUserSchema = z.object({
 const updateUserSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   email: z.string().email('Invalid email address').optional(),
+  role: z.enum(['episcop', 'vicar', 'paroh', 'secretar', 'contabil']).optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   phone: z.string().optional(),
@@ -30,22 +33,110 @@ const updateUserSchema = z.object({
 });
 
 /**
- * Generate a secure verification token
- */
-function generateVerificationToken(): string {
-  console.log('Step 1: Generating verification token');
-  const token = randomBytes(32).toString('hex');
-  console.log(`✓ Verification token generated: ${token.substring(0, 8)}...`);
-  return token;
-}
-
-/**
- * GET /api/users - Fetch all users with pagination, filtering, and sorting
+ * @openapi
+ * /api/users:
+ *   get:
+ *     summary: Fetch all users with pagination, filtering, and sorting
+ *     description: |
+ *       Retrieves a paginated list of users with optional filtering and sorting.
+ *       Requires authentication.
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: Page number (1-indexed)
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - name: pageSize
+ *         in: query
+ *         description: Number of items per page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - name: search
+ *         in: query
+ *         description: Search query (searches email, name, address, city, phone)
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: status
+ *         in: query
+ *         description: Filter by active status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *       - name: approvalStatus
+ *         in: query
+ *         description: Filter by approval status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *       - name: sortBy
+ *         in: query
+ *         description: Field to sort by
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, email]
+ *           default: createdAt
+ *       - name: sortOrder
+ *         in: query
+ *         description: Sort order
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedResponse'
+ *             example:
+ *               success: true
+ *               data:
+ *                 - id: "123e4567-e89b-12d3-a456-426614174000"
+ *                   email: "user@example.com"
+ *                   name: "John Doe"
+ *                   role: "paroh"
+ *                   isActive: true
+ *                   approvalStatus: "approved"
+ *               pagination:
+ *                 page: 1
+ *                 pageSize: 10
+ *                 total: 100
+ *                 totalPages: 10
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function GET(request: Request) {
   console.log('Step 1: GET /api/users - Fetching users');
 
   try {
+    // Require authentication
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
@@ -64,7 +155,7 @@ export async function GET(request: Request) {
       conditions.push(
         or(
           like(users.email, `%${search}%`),
-          like(users.name || '', `%${search}%`),
+          like(users.name, `%${search}%`),
           like(users.address || '', `%${search}%`),
           like(users.city || '', `%${search}%`),
           like(users.phone || '', `%${search}%`)
@@ -72,22 +163,40 @@ export async function GET(request: Request) {
       );
     }
 
-    // Note: Since the current schema doesn't have isActive and approvalStatus,
-    // we'll skip those filters for now. In production, you'd add these fields to the schema.
-    // For now, we'll return all users and filter can be added later when schema is updated.
+    // Filter by status (active/inactive)
+    if (status === 'active') {
+      conditions.push(eq(users.isActive, true));
+    } else if (status === 'inactive') {
+      conditions.push(eq(users.isActive, false));
+    }
+
+    // Filter by approval status
+    if (approvalStatus) {
+      conditions.push(eq(users.approvalStatus, approvalStatus as 'pending' | 'approved' | 'rejected'));
+    }
 
     console.log(`Step 3: Building query with ${conditions.length} conditions`);
 
-    // Get total count
-    const totalCountResult = await db.select({ count: users.id }).from(users);
-    const totalCount = totalCountResult.length;
+    // Build where clause
+    const whereClause = conditions.length > 0 
+      ? (conditions.length === 1 ? conditions[0] : and(...conditions))
+      : undefined;
+
+    // Get total count with conditions
+    let countQuery: any = db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
+    if (whereClause) {
+      countQuery = countQuery.where(whereClause);
+    }
+    const totalCountResult = await countQuery;
+    const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(users);
-
-    if (conditions.length > 0) {
-      query = query.where(conditions[0] as any);
+    let query: any = db.select().from(users);
+    if (whereClause) {
+      query = query.where(whereClause);
     }
 
     // Apply sorting
@@ -104,7 +213,10 @@ export async function GET(request: Request) {
     const allUsers = await query.limit(pageSize).offset(offset);
 
     // Remove password hashes from response
-    const usersWithoutPasswords = allUsers.map(({ passwordHash, ...user }) => user);
+    const usersWithoutPasswords = allUsers.map((user: typeof users.$inferSelect) => {
+      const { passwordHash, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
 
     console.log(`✓ Found ${allUsers.length} users (total: ${totalCount})`);
 
@@ -128,12 +240,106 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST /api/users - Create a new user
+ * @openapi
+ * /api/users:
+ *   post:
+ *     summary: Create a new user
+ *     description: |
+ *       Creates a new user account. The user will receive a confirmation email
+ *       to set their password. Requires authentication.
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               name:
+ *                 type: string
+ *                 minLength: 1
+ *                 example: John Doe
+ *               role:
+ *                 type: string
+ *                 enum: [episcop, vicar, paroh, secretar, contabil]
+ *                 example: paroh
+ *               address:
+ *                 type: string
+ *                 example: "123 Main St"
+ *               city:
+ *                 type: string
+ *                 example: "Bucharest"
+ *               phone:
+ *                 type: string
+ *                 example: "+40123456789"
+ *               isActive:
+ *                 type: boolean
+ *                 default: true
+ *               approvalStatus:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *                 default: pending
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                 message:
+ *                   type: string
+ *                   example: "User created successfully. Confirmation email sent."
+ *       400:
+ *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               success: false
+ *               error: "User with this email already exists"
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function POST(request: Request) {
   console.log('Step 1: POST /api/users - Creating new user');
 
   try {
+    // Require authentication
+    const { userId } = await requireAuth();
     const body = await request.json();
     console.log('Step 2: Validating request body');
     const validation = createUserSchema.safeParse(body);
@@ -174,17 +380,33 @@ export async function POST(request: Request) {
     const tempPasswordHash = await hashPassword(tempPassword);
 
     console.log('Step 6: Inserting user into database');
-    // Insert user with all fields including address, city, and phone
+    // Insert user with all fields including role, address, city, phone, isActive, and approvalStatus
+    const insertValues: {
+      email: string;
+      name: string;
+      role: 'episcop' | 'vicar' | 'paroh' | 'secretar' | 'contabil';
+      passwordHash: string;
+      address?: string | null;
+      city?: string | null;
+      phone?: string | null;
+      isActive: boolean;
+      approvalStatus: 'pending' | 'approved' | 'rejected';
+    } = {
+      email,
+      name: name || '',
+      role: role || 'paroh',
+      passwordHash: tempPasswordHash, // Temporary, will be changed via confirmation
+      isActive: isActive ?? true,
+      approvalStatus: approvalStatus || 'pending',
+    };
+    
+    if (address) insertValues.address = address;
+    if (city) insertValues.city = city;
+    if (phone) insertValues.phone = phone;
+    
     const [newUser] = await db
       .insert(users)
-      .values({
-        email,
-        name: name || null,
-        passwordHash: tempPasswordHash, // Temporary, will be changed via confirmation
-        address: address || null,
-        city: city || null,
-        phone: phone || null,
-      })
+      .values(insertValues)
       .returning();
 
     console.log(`✓ User created with ID: ${newUser.id}`);
@@ -210,15 +432,28 @@ export async function POST(request: Request) {
       .where(eq(users.id, newUser.id));
 
     console.log(`✓ User created successfully: ${newUser.id}`);
+    
+    // Log audit event for user creation
+    logCreate(
+      userId,
+      'user',
+      newUser.id,
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'POST',
+        endpoint: '/api/users',
+      }
+    ).catch((err) => {
+      console.error('Failed to log user creation audit event:', err);
+    });
+    
     const { passwordHash, ...userWithoutPassword } = newUser;
 
     return NextResponse.json(
       {
         success: true,
-        data: {
-          ...userWithoutPassword,
-          verificationToken, // Return token for testing (remove in production)
-        },
+        data: userWithoutPassword,
       },
       { status: 201 }
     );
@@ -238,6 +473,8 @@ export async function PUT(request: Request) {
   console.log('Step 1: PUT /api/users - Updating user');
 
   try {
+    // Require authentication
+    const { userId: currentUserId } = await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -295,7 +532,30 @@ export async function PUT(request: Request) {
     }
 
     console.log('Step 5: Updating user');
-    const updateData: any = {
+    
+    // Capture before state for audit log
+    const beforeState = {
+      name: existingUser.name,
+      email: existingUser.email,
+      role: existingUser.role,
+      address: existingUser.address,
+      city: existingUser.city,
+      phone: existingUser.phone,
+      isActive: existingUser.isActive,
+      approvalStatus: existingUser.approvalStatus,
+    };
+    
+    const updateData: {
+      updatedAt: Date;
+      name?: string;
+      email?: string;
+      role?: 'episcop' | 'vicar' | 'paroh' | 'secretar' | 'contabil';
+      address?: string | null;
+      city?: string | null;
+      phone?: string | null;
+      isActive?: boolean;
+      approvalStatus?: 'pending' | 'approved' | 'rejected';
+    } = {
       updatedAt: new Date(),
     };
 
@@ -304,6 +564,9 @@ export async function PUT(request: Request) {
     }
     if (validation.data.email !== undefined) {
       updateData.email = validation.data.email;
+    }
+    if (validation.data.role !== undefined) {
+      updateData.role = validation.data.role;
     }
     if (validation.data.address !== undefined) {
       updateData.address = validation.data.address || null;
@@ -314,8 +577,12 @@ export async function PUT(request: Request) {
     if (validation.data.phone !== undefined) {
       updateData.phone = validation.data.phone || null;
     }
-
-    // Note: isActive and approvalStatus would be added here when schema is updated
+    if (validation.data.isActive !== undefined) {
+      updateData.isActive = validation.data.isActive;
+    }
+    if (validation.data.approvalStatus !== undefined) {
+      updateData.approvalStatus = validation.data.approvalStatus;
+    }
 
     const [updatedUser] = await db
       .update(users)
@@ -324,6 +591,34 @@ export async function PUT(request: Request) {
       .returning();
 
     console.log(`✓ User updated successfully: ${userId}`);
+    
+    // Log audit event for user update with before/after state
+    const afterState = {
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      address: updatedUser.address,
+      city: updatedUser.city,
+      phone: updatedUser.phone,
+      isActive: updatedUser.isActive,
+      approvalStatus: updatedUser.approvalStatus,
+    };
+    
+    logUpdate(
+      currentUserId,
+      'user',
+      userId,
+      { before: beforeState, after: afterState },
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'PUT',
+        endpoint: '/api/users',
+      }
+    ).catch((err) => {
+      console.error('Failed to log user update audit event:', err);
+    });
+    
     const { passwordHash, ...userWithoutPassword } = updatedUser;
 
     return NextResponse.json({
@@ -346,6 +641,8 @@ export async function DELETE(request: Request) {
   console.log('Step 1: DELETE /api/users - Deleting user');
 
   try {
+    // Require authentication
+    const { userId: currentUserId } = await requireAuth();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
 
@@ -373,11 +670,38 @@ export async function DELETE(request: Request) {
     }
 
     console.log('Step 3: Soft deleting user (setting isActive to false)');
-    // Note: Since schema doesn't have isActive, we'll actually delete the user
-    // In production, you'd set isActive to false instead
-    await db.delete(users).where(eq(users.id, userId));
+    // Perform soft delete by setting isActive to false
+    await db
+      .update(users)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
 
     console.log(`✓ User deleted successfully: ${userId}`);
+    
+    // Log audit event for user deletion
+    logDelete(
+      currentUserId,
+      'user',
+      userId,
+      {
+        ipAddress: extractIpAddress(request),
+        userAgent: extractUserAgent(request),
+        requestMethod: 'DELETE',
+        endpoint: '/api/users',
+        metadata: {
+          softDelete: true,
+          previousState: {
+            isActive: existingUser.isActive,
+          },
+        },
+      }
+    ).catch((err) => {
+      console.error('Failed to log user deletion audit event:', err);
+    });
+    
     return NextResponse.json({
       success: true,
       message: 'User deleted successfully',

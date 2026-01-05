@@ -6,20 +6,15 @@ import { Dropdown } from './Dropdown';
 import { useState } from 'react';
 
 export function LanguageSwitcher() {
-  console.log('Step 1: Rendering LanguageSwitcher component');
-
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
   const currentLocale = (params.locale as Locale) || 'ro';
 
   const handleLocaleChange = (newLocale: Locale) => {
-    console.log(`Step 2: Changing locale from ${currentLocale} to ${newLocale}`);
-    
     // Replace locale in pathname
     const newPathname = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
     router.push(newPathname);
-    console.log(`✓ Locale changed to ${newLocale}`);
   };
 
   const languageItems = locales.map((locale) => ({
@@ -28,7 +23,6 @@ export function LanguageSwitcher() {
     active: locale === currentLocale,
   }));
 
-  console.log('✓ Rendering language switcher');
   return (
     <Dropdown
       trigger={
