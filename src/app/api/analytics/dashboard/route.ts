@@ -55,7 +55,14 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     logError('Failed to fetch dashboard analytics', error);
-    return formatErrorResponse(error, 'Failed to fetch dashboard analytics');
+    const errorResponse = formatErrorResponse(error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorResponse.error,
+      },
+      { status: errorResponse.statusCode }
+    );
   }
 }
 
