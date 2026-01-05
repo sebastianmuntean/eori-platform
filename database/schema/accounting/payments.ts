@@ -10,7 +10,7 @@ export const paymentTypeEnum = pgEnum('payment_type', ['income', 'expense']);
 export const accountingPaymentMethodEnum = pgEnum('payment_method', ['cash', 'bank_transfer', 'card', 'check']);
 
 // Payment status enum: pending, completed, cancelled
-export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'cancelled']);
+export const accountingPaymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'cancelled']);
 
 export const payments = pgTable('payments', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -25,7 +25,7 @@ export const payments = pgTable('payments', {
   description: text('description'),
   paymentMethod: accountingPaymentMethodEnum('payment_method'),
   referenceNumber: varchar('reference_number', { length: 100 }),
-  status: paymentStatusEnum('status').notNull().default('pending'),
+  status: accountingPaymentStatusEnum('status').notNull().default('pending'),
   createdBy: uuid('created_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

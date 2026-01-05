@@ -12,7 +12,7 @@ export const pilgrimagePaymentMethodEnum = pgEnum('payment_method', [
 ]);
 
 // Payment status enum (different from participant payment status)
-export const paymentStatusEnum = pgEnum('payment_status', [
+export const pilgrimagePaymentStatusEnum = pgEnum('payment_status', [
   'pending',
   'completed',
   'failed',
@@ -27,7 +27,7 @@ export const pilgrimagePayments = pgTable('pilgrimage_payments', {
   paymentDate: date('payment_date').notNull(),
   paymentMethod: pilgrimagePaymentMethodEnum('payment_method').notNull(),
   paymentReference: varchar('payment_reference', { length: 255 }),
-  status: paymentStatusEnum('status').notNull().default('pending'),
+  status: pilgrimagePaymentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'),
   createdBy: uuid('created_by').references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
