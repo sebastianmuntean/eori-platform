@@ -7,7 +7,7 @@ import { users } from '../superadmin/users';
 export const paymentTypeEnum = pgEnum('payment_type', ['income', 'expense']);
 
 // Payment method enum: cash, bank_transfer, card, check
-export const paymentMethodEnum = pgEnum('payment_method', ['cash', 'bank_transfer', 'card', 'check']);
+export const accountingPaymentMethodEnum = pgEnum('payment_method', ['cash', 'bank_transfer', 'card', 'check']);
 
 // Payment status enum: pending, completed, cancelled
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'cancelled']);
@@ -23,7 +23,7 @@ export const payments = pgTable('payments', {
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
   currency: varchar('currency', { length: 3 }).default('RON'),
   description: text('description'),
-  paymentMethod: paymentMethodEnum('payment_method'),
+  paymentMethod: accountingPaymentMethodEnum('payment_method'),
   referenceNumber: varchar('reference_number', { length: 100 }),
   status: paymentStatusEnum('status').notNull().default('pending'),
   createdBy: uuid('created_by').notNull().references(() => users.id),

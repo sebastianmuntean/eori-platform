@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -52,6 +52,7 @@ export default function WarehousesPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     parishId: '',
     code: '',
@@ -106,20 +107,44 @@ export default function WarehousesPage() {
   };
 
   const handleSave = async () => {
-    if (selectedWarehouse) {
-      const result = await updateWarehouse(selectedWarehouse.id, formData);
-      if (result) {
-        setShowEditModal(false);
-        setSelectedWarehouse(null);
-        fetchWarehouses({ page: currentPage, pageSize: 10 });
+    setIsSubmitting(true);
+    try {
+      if (selectedWarehouse) {
+        const result = await updateWarehouse(selectedWarehouse.id, formData);
+        if (result) {
+          setShowEditModal(false);
+          setSelectedWarehouse(null);
+          // Refetch with current filters to maintain state
+          const params: any = {
+            page: currentPage,
+            pageSize: 10,
+            search: searchTerm || undefined,
+            parishId: parishFilter || undefined,
+            type: typeFilter || undefined,
+            isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
+          };
+          fetchWarehouses(params);
+        }
+      } else {
+        const result = await createWarehouse(formData);
+        if (result) {
+          setShowAddModal(false);
+          resetForm();
+          // After creating, go to first page and refetch with current filters
+          setCurrentPage(1);
+          const params: any = {
+            page: 1,
+            pageSize: 10,
+            search: searchTerm || undefined,
+            parishId: parishFilter || undefined,
+            type: typeFilter || undefined,
+            isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
+          };
+          fetchWarehouses(params);
+        }
       }
-    } else {
-      const result = await createWarehouse(formData);
-      if (result) {
-        setShowAddModal(false);
-        resetForm();
-        fetchWarehouses({ page: currentPage, pageSize: 10 });
-      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -127,7 +152,16 @@ export default function WarehousesPage() {
     const success = await deleteWarehouse(id);
     if (success) {
       setDeleteConfirm(null);
-      fetchWarehouses({ page: currentPage, pageSize: 10 });
+      // Refetch with current filters to maintain state
+      const params: any = {
+        page: currentPage,
+        pageSize: 10,
+        search: searchTerm || undefined,
+        parishId: parishFilter || undefined,
+        type: typeFilter || undefined,
+        isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
+      };
+      fetchWarehouses(params);
     }
   };
 
@@ -147,11 +181,11 @@ export default function WarehousesPage() {
     setSelectedWarehouse(null);
   };
 
-  const columns: any[] = [
-    { key: 'code', label: t('code') || 'Code', sortable: true },
-    { key: 'name', label: t('name') || 'Name', sortable: true },
+  const columns = useMemo(() => [
+    { key: 'code' as keyof Warehouse, label: t('code') || 'Code', sortable: true },
+    { key: 'name' as keyof Warehouse, label: t('name') || 'Name', sortable: true },
     {
-      key: 'type',
+      key: 'type' as keyof Warehouse,
       label: t('type') || 'Type',
       sortable: false,
       render: (value: string) => (
@@ -161,7 +195,7 @@ export default function WarehousesPage() {
       ),
     },
     {
-      key: 'invoiceSeries',
+      key: 'invoiceSeries' as keyof Warehouse,
       label: t('invoiceSeries') || 'Serie Factură',
       sortable: false,
       render: (value: string | null) => (
@@ -175,7 +209,7 @@ export default function WarehousesPage() {
       ),
     },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof Warehouse,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
@@ -185,7 +219,7 @@ export default function WarehousesPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Warehouse,
       label: t('actions') || 'Actions',
       sortable: false,
       render: (_: any, row: Warehouse) => (
@@ -204,7 +238,7 @@ export default function WarehousesPage() {
         />
       ),
     },
-  ];
+  ], [t]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -352,7 +386,7 @@ export default function WarehousesPage() {
         }}
         title={selectedWarehouse ? (t('editWarehouse') || 'Edit Warehouse') : (t('addWarehouse') || 'Add Warehouse')}
         onSubmit={handleSave}
-        isSubmitting={false}
+        isSubmitting={isSubmitting}
         submitLabel={t('save') || 'Save'}
         cancelLabel={t('cancel') || 'Cancel'}
         size="lg"

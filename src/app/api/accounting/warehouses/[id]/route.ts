@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { warehouses } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { getCurrentUser } from '@/lib/auth';
+import { requireAuth, requirePermission } from '@/lib/auth';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 import { eq, and, ne } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -26,6 +27,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authentication and permission
+    await requirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
+
     const { id } = await params;
 
     const [warehouse] = await db
@@ -62,13 +66,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
+    // Require authentication and permission
+    const { userId } = await requireAuth();
+    await requirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_UPDATE);
 
     const { id } = await params;
     const body = await request.json();
@@ -151,13 +151,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
+    // Require authentication and permission
+    const { userId } = await requireAuth();
+    await requirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_DELETE);
 
     const { id } = await params;
 

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { warehouses, parishes } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { getCurrentUser } from '@/lib/auth';
+import { requireAuth, requirePermission } from '@/lib/auth';
+import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 import { eq, like, or, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -24,6 +25,9 @@ const createWarehouseSchema = z.object({
  */
 export async function GET(request: Request) {
   try {
+    // Require authentication and permission
+    await requirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
@@ -116,13 +120,9 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
+    // Require authentication and permission
+    const { userId } = await requireAuth();
+    await requirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_CREATE);
 
     const body = await request.json();
     const validation = createWarehouseSchema.safeParse(body);

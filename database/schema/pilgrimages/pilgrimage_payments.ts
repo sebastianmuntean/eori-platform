@@ -4,7 +4,7 @@ import { pilgrimageParticipants } from './pilgrimage_participants';
 import { users } from '../superadmin/users';
 
 // Payment method enum
-export const paymentMethodEnum = pgEnum('payment_method', [
+export const pilgrimagePaymentMethodEnum = pgEnum('payment_method', [
   'cash',
   'card',
   'bank_transfer',
@@ -25,7 +25,7 @@ export const pilgrimagePayments = pgTable('pilgrimage_payments', {
   participantId: uuid('participant_id').notNull().references(() => pilgrimageParticipants.id, { onDelete: 'cascade' }),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   paymentDate: date('payment_date').notNull(),
-  paymentMethod: paymentMethodEnum('payment_method').notNull(),
+  paymentMethod: pilgrimagePaymentMethodEnum('payment_method').notNull(),
   paymentReference: varchar('payment_reference', { length: 255 }),
   status: paymentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'),

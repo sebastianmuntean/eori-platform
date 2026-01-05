@@ -36,7 +36,7 @@ export const contracts = pgTable('contracts', {
   notes: text('notes'),
   renewalDate: date('renewal_date'),
   autoRenewal: boolean('auto_renewal').default(false),
-  parentContractId: uuid('parent_contract_id').references(() => contracts.id),
+  parentContractId: uuid('parent_contract_id').references((): any => contracts.id),
   invoiceItemTemplate: jsonb('invoice_item_template'), // Template for invoice line items
   createdBy: uuid('created_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
