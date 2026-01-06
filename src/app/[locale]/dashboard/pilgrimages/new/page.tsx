@@ -58,11 +58,6 @@ export default function NewPilgrimagePage() {
     fetchParishes({ all: true });
   }, [permissionLoading, fetchParishes]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   // Helper function to transform form data to API format
   const transformFormDataToApi = useCallback(
     (data: typeof initialFormData) => ({
@@ -140,6 +135,11 @@ export default function NewPilgrimagePage() {
     ],
     [t, tPilgrimages, locale]
   );
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div>

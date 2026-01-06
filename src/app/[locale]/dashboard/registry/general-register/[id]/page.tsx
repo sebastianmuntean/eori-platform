@@ -27,11 +27,7 @@ export default function DocumentDetailPage() {
   // Check permission to view general register
   const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const [document, setDocument] = useState<GeneralRegisterDocument | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -52,17 +48,18 @@ export default function DocumentDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchDocument();
-  }, [fetchDocument]);
+  }, [permissionLoading, fetchDocument]);
 
   const handleWorkflowUpdate = useCallback(() => {
     fetchDocument();
     setRefreshKey(k => k + 1);
   }, [fetchDocument]);
 
-  const handleAttachmentsUpdate = () => {
+  const handleAttachmentsUpdate = useCallback(() => {
     setRefreshKey(k => k + 1);
-  };
+  }, []);
 
   const handleSave = useCallback(async (data: {
     subject: string;
@@ -87,6 +84,11 @@ export default function DocumentDetailPage() {
       setSaving(false);
     }
   }, [document, router, locale, success, showError, tReg]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   if (loading) {
     return (

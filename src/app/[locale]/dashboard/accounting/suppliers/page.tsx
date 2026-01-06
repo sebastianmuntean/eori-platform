@@ -31,10 +31,7 @@ export default function SuppliersPage() {
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('suppliers'));
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     clients,
     loading,
@@ -59,8 +56,8 @@ export default function SuppliersPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
   const refreshClients = useCallback(() => {
+    if (permissionLoading) return;
     fetchClients({
       page: currentPage,
       pageSize: 10,
@@ -68,11 +65,12 @@ export default function SuppliersPage() {
       sortBy: 'code',
       sortOrder: 'asc',
     });
-  }, [currentPage, searchTerm, fetchClients]);
+  }, [permissionLoading, currentPage, searchTerm, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     refreshClients();
-  }, [refreshClients]);
+  }, [permissionLoading, refreshClients]);
 
   const handleCreate = useCallback(async () => {
     setFormErrors({});
@@ -232,6 +230,11 @@ export default function SuppliersPage() {
       ),
     },
   ], [t, handleEdit]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div className="space-y-6">

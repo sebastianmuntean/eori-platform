@@ -46,12 +46,6 @@ export default function BirthdaysPage() {
     });
   }, [permissionLoading, parishFilter, daysAhead, fetchBirthdays]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
-
   const formatDate = useCallback((date: string) => {
     return new Date(date).toLocaleDateString(locale);
   }, [locale]);
@@ -86,6 +80,11 @@ export default function BirthdaysPage() {
       sortable: false,
     },
   ], [t, formatDate]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div className="space-y-6">

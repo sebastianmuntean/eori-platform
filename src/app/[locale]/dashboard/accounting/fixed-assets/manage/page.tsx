@@ -33,10 +33,7 @@ export default function FixedAssetsManagePage() {
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     fixedAssets,
     loading,
@@ -68,8 +65,9 @@ export default function FixedAssetsManagePage() {
   const [formData, setFormData] = useState<FixedAssetFormData>(createInitialFormData());
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   // Build filter params helper
   const buildFilterParams = useCallback(
@@ -85,8 +83,9 @@ export default function FixedAssetsManagePage() {
   );
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchFixedAssets(buildFilterParams());
-  }, [currentPage, searchTerm, parishFilter, categoryFilter, statusFilter, fetchFixedAssets, buildFilterParams]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, categoryFilter, statusFilter, fetchFixedAssets, buildFilterParams]);
 
   const resetForm = useCallback(() => {
     setFormData(createInitialFormData());
@@ -219,6 +218,11 @@ export default function FixedAssetsManagePage() {
       ),
     },
   ], [t, handleEdit]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div className="space-y-6">

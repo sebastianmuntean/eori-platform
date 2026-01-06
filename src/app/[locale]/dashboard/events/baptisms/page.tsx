@@ -29,11 +29,7 @@ export default function BaptismsPage() {
   // Check permission to access Baptisms
   const { loading: permissionLoading } = useRequirePermission(EVENTS_PERMISSIONS.VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     events,
     loading,
@@ -69,10 +65,12 @@ export default function BaptismsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -86,7 +84,7 @@ export default function BaptismsPage() {
       sortOrder: 'desc',
     };
     fetchEvents(params);
-  }, [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
 
   const handleCreate = async () => {
     if (!formData.parishId) {
@@ -166,7 +164,7 @@ export default function BaptismsPage() {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       parishId: '',
       status: 'pending',
@@ -175,7 +173,7 @@ export default function BaptismsPage() {
       priestName: '',
       notes: '',
     });
-  };
+  }, []);
 
   const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';
@@ -233,6 +231,11 @@ export default function BaptismsPage() {
       ),
     },
   ], [t, formatDate]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

@@ -52,11 +52,6 @@ export default function CreateMappingDatasetPage() {
     fetchParishes({ all: true });
   }, [permissionLoading, fetchParishes]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const handleSave = useCallback(async () => {
     setErrors({});
 
@@ -83,6 +78,11 @@ export default function CreateMappingDatasetPage() {
       setLoading(false);
     }
   }, [formData, mappings, createDataset, t, tForms, success, showError, locale, router]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCancel = () => {
     router.push(`/${locale}/dashboard/registry/online-forms/mapping-datasets`);

@@ -28,11 +28,7 @@ export default function EditMappingDatasetPage() {
   // Check permission to view mapping datasets
   const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.MAPPING_DATASETS_VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const { dataset, fetchDataset, updateDataset } = useMappingDatasets();
   const { parishes, fetchParishes } = useParishes();
   const { toasts, success, error: showError, removeToast } = useToast();
@@ -53,11 +49,12 @@ export default function EditMappingDatasetPage() {
   const [editingIndex, setEditingIndex] = useState<number>(-1);
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchDataset(id);
     }
     fetchParishes({ all: true });
-  }, [id, fetchDataset, fetchParishes]);
+  }, [permissionLoading, id, fetchDataset, fetchParishes]);
 
   useEffect(() => {
     if (dataset) {
@@ -98,6 +95,11 @@ export default function EditMappingDatasetPage() {
       setLoading(false);
     }
   }, [id, formData, mappings, updateDataset, t, tForms, success, showError, locale, router]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCancel = () => {
     router.push(`/${locale}/dashboard/registry/online-forms/mapping-datasets`);
