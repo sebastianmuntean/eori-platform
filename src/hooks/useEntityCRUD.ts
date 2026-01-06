@@ -25,7 +25,7 @@ export interface EntityCRUDConfig<T extends { id: string }, TFormData, TCreateDa
   refreshEntities: () => void;
 }
 
-export interface UseEntityCRUDReturn<T, TFormData> {
+export interface UseEntityCRUDReturn<T extends { id: string }, TFormData> {
   // Modal state
   showAddModal: boolean;
   showEditModal: boolean;
