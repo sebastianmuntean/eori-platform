@@ -27,23 +27,20 @@ export default function PangarPage() {
   const [parishFilter, setParishFilter] = useState('');
   const [warehouseFilter, setWarehouseFilter] = useState('');
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchWarehouses({ pageSize: 1000 });
-  }, [fetchParishes, fetchWarehouses]);
+  }, [permissionLoading, fetchParishes, fetchWarehouses]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     // Fetch stock levels when filters are set, or fetch all if no filters
     fetchStockLevels({
       parishId: parishFilter || undefined,
       warehouseId: warehouseFilter || undefined,
     });
-  }, [parishFilter, warehouseFilter, fetchStockLevels]);
+  }, [permissionLoading, parishFilter, warehouseFilter, fetchStockLevels]);
 
   const columns: any[] = [
     {
@@ -84,6 +81,11 @@ export default function PangarPage() {
       render: (value: string) => value ? new Date(value).toLocaleDateString('ro-RO') : '-',
     },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

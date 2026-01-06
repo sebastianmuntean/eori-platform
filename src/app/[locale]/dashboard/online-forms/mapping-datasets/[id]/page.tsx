@@ -39,11 +39,7 @@ export default function EditMappingDatasetPage() {
   // Check permission to view mapping datasets
   const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.MAPPING_DATASETS_VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const { dataset, fetchDataset, updateDataset } = useMappingDatasets();
   const { parishes, fetchParishes } = useParishes();
 
@@ -63,11 +59,12 @@ export default function EditMappingDatasetPage() {
   const [editingIndex, setEditingIndex] = useState<number>(-1);
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchDataset(id);
     }
     fetchParishes({ all: true });
-  }, [id, fetchDataset, fetchParishes]);
+  }, [permissionLoading, id, fetchDataset, fetchParishes]);
 
   useEffect(() => {
     if (dataset) {
@@ -81,6 +78,11 @@ export default function EditMappingDatasetPage() {
       setMappings((dataset.mappings || []) as Mapping[]);
     }
   }, [dataset]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSave = async () => {
     setErrors({});

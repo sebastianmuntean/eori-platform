@@ -61,16 +61,12 @@ export default function PilgrimageMealsPage() {
   const { meals, loading, error } = usePilgrimageMeals(id);
   usePageTitle(pilgrimage?.title ? `${tPilgrimages('meals') || 'Meals'} - ${pilgrimage.title}` : (tPilgrimages('meals') || 'Meals'));
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
     }
-  }, [id, fetchPilgrimage]);
+  }, [permissionLoading, id, fetchPilgrimage]);
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -136,6 +132,11 @@ export default function PilgrimageMealsPage() {
         value ? `${value} ${pilgrimage?.currency || 'RON'}` : '-',
     },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div>

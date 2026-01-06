@@ -61,16 +61,17 @@ export default function PilgrimageAccommodationPage() {
   const { accommodation, loading, error } = usePilgrimageAccommodation(id);
   usePageTitle(pilgrimage?.title ? `${tPilgrimages('accommodation') || 'Accommodation'} - ${pilgrimage.title}` : (tPilgrimages('accommodation') || 'Accommodation'));
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
     }
-  }, [id, fetchPilgrimage]);
+  }, [permissionLoading, id, fetchPilgrimage]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },

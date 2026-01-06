@@ -30,6 +30,7 @@ export default function PilgrimageParticipantsPage() {
   // Check permission to view pilgrimages
   const { loading: permissionLoading } = useRequirePermission(PILGRIMAGES_PERMISSIONS.VIEW);
 
+  // All hooks must be called before any conditional returns
   const { pilgrimage, fetchPilgrimage } = usePilgrimage();
   usePageTitle(pilgrimage?.title ? `${tPilgrimages('participants')} - ${pilgrimage.title}` : tPilgrimages('participants'));
   const {
@@ -46,11 +47,6 @@ export default function PilgrimageParticipantsPage() {
   } = usePilgrimageParticipants();
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
-
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ParticipantStatus | ''>('');
@@ -79,23 +75,31 @@ export default function PilgrimageParticipantsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
       fetchParticipants(id, {});
     }
-  }, [id, fetchPilgrimage, fetchParticipants]);
+  }, [permissionLoading, id, fetchPilgrimage, fetchParticipants]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParticipants(id, {
       search: searchTerm || undefined,
       status: statusFilter || undefined,
     });
-  }, [id, searchTerm, statusFilter, fetchParticipants]);
+  }, [permissionLoading, id, searchTerm, statusFilter, fetchParticipants]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = async () => {
     if (!formData.firstName) {

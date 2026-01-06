@@ -67,17 +67,14 @@ export default function InventarPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<InventorySession | null>(null);
   const [completeConfirm, setCompleteConfirm] = useState<InventorySession | null>(null);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchWarehouses({ pageSize: 1000 });
-  }, [fetchParishes, fetchWarehouses]);
+  }, [permissionLoading, fetchParishes, fetchWarehouses]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (parishFilter || warehouseFilter) {
       fetchBookInventory({
         parishId: parishFilter || undefined,
@@ -85,16 +82,17 @@ export default function InventarPage() {
         type: (typeFilter === 'product' || typeFilter === 'fixed_asset') ? typeFilter : undefined,
       }).then(setBookInventory);
     }
-  }, [parishFilter, warehouseFilter, typeFilter, fetchBookInventory]);
+  }, [permissionLoading, parishFilter, warehouseFilter, typeFilter, fetchBookInventory]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchSessions({
       page: currentPage,
       pageSize: 10,
       parishId: parishFilter || undefined,
       warehouseId: warehouseFilter || undefined,
     });
-  }, [currentPage, parishFilter, warehouseFilter, fetchSessions]);
+  }, [permissionLoading, currentPage, parishFilter, warehouseFilter, fetchSessions]);
 
   // Refresh sessions list
   const refreshSessions = useCallback(() => {
@@ -231,6 +229,11 @@ export default function InventarPage() {
       setIsSubmitting(false);
     }
   }, [deleteSession, refreshSessions, success, showError, t]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleEditSession = useCallback((session: InventorySession) => {
     setSelectedSession(session);

@@ -64,16 +64,12 @@ export default function PilgrimageTransportPage() {
   const { transport, loading, error } = usePilgrimageTransport(id);
   usePageTitle(pilgrimage?.title ? `${tPilgrimages('transport') || 'Transport'} - ${pilgrimage.title}` : (tPilgrimages('transport') || 'Transport'));
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
     }
-  }, [id, fetchPilgrimage]);
+  }, [permissionLoading, id, fetchPilgrimage]);
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },

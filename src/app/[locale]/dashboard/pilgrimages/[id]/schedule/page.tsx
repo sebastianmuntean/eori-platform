@@ -28,6 +28,7 @@ export default function PilgrimageSchedulePage() {
   // Check permission to view pilgrimages
   const { loading: permissionLoading } = useRequirePermission(PILGRIMAGES_PERMISSIONS.VIEW);
 
+  // All hooks must be called before any conditional returns
   const { pilgrimage, fetchPilgrimage } = usePilgrimage();
   usePageTitle(pilgrimage?.title ? `${tPilgrimages('schedule') || 'Schedule'} - ${pilgrimage.title}` : (tPilgrimages('schedule') || 'Schedule'));
   const {
@@ -39,11 +40,6 @@ export default function PilgrimageSchedulePage() {
     updateActivity,
     deleteActivity,
   } = usePilgrimageSchedule();
-
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -63,11 +59,17 @@ export default function PilgrimageSchedulePage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
       fetchSchedule(id);
     }
-  }, [id, fetchPilgrimage, fetchSchedule]);
+  }, [permissionLoading, id, fetchPilgrimage, fetchSchedule]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = async () => {
     if (!formData.title) {

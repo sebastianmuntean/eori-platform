@@ -58,19 +58,20 @@ export default function PilgrimagePaymentsPage() {
     notes: '',
   });
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
       fetchPayments(id, {});
       fetchParticipants(id, {});
       getPaymentSummary(id);
     }
-  }, [id, fetchPilgrimage, fetchPayments, fetchParticipants, getPaymentSummary]);
+  }, [permissionLoading, id, fetchPilgrimage, fetchPayments, fetchParticipants, getPaymentSummary]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = async () => {
     if (!formData.participantId || !formData.amount || !formData.paymentDate) {

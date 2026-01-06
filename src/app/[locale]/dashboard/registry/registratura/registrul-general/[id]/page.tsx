@@ -43,6 +43,21 @@ export default function DocumentDetailPage() {
     }
   }, [permissionLoading, id, fetchDocument]);
 
+  const handleDelete = useCallback(async () => {
+    if (!document) return;
+    
+    const success = await deleteDocument(document.id);
+    if (success) {
+      router.push(`/${locale}/dashboard/registry/registratura/registrul-general`);
+    }
+    setShowDeleteConfirm(false);
+  }, [document, deleteDocument, locale, router]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
+
   const handleEdit = () => {
     setShowEditModal(true);
   };
@@ -58,21 +73,6 @@ export default function DocumentDetailPage() {
       setRefreshKey(k => k + 1);
     }
   };
-
-  const handleDelete = useCallback(async () => {
-    if (!document) return;
-    
-    const success = await deleteDocument(document.id);
-    if (success) {
-      router.push(`/${locale}/dashboard/registry/registratura/registrul-general`);
-    }
-    setShowDeleteConfirm(false);
-  }, [document, deleteDocument, locale, router]);
-
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
 
   const handleRoute = () => {
     // The DocumentWorkflow component handles routing

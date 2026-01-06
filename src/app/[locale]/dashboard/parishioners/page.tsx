@@ -15,10 +15,6 @@ export default function ParishionersPage() {
   const locale = params.locale as string;
   const t = useTranslations('common');
 
-  if (permissionLoading) {
-    return null;
-  }
-
   const menuItems = [
     {
       title: t('receipts') || 'Receipts',
@@ -57,6 +53,11 @@ export default function ParishionersPage() {
       icon: '🔍',
     },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

@@ -50,17 +50,18 @@ export default function PilgrimageDocumentsPage() {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchPilgrimage(id);
       fetchDocuments(id);
     }
-  }, [id, fetchPilgrimage, fetchDocuments]);
+  }, [permissionLoading, id, fetchPilgrimage, fetchDocuments]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleUpload = async () => {
     if (!selectedFile || !uploadFormData.title) {

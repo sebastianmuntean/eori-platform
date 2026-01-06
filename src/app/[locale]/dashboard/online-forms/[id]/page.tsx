@@ -36,11 +36,7 @@ export default function EditOnlineFormPage() {
   // Check permission to view online forms
   const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const { form, fetchForm } = useOnlineForm();
   usePageTitle(form?.name || tMenu('onlineForms'));
   const { updateForm } = useOnlineForms();
@@ -71,18 +67,25 @@ export default function EditOnlineFormPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (id) {
       fetchForm(id);
     }
-  }, [id, fetchForm]);
+  }, [permissionLoading, id, fetchForm]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     if (form) {
       fetchDatasets({
         targetModule: form.targetModule,
       });
     }
-  }, [form, fetchDatasets]);
+  }, [permissionLoading, form, fetchDatasets]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   useEffect(() => {
     if (form) {

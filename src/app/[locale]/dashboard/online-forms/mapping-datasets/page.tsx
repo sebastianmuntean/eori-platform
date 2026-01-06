@@ -25,11 +25,7 @@ export default function MappingDatasetsPage() {
   // Check permission to view mapping datasets
   const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.MAPPING_DATASETS_VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     datasets,
     loading,
@@ -45,13 +41,19 @@ export default function MappingDatasetsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchDatasets({
       page: currentPage,
       limit: 10,
       search: searchTerm || undefined,
       targetModule: targetModuleFilter || undefined,
     });
-  }, [currentPage, searchTerm, targetModuleFilter, fetchDatasets]);
+  }, [permissionLoading, currentPage, searchTerm, targetModuleFilter, fetchDatasets]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = () => {
     router.push(`/${locale}/dashboard/online-forms/mapping-datasets/new`);

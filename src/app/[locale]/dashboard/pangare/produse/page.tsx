@@ -49,14 +49,10 @@ export default function ProdusePangarPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(createEmptyProductFormData());
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   const refreshProducts = useCallback(() => {
     const params: any = {
@@ -191,6 +187,11 @@ export default function ProdusePangarPage() {
     setIsActiveFilter('');
     setCurrentPage(1);
   }, []);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

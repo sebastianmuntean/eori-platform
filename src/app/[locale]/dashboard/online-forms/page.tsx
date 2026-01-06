@@ -30,11 +30,7 @@ export default function OnlineFormsPage() {
   // Check permission to view online forms
   const { loading: permissionLoading } = useRequirePermission(ONLINE_FORMS_PERMISSIONS.VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     forms,
     loading,
@@ -54,10 +50,12 @@ export default function OnlineFormsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchForms({
       page: currentPage,
       limit: 10,
@@ -68,7 +66,12 @@ export default function OnlineFormsPage() {
       sortBy: 'createdAt',
       sortOrder: 'desc',
     });
-  }, [currentPage, searchTerm, parishFilter, targetModuleFilter, isActiveFilter, fetchForms]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, targetModuleFilter, isActiveFilter, fetchForms]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = () => {
     router.push(`/${locale}/dashboard/online-forms/new`);

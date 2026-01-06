@@ -29,11 +29,7 @@ export default function FuneralsPage() {
   // Check permission to access Funerals
   const { loading: permissionLoading } = useRequirePermission(EVENTS_PERMISSIONS.VIEW);
 
-  // Don't render content while checking permissions
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     events,
     loading,
@@ -69,10 +65,12 @@ export default function FuneralsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -86,7 +84,12 @@ export default function FuneralsPage() {
       sortOrder: 'desc',
     };
     fetchEvents(params);
-  }, [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = async () => {
     if (!formData.parishId) {

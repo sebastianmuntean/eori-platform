@@ -99,11 +99,6 @@ export default function CatechesisClassesPage() {
     setCurrentPage(1);
   }, []);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const resetForm = useCallback(() => {
     setFormData({
       parishId: user?.parishId || '',
@@ -117,6 +112,11 @@ export default function CatechesisClassesPage() {
       isActive: true,
     });
   }, [user?.parishId]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCreate = useCallback(async () => {
     if (!formData.parishId || !formData.name.trim()) {
