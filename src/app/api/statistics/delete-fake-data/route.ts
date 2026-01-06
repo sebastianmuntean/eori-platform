@@ -19,7 +19,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { eq, or, like, sql } from 'drizzle-orm';
 
 interface DeleteFakeDataRequest {
-  type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users';
+  type: 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users';
 }
 
 /**
@@ -46,7 +46,7 @@ export async function DELETE(request: Request) {
     }
 
     const validTypes: DeleteFakeDataRequest['type'][] = [
-      'partners', 'clients', 'invoices', 'payments', 'events', 
+      'clients', 'invoices', 'payments', 'events', 
       'contracts', 'products', 'pangarProducts', 'fixedAssets', 
       'inventory', 'documents', 'users'
     ];
@@ -63,9 +63,7 @@ export async function DELETE(request: Request) {
 
     try {
       switch (type) {
-        case 'partners':
         case 'clients': {
-          // Delete clients (both partners and clients are in the same table)
           // Delete by code pattern (AUTO-*, CLI-*, SUP-*)
           // Get count before deletion
           const countResult = await db
@@ -271,7 +269,6 @@ export async function DELETE(request: Request) {
     }
 
     const typeNames: Record<DeleteFakeDataRequest['type'], string> = {
-      partners: 'parteneri',
       clients: 'clienți',
       invoices: 'facturi',
       payments: 'plăți',
@@ -291,7 +288,7 @@ export async function DELETE(request: Request) {
       deletedCount,
     });
   } catch (error) {
-    logError('Failed to delete fake data', error);
+    logError(error, { endpoint: '/api/statistics/delete-fake-data', method: 'POST' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

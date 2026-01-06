@@ -37,7 +37,7 @@ export function DocumentList({ parishId, onDocumentClick, onCreateNew }: Documen
   useEffect(() => {
     const params: any = {
       page: currentPage,
-      limit: 10,
+      pageSize: 10,
       sortBy,
       sortOrder,
     };
@@ -608,7 +608,7 @@ export function DocumentList({ parishId, onDocumentClick, onCreateNew }: Documen
           onSuccess={() => {
             fetchDocuments({
               page: currentPage,
-              limit: 10,
+              pageSize: 10,
               sortBy,
               sortOrder,
             });
@@ -626,7 +626,7 @@ export function DocumentList({ parishId, onDocumentClick, onCreateNew }: Documen
           onSuccess={() => {
             fetchDocuments({
               page: currentPage,
-              limit: 10,
+              pageSize: 10,
               sortBy,
               sortOrder,
             });

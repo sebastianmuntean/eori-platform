@@ -81,7 +81,12 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, []);
 
-  const fetchNotifications = useCallback(async (params = {}) => {
+  const fetchNotifications = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    isRead?: boolean;
+    type?: NotificationType;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

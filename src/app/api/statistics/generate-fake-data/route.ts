@@ -129,7 +129,7 @@ interface GenerateFakeDataRequest {
   users?: number;
 }
 
-function randomElement<T>(array: T[]): T {
+function randomElement<T>(array: readonly T[] | T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -298,7 +298,7 @@ function validateGenerationLimits(request: GenerateFakeDataRequest): string | nu
   return null;
 }
 
-async function ensurePartnersExist(
+async function ensureClientsExist(
   allParishes: { id: string }[],
   userId: string,
   minCount: number = 5
@@ -419,7 +419,7 @@ async function ensurePartnersExist(
       await db.insert(clients).values(clientsToCreate);
       return clientsToCreate.length;
     } catch (error: any) {
-      logError('Error creating auto clients', error);
+      logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'auto clients' });
       throw error;
     }
   }
@@ -599,7 +599,7 @@ export async function POST(request: Request) {
       }
     } catch (error: any) {
       results.errors.push(`Error creating clients: ${error.message}`);
-      logError('Error creating fake clients', error);
+      logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake clients' });
     }
 
     // Insert suppliers in batches
@@ -610,7 +610,7 @@ export async function POST(request: Request) {
       }
     } catch (error: any) {
       results.errors.push(`Error creating suppliers: ${error.message}`);
-      logError('Error creating fake suppliers', error);
+      logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake suppliers' });
     }
 
     // Generate clients directly in clients table (system-wide, not parish-specific)
@@ -719,7 +719,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating clients: ${error.message}`);
-        logError('Error creating fake clients', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake clients' });
       }
     }
 
@@ -727,10 +727,10 @@ export async function POST(request: Request) {
     if (invoicesCount > 0) {
       try {
         // Ensure clients exist before generating invoices
-        const autoPartnersCount = await ensurePartnersExist(allParishes, userId, Math.max(5, Math.ceil(invoicesCount / 2)));
-        if (autoPartnersCount > 0) {
-          results.clients += Math.ceil(autoPartnersCount * 0.7);
-          results.suppliers += Math.ceil(autoPartnersCount * 0.3);
+        const autoClientsCount = await ensureClientsExist(allParishes, userId, Math.max(5, Math.ceil(invoicesCount / 2)));
+        if (autoClientsCount > 0) {
+          results.clients += Math.ceil(autoClientsCount * 0.7);
+          results.suppliers += Math.ceil(autoClientsCount * 0.3);
         }
 
         // Get all active clients
@@ -740,7 +740,7 @@ export async function POST(request: Request) {
           .where(eq(clients.isActive, true));
 
         if (allClients.length === 0) {
-          results.errors.push('Nu s-au putut crea parteneri necesari pentru facturi.');
+          results.errors.push('Nu s-au putut crea clienți necesari pentru facturi.');
         } else {
           const invoiceList = [];
           for (let i = 0; i < invoicesCount; i++) {
@@ -839,7 +839,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating invoices: ${error.message}`);
-        logError('Error creating fake invoices', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake invoices' });
       }
     }
 
@@ -847,10 +847,10 @@ export async function POST(request: Request) {
     if (paymentsCount > 0) {
       try {
         // Ensure clients exist before generating payments (optional, but better to have some)
-        const autoPartnersCount = await ensurePartnersExist(allParishes, userId, Math.max(3, Math.ceil(paymentsCount / 3)));
-        if (autoPartnersCount > 0) {
-          results.clients += Math.ceil(autoPartnersCount * 0.7);
-          results.suppliers += Math.ceil(autoPartnersCount * 0.3);
+        const autoClientsCount = await ensureClientsExist(allParishes, userId, Math.max(3, Math.ceil(paymentsCount / 3)));
+        if (autoClientsCount > 0) {
+          results.clients += Math.ceil(autoClientsCount * 0.7);
+          results.suppliers += Math.ceil(autoClientsCount * 0.3);
         }
 
         // Get all active clients
@@ -875,15 +875,15 @@ export async function POST(request: Request) {
             parishId,
             paymentNumber: `PAY-${String(i + 1).padStart(6, '0')}`,
             date: paymentDate,
-            type: paymentType,
+            type: paymentType as 'income' | 'expense',
             category: paymentType === 'income' ? 'Donație' : 'Cheltuială',
             clientId,
             amount: amount.toString(),
             currency: 'RON',
             description: `Plată ${paymentType === 'income' ? 'venit' : 'cheltuială'}`,
-            paymentMethod: paymentMethod,
+            paymentMethod: paymentMethod as 'cash' | 'bank_transfer' | 'card' | 'check' | null,
             referenceNumber: Math.random() > 0.5 ? `REF-${randomInt(100000, 999999)}` : null,
-            status: Math.random() > 0.2 ? 'completed' : 'pending',
+            status: (Math.random() > 0.2 ? 'completed' : 'pending') as 'pending' | 'completed' | 'cancelled',
             createdBy: userId,
           });
         }
@@ -894,7 +894,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating payments: ${error.message}`);
-        logError('Error creating fake payments', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake payments' });
       }
     }
 
@@ -927,8 +927,8 @@ export async function POST(request: Request) {
 
           eventList.push({
             parishId,
-            type: eventType,
-            status: status,
+            type: eventType as 'wedding' | 'baptism' | 'funeral',
+            status: status as 'pending' | 'confirmed' | 'completed' | 'cancelled',
             eventDate: eventDate,
             location: randomElement(locations),
             priestName: randomElement(priestNames),
@@ -943,7 +943,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating events: ${error.message}`);
-        logError('Error creating fake events', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake events' });
       }
     }
 
@@ -951,10 +951,10 @@ export async function POST(request: Request) {
     if (contractsCount > 0) {
       try {
         // Ensure clients exist before generating contracts
-        const autoPartnersCount = await ensurePartnersExist(allParishes, userId, Math.max(3, Math.ceil(contractsCount / 2)));
-        if (autoPartnersCount > 0) {
-          results.clients += Math.ceil(autoPartnersCount * 0.7);
-          results.suppliers += Math.ceil(autoPartnersCount * 0.3);
+        const autoClientsCount = await ensureClientsExist(allParishes, userId, Math.max(3, Math.ceil(contractsCount / 2)));
+        if (autoClientsCount > 0) {
+          results.clients += Math.ceil(autoClientsCount * 0.7);
+          results.suppliers += Math.ceil(autoClientsCount * 0.3);
         }
 
         // Get all active clients
@@ -964,7 +964,7 @@ export async function POST(request: Request) {
           .where(eq(clients.isActive, true));
 
         if (allClients.length === 0) {
-          results.errors.push('Nu s-au putut crea parteneri necesari pentru contracte.');
+          results.errors.push('Nu s-au putut crea clienți necesari pentru contracte.');
         } else {
           const contractList = [];
           const contractTypes = ['rental', 'concession', 'sale_purchase', 'loan', 'other'];
@@ -1011,7 +1011,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating contracts: ${error.message}`);
-        logError('Error creating fake contracts', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake contracts' });
       }
     }
 
@@ -1089,7 +1089,7 @@ export async function POST(request: Request) {
                 warehouseId,
                 productId: product.id as string,
                 parishId,
-                type: 'in',
+                type: 'in' as const,
                 movementDate,
                 quantity: quantity.toString(),
                 unitCost: unitCost.toString(),
@@ -1114,7 +1114,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating products: ${error.message}`);
-        logError('Error creating fake products', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake products' });
       }
     }
 
@@ -1198,7 +1198,7 @@ export async function POST(request: Request) {
                 warehouseId,
                 productId: product.id as string,
                 parishId,
-                type: 'in',
+                type: 'in' as const,
                 movementDate,
                 quantity: quantity.toString(),
                 unitCost: unitCost.toString(),
@@ -1223,7 +1223,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating pangar products: ${error.message}`);
-        logError('Error creating fake pangar products', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake pangar products' });
       }
     }
 
@@ -1265,7 +1265,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating fixed assets: ${error.message}`);
-        logError('Error creating fake fixed assets', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake fixed assets' });
       }
     }
 
@@ -1329,7 +1329,7 @@ export async function POST(request: Request) {
 
               itemsToCreate.push({
                 sessionId: session.id as string,
-                itemType: 'product',
+                itemType: 'product' as const,
                 itemId: product.id as string,
                 bookQuantity: bookQuantity.toString(),
                 physicalQuantity: physicalQuantity.toString(),
@@ -1351,7 +1351,7 @@ export async function POST(request: Request) {
 
               itemsToCreate.push({
                 sessionId: session.id as string,
-                itemType: 'fixed_asset',
+                itemType: 'fixed_asset' as const,
                 itemId: asset.id as string,
                 bookQuantity: bookQuantity.toString(),
                 physicalQuantity: physicalQuantity.toString(),
@@ -1369,7 +1369,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating inventory: ${error.message}`);
-        logError('Error creating fake inventory', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake inventory' });
       }
     }
 
@@ -1456,7 +1456,7 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating documents: ${error.message}`);
-        logError('Error creating fake documents', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake documents' });
       }
     }
 
@@ -1527,13 +1527,13 @@ export async function POST(request: Request) {
         }
       } catch (error: any) {
         results.errors.push(`Error creating users: ${error.message}`);
-        logError('Error creating fake users', error);
+        logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST', context: 'fake users' });
       }
     }
 
     // Build success message
     const messages = [];
-    if (results.clients > 0) messages.push(`${results.clients} clienți (parteneri)`);
+    if (results.clients > 0) messages.push(`${results.clients} clienți`);
     if (results.directClients > 0) messages.push(`${results.directClients} clienți`);
     if (results.suppliers > 0) messages.push(`${results.suppliers} furnizori`);
     if (results.invoices > 0) messages.push(`${results.invoices} facturi`);
@@ -1549,7 +1549,7 @@ export async function POST(request: Request) {
     
     // Add note about auto-generated dependencies
     const autoGenerated = [];
-    if (results.clients > 0 && results.clients < 10) autoGenerated.push('parteneri');
+    if (results.clients > 0 && results.clients < 10) autoGenerated.push('clienți');
     if (autoGenerated.length > 0) {
       messages.push(`(s-au generat automat ${autoGenerated.join(', ')})`);
     }
@@ -1562,7 +1562,7 @@ export async function POST(request: Request) {
         success: false,
         error: results.errors.length > 0 
           ? results.errors.join('; ')
-          : 'Nu s-au generat date. Verificați dacă există parohii active și parteneri (pentru facturi/plăți).',
+          : 'Nu s-au generat date. Verificați dacă există parohii active și clienți (pentru facturi/plăți).',
         data: results,
       });
     }
@@ -1573,7 +1573,7 @@ export async function POST(request: Request) {
       message: `Generat cu succes: ${messages.join(', ')}`,
     });
   } catch (error) {
-    logError('Failed to generate fake data', error);
+    logError(error, { endpoint: '/api/statistics/generate-fake-data', method: 'POST' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

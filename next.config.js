@@ -7,6 +7,14 @@ const { withSentryConfig } = require('@sentry/nextjs');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // instrumentation.js is available by default, no need for experimental flag
+  webpack: (config, { isServer }) => {
+    // Resolve lodash.get to the replacement package
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'lodash.get': require.resolve('./packages/lodash-get-replacement'),
+    };
+    return config;
+  },
 };
 
 // Sentry webpack plugin configuration

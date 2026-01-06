@@ -104,10 +104,8 @@ export async function GET(request: Request) {
       : undefined;
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(invoices);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(invoices);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
@@ -137,28 +135,29 @@ export async function GET(request: Request) {
       updatedAt: invoices.updatedAt,
       updatedBy: invoices.updatedBy,
     }).from(invoices);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    
+    // Build query with where clause if needed
+    const queryWithWhere = whereClause ? query.where(whereClause) : query as typeof query & { orderBy: (orderBy: any) => any };
 
     // Apply sorting
+    let finalQuery: any;
     if (sortBy === 'date') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(invoices.date))
-        : query.orderBy(asc(invoices.date));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(invoices.date))
+        : queryWithWhere.orderBy(asc(invoices.date));
     } else if (sortBy === 'invoiceNumber') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(invoices.invoiceNumber))
-        : query.orderBy(asc(invoices.invoiceNumber));
+      finalQuery = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(invoices.invoiceNumber))
+        : queryWithWhere.orderBy(asc(invoices.invoiceNumber));
     } else if (sortBy === 'total') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(invoices.total))
-        : query.orderBy(asc(invoices.total));
+      finalQuery = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(invoices.total))
+        : queryWithWhere.orderBy(asc(invoices.total));
     } else {
-      query = query.orderBy(desc(invoices.createdAt));
+      finalQuery = queryWithWhere.orderBy(desc(invoices.createdAt));
     }
 
-    const allInvoices = await query.limit(pageSize).offset(offset);
+    const allInvoices = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,
@@ -348,7 +347,7 @@ export async function POST(request: Request) {
       if ('rows' in result && Array.isArray(result.rows) && result.rows.length > 0) {
         invoiceId = result.rows[0].id;
       } else if (Array.isArray(result) && result.length > 0) {
-        invoiceId = result[0].id;
+        invoiceId = (result[0] as { id: string }).id;
       } else if ('id' in result) {
         invoiceId = (result as any).id;
       } else {
@@ -377,7 +376,12 @@ export async function POST(request: Request) {
         newInvoice.id,
         data.type,
         data.date,
-        data.items,
+        data.items.map(item => ({
+          ...item,
+          productId: item.productId ?? undefined,
+          warehouseId: item.warehouseId ?? undefined,
+          unitCost: item.unitCost ?? undefined,
+        })),
         data.parishId,
         data.clientId,
         userId

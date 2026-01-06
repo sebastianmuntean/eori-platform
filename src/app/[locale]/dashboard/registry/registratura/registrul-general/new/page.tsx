@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
 import { createGeneralRegisterDocument } from '@/hooks/useGeneralRegister';
@@ -64,22 +64,19 @@ export default function CreateDocumentPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tReg('registratura'), href: `/${locale}/dashboard/registry/registratura` },
           { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/registratura/registrul-general` },
-          { label: tReg('newDocument'), href: '#' },
+          { label: tReg('newDocument') },
         ]}
+        title={tReg('newDocument') || 'New Document'}
+        description={tReg('newDocumentDescription')}
+        className="mb-6"
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tReg('newDocument')}</h1>
-          <p className="text-gray-600">
-            {tReg('newDocumentDescription')}
-          </p>
-        </CardHeader>
         <CardBody>
           <GeneralRegisterForm
             onSave={handleSave}

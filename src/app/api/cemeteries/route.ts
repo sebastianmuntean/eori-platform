@@ -73,37 +73,34 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteries);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteries);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db.select().from(cemeteries);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(cemeteries);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'code') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteries.code))
-        : query.orderBy(asc(cemeteries.code));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteries.code))
+        : queryWithWhere.orderBy(asc(cemeteries.code));
     } else if (sortBy === 'name') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteries.name))
-        : query.orderBy(asc(cemeteries.name));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteries.name))
+        : queryWithWhere.orderBy(asc(cemeteries.name));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteries.createdAt))
-        : query.orderBy(asc(cemeteries.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteries.createdAt))
+        : queryWithWhere.orderBy(asc(cemeteries.createdAt));
     } else {
-      query = query.orderBy(asc(cemeteries.name));
+      finalQuery = queryWithWhere.orderBy(asc(cemeteries.name));
     }
 
-    const allCemeteries = await query.limit(pageSize).offset(offset);
+    const allCemeteries = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

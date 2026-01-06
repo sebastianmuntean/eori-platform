@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { userHasPermission } from "./permissions";
-import { UnauthorizedError, ForbiddenError } from "@/lib/utils/errors";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "../utils/logger";
 
 /**
  * Middleware to check if user has required permission

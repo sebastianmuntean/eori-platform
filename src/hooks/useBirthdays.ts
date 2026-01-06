@@ -33,16 +33,21 @@ export function useBirthdays(): UseBirthdaysReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBirthdays = useCallback(async (params = {}) => {
+  const fetchBirthdays = useCallback(async (params?: {
+    dateFrom?: string;
+    dateTo?: string;
+    parishId?: string;
+    daysAhead?: number;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
-      if (params.dateTo) queryParams.append('dateTo', params.dateTo);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.daysAhead) queryParams.append('daysAhead', params.daysAhead.toString());
+      if (params?.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+      if (params?.dateTo) queryParams.append('dateTo', params.dateTo);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.daysAhead) queryParams.append('daysAhead', params.daysAhead.toString());
 
       const response = await fetch(`/api/parishioners/birthdays?${queryParams.toString()}`);
       const result = await response.json();
@@ -67,6 +72,9 @@ export function useBirthdays(): UseBirthdaysReturn {
     fetchBirthdays,
   };
 }
+
+
+
 
 
 

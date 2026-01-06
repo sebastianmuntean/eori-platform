@@ -81,22 +81,33 @@ export function useEvents(): UseEventsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseEventsReturn['pagination']>(null);
 
-  const fetchEvents = useCallback(async (params = {}) => {
+  const fetchEvents = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    type?: EventType;
+    status?: EventStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
-      if (params.dateTo) queryParams.append('dateTo', params.dateTo);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.type) queryParams.append('type', params.type);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+      if (params?.dateTo) queryParams.append('dateTo', params.dateTo);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/events?${queryParams.toString()}`);
       const result = await response.json();
@@ -115,7 +126,15 @@ export function useEvents(): UseEventsReturn {
     }
   }, []);
 
-  const createEvent = useCallback(async (eventData): Promise<ChurchEvent | null> => {
+  const createEvent = useCallback(async (eventData: {
+    parishId: string;
+    type: EventType;
+    status?: EventStatus;
+    eventDate?: string | null;
+    location?: string | null;
+    priestName?: string | null;
+    notes?: string | null;
+  }): Promise<ChurchEvent | null> => {
     setLoading(true);
     setError(null);
 

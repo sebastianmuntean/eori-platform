@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       data: metrics,
     });
   } catch (error) {
-    logError('Failed to fetch dashboard analytics', error);
+    logError(error, { message: 'Failed to fetch dashboard analytics' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

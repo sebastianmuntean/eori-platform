@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,19 +11,20 @@ import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
 import { SimpleModal } from '@/components/ui/SimpleModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useContracts, Contract } from '@/hooks/useContracts';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter, ClientFilter, FilterSelect } from '@/components/ui/FilterGrid';
-import { InvoiceTemplateEditor } from '@/components/contracts/InvoiceTemplateEditor';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { ContractAddModal, ContractFormData } from '@/components/accounting/ContractAddModal';
+import { ContractEditModal } from '@/components/accounting/ContractEditModal';
+import { DeleteContractDialog } from '@/components/accounting/DeleteContractDialog';
+import { ContractsFiltersCard } from '@/components/accounting/ContractsFiltersCard';
+import { ContractsTableCard } from '@/components/accounting/ContractsTableCard';
+import { FormModal } from '@/components/accounting/FormModal';
 
 export default function ContractsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CONTRACTS_VIEW);
@@ -58,7 +59,7 @@ export default function ContractsPage() {
   const [directionFilter, setDirectionFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [partnerFilter, setPartnerFilter] = useState('');
+  const [clientFilter, setClientFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,12 +72,12 @@ export default function ContractsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [contractInvoices, setContractInvoices] = useState<any[]>([]);
   const [invoicePeriod, setInvoicePeriod] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 });
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContractFormData>({
     parishId: '',
     contractNumber: '',
-    direction: 'incoming' as 'incoming' | 'outgoing',
-    type: 'rental' as 'rental' | 'concession' | 'sale_purchase' | 'loan' | 'other',
-    status: 'draft' as 'draft' | 'active' | 'expired' | 'terminated' | 'renewed',
+    direction: 'incoming',
+    type: 'rental',
+    status: 'draft',
     clientId: '',
     title: '',
     startDate: new Date().toISOString().split('T')[0],
@@ -84,7 +85,7 @@ export default function ContractsPage() {
     signingDate: '',
     amount: '',
     currency: 'RON',
-    paymentFrequency: 'monthly' as 'monthly' | 'quarterly' | 'semiannual' | 'annual' | 'one_time' | 'custom',
+    paymentFrequency: 'monthly',
     assetReference: '',
     description: '',
     terms: '',
@@ -92,7 +93,7 @@ export default function ContractsPage() {
     renewalDate: '',
     autoRenewal: false,
     parentContractId: '',
-    invoiceItemTemplate: null as any,
+    invoiceItemTemplate: null,
   });
 
   useEffect(() => {
@@ -111,7 +112,7 @@ export default function ContractsPage() {
       direction: directionFilter || undefined,
       type: typeFilter || undefined,
       status: statusFilter || undefined,
-      clientId: partnerFilter || undefined,
+      clientId: clientFilter || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
       sortBy: 'startDate',
@@ -123,7 +124,7 @@ export default function ContractsPage() {
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     });
-  }, [permissionLoading, currentPage, searchTerm, parishFilter, directionFilter, typeFilter, statusFilter, partnerFilter, dateFrom, dateTo, fetchContracts, fetchSummary]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, directionFilter, typeFilter, statusFilter, clientFilter, dateFrom, dateTo, fetchContracts, fetchSummary]);
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.contractNumber || !formData.startDate || !formData.endDate || !formData.amount) {
@@ -141,6 +142,10 @@ export default function ContractsPage() {
       setShowAddModal(false);
       resetForm();
     }
+  };
+
+  const handleFormDataChange = (data: Partial<ContractFormData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
   };
 
   const handleUpdate = async () => {
@@ -597,7 +602,7 @@ export default function ContractsPage() {
     },
     {
       key: 'clientId',
-      label: t('parteneri'),
+      label: t('clients'),
       sortable: false,
       render: (value: string) => getClientName(value),
     },
@@ -654,176 +659,22 @@ export default function ContractsPage() {
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-    { label: t('contracts') },
-  ];
-
-  const ContractFormFields = () => (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Select
-          label={`${t('parish')} *`}
-          value={formData.parishId}
-          onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-          options={parishes.map(p => ({ value: p.id, label: p.name }))}
-          placeholder={t('selectParish')}
-          required
-        />
-        <Input
-          label={`${t('contractNumber')} *`}
-          value={formData.contractNumber}
-          onChange={(e) => setFormData({ ...formData, contractNumber: e.target.value })}
-          required
-        />
-        <Select
-          label={`${t('direction')} *`}
-          value={formData.direction}
-          onChange={(e) => setFormData({ ...formData, direction: e.target.value as 'incoming' | 'outgoing' })}
-          options={[
-            { value: 'incoming', label: t('incoming') },
-            { value: 'outgoing', label: t('outgoing') },
-          ]}
-          required
-        />
-        <Select
-          label={`${t('type')} *`}
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-          options={[
-            { value: 'rental', label: t('rental') },
-            { value: 'concession', label: t('concession') },
-            { value: 'sale_purchase', label: t('salePurchase') },
-            { value: 'loan', label: t('loan') },
-            { value: 'other', label: t('other') },
-          ]}
-          required
-        />
-        <ClientSelect
-          label={t('parteneri')}
-          value={formData.clientId}
-          onChange={(value) => setFormData({ ...formData, clientId: value })}
-          clients={clients}
-          onlyCompanies={false}
-          placeholder={t('selectPartner')}
-          required
-        />
-        <Input label={t('title')} value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-        <Input
-          type="date"
-          label={`${t('startDate')} *`}
-          value={formData.startDate}
-          onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-          required
-        />
-        <Input
-          type="date"
-          label={`${t('endDate')} *`}
-          value={formData.endDate}
-          onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-          required
-        />
-        <Input
-          type="date"
-          label={t('signingDate')}
-          value={formData.signingDate}
-          onChange={(e) => setFormData({ ...formData, signingDate: e.target.value })}
-        />
-        <Input
-          type="number"
-          step="0.01"
-          label={`${t('amount')} *`}
-          value={formData.amount}
-          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-          required
-        />
-        <Input label={t('currency')} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
-        <Select
-          label={`${t('paymentFrequency')} *`}
-          value={formData.paymentFrequency}
-          onChange={(e) => setFormData({ ...formData, paymentFrequency: e.target.value as any })}
-          options={[
-            { value: 'monthly', label: t('monthly') },
-            { value: 'quarterly', label: t('quarterly') },
-            { value: 'semiannual', label: t('semiannual') },
-            { value: 'annual', label: t('annual') },
-            { value: 'one_time', label: t('oneTime') },
-            { value: 'custom', label: t('custom') },
-          ]}
-          required
-        />
-        <Input
-          label={t('assetReference')}
-          value={formData.assetReference}
-          onChange={(e) => setFormData({ ...formData, assetReference: e.target.value })}
-        />
-        <Select
-          label={t('status')}
-          value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-          options={[
-            { value: 'draft', label: t('draft') },
-            { value: 'active', label: t('active') },
-            { value: 'expired', label: t('expired') },
-            { value: 'terminated', label: t('terminated') },
-          ]}
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-text-primary">{t('description')}</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-            rows={3}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1 text-text-primary">{t('terms')}</label>
-          <textarea
-            value={formData.terms}
-            onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-            rows={3}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1 text-text-primary">{t('notes')}</label>
-          <textarea
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-            rows={3}
-          />
-        </div>
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold text-text-primary mb-2">{t('invoiceItemTemplate')}</h3>
-        <p className="text-sm text-text-secondary mb-4">{t('invoiceItemTemplateDescription')}</p>
-        <InvoiceTemplateEditor
-          template={formData.invoiceItemTemplate}
-          onChange={(template) => setFormData({ ...formData, invoiceItemTemplate: template })}
-        />
-      </div>
-    </>
-  );
-
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return <div>{t('loading')}</div>;
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('contracts')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('contract')}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
+          { label: t('contracts') },
+        ]}
+        title={t('contracts')}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('contract')}</Button>}
+      />
 
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -854,130 +705,108 @@ export default function ContractsPage() {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-4">
-            <SearchInput
-              value={searchTerm}
-              onChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              placeholder={t('search') + '...'}
-            />
-          </div>
-          <FilterGrid>
-            <ParishFilter value={parishFilter} onChange={(v) => { setParishFilter(v); setCurrentPage(1); }} parishes={parishes} />
-            <FilterSelect
-              label={t('direction')}
-              value={directionFilter}
-              onChange={(v) => { setDirectionFilter(v); setCurrentPage(1); }}
-              options={[
-                { value: 'incoming', label: t('incoming') },
-                { value: 'outgoing', label: t('outgoing') },
-              ]}
-            />
-            <TypeFilter
-              value={typeFilter}
-              onChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}
-              types={[
-                { value: 'rental', label: t('rental') },
-                { value: 'concession', label: t('concession') },
-                { value: 'sale_purchase', label: t('salePurchase') },
-                { value: 'loan', label: t('loan') },
-                { value: 'other', label: t('other') },
-              ]}
-            />
-            <StatusFilter
-              value={statusFilter}
-              onChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}
-              statuses={[
-                { value: 'draft', label: t('draft') },
-                { value: 'active', label: t('active') },
-                { value: 'expired', label: t('expired') },
-                { value: 'terminated', label: t('terminated') },
-              ]}
-            />
-            <ClientFilter value={partnerFilter} onChange={(v) => { setPartnerFilter(v); setCurrentPage(1); }} clients={clients} />
-            <FilterDate label={t('dateFrom')} value={dateFrom} onChange={(v) => { setDateFrom(v); setCurrentPage(1); }} />
-            <FilterDate label={t('dateTo')} value={dateTo} onChange={(v) => { setDateTo(v); setCurrentPage(1); }} />
-            <FilterClear
-              onClear={() => {
-                setSearchTerm('');
-                setParishFilter('');
-                setDirectionFilter('');
-                setTypeFilter('');
-                setStatusFilter('');
-                setPartnerFilter('');
-                setDateFrom('');
-                setDateTo('');
-                setCurrentPage(1);
-              }}
-            />
-          </FilterGrid>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>{t('loading')}</div>
-          ) : (
-            <>
-              <Table data={contracts} columns={columns} />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages} ({pagination.total} {t('total')})
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      <ContractsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        directionFilter={directionFilter}
+        typeFilter={typeFilter}
+        statusFilter={statusFilter}
+        clientFilter={clientFilter}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        parishes={parishes}
+        clients={clients}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onDirectionFilterChange={(value) => {
+          setDirectionFilter(value);
+          setCurrentPage(1);
+        }}
+        onTypeFilterChange={(value) => {
+          setTypeFilter(value);
+          setCurrentPage(1);
+        }}
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value);
+          setCurrentPage(1);
+        }}
+        onClientFilterChange={(value) => {
+          setClientFilter(value);
+          setCurrentPage(1);
+        }}
+        onDateFromChange={(value) => {
+          setDateFrom(value);
+          setCurrentPage(1);
+        }}
+        onDateToChange={(value) => {
+          setDateTo(value);
+          setCurrentPage(1);
+        }}
+        onClearFilters={() => {
+          setSearchTerm('');
+          setParishFilter('');
+          setDirectionFilter('');
+          setTypeFilter('');
+          setStatusFilter('');
+          setClientFilter('');
+          setDateFrom('');
+          setDateTo('');
+          setCurrentPage(1);
+        }}
+      />
 
-      <FormModal
+      <ContractsTableCard
+        data={contracts}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No contracts available'}
+      />
+
+      <ContractAddModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onCancel={() => setShowAddModal(false)}
-        title={`${t('add')} ${t('contract')}`}
+        onClose={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={handleFormDataChange}
+        parishes={parishes}
+        clients={clients}
         onSubmit={handleCreate}
         isSubmitting={false}
-        submitLabel={t('create')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <ContractFormFields />
-      </FormModal>
+      />
 
-      <FormModal
+      <ContractEditModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onCancel={() => setShowEditModal(false)}
-        title={`${t('edit')} ${t('contract')}`}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedContract(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedContract(null);
+        }}
+        formData={formData}
+        onFormDataChange={handleFormDataChange}
+        parishes={parishes}
+        clients={clients}
         onSubmit={handleUpdate}
         isSubmitting={false}
-        submitLabel={t('update')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <ContractFormFields />
-      </FormModal>
+      />
 
       <SimpleModal
         isOpen={showRenewModal}
@@ -1045,7 +874,7 @@ export default function ContractsPage() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-text-secondary text-xs mb-1">{t('parteneri')}</p>
+                    <p className="text-text-secondary text-xs mb-1">{t('clients')}</p>
                     <p className="font-medium text-text-primary">{getClientName(selectedContract.clientId)}</p>
                   </div>
                   <div>
@@ -1236,15 +1065,11 @@ export default function ContractsPage() {
         </FormModal>
       )}
 
-      <ConfirmDialog
+      <DeleteContractDialog
         isOpen={!!deleteConfirm}
+        contractId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete')}
-        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this contract?'}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

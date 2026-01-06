@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -12,10 +12,12 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { DATA_STATISTICS_PERMISSIONS } from '@/lib/permissions/dataStatistics';
 
+// Types
+type SectionType = 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users';
+
 interface DataStatistics {
   entities: {
     parishes: number;
-    partners: number;
     clients: number;
     invoices: number;
     payments: number;
@@ -30,12 +32,6 @@ interface DataStatistics {
     documents?: number;
   };
   breakdown: {
-    partners: {
-      supplier: number;
-      client: number;
-      both: number;
-      other: number;
-    };
     invoices: {
       issued: number;
       received: number;
@@ -60,14 +56,246 @@ interface DataStatistics {
     };
   };
   relationships: {
-    partnersWithInvoices: number;
-    partnersWithPayments: number;
-    parishesWithPartners: number;
+    clientsWithInvoices: number;
+    clientsWithPayments: number;
+    parishesWithClients: number;
     parishesWithInvoices: number;
     parishesWithPayments: number;
     parishesWithEvents: number;
     parishesWithContracts: number;
   };
+}
+
+interface EntityCardConfig {
+  key: keyof DataStatistics['entities'];
+  labelKey: string;
+  color: 'primary' | 'success' | 'info' | 'warning' | 'danger' | 'secondary';
+  icon: React.ReactElement;
+}
+
+interface BreakdownItem {
+  key: string;
+  labelKey: string;
+  variant: 'success' | 'info' | 'danger' | 'warning' | 'secondary' | 'primary';
+  value: number;
+}
+
+interface SectionConfig {
+  type: SectionType;
+  titleKey: string;
+  description: string;
+  deleteMessage: string;
+  sectionName: string;
+}
+
+// Constants
+const SECTION_CONFIGS: Record<SectionType, SectionConfig> = {
+  clients: {
+    type: 'clients',
+    titleKey: 'clients',
+    description: 'Introduceți numărul de clienți de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru clienți? Această acțiune este ireversibilă.',
+    sectionName: 'clienți',
+  },
+  invoices: {
+    type: 'invoices',
+    titleKey: 'invoices',
+    description: 'Introduceți numărul de facturi de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru facturi? Această acțiune este ireversibilă.',
+    sectionName: 'facturi',
+  },
+  payments: {
+    type: 'payments',
+    titleKey: 'payments',
+    description: 'Introduceți numărul de plăți de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru plăți? Această acțiune este ireversibilă.',
+    sectionName: 'plăți',
+  },
+  events: {
+    type: 'events',
+    titleKey: 'events',
+    description: 'Introduceți numărul de evenimente de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru evenimente? Această acțiune este ireversibilă.',
+    sectionName: 'evenimente',
+  },
+  contracts: {
+    type: 'contracts',
+    titleKey: 'contracts',
+    description: 'Introduceți numărul de contracte de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru contracte? Această acțiune este ireversibilă.',
+    sectionName: 'contracte',
+  },
+  products: {
+    type: 'products',
+    titleKey: 'products',
+    description: 'Introduceți numărul de produse de generat (se vor genera și mișcări de stoc)',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse? Această acțiune este ireversibilă.',
+    sectionName: 'produse',
+  },
+  pangarProducts: {
+    type: 'pangarProducts',
+    titleKey: 'pangarProducts',
+    description: 'Introduceți numărul de produse pangar de generat (se vor genera și mișcări de stoc)',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse pangar? Această acțiune este ireversibilă.',
+    sectionName: 'produse pangar',
+  },
+  fixedAssets: {
+    type: 'fixedAssets',
+    titleKey: 'fixedAssets',
+    description: 'Introduceți numărul de mijloace fixe de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru mijloace fixe? Această acțiune este ireversibilă.',
+    sectionName: 'mijloace fixe',
+  },
+  inventory: {
+    type: 'inventory',
+    titleKey: 'inventory',
+    description: 'Introduceți numărul de sesiuni de inventar de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru inventar? Această acțiune este ireversibilă.',
+    sectionName: 'inventar',
+  },
+  documents: {
+    type: 'documents',
+    titleKey: 'documents',
+    description: 'Introduceți numărul de documente registratură de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru documente registratură? Această acțiune este ireversibilă.',
+    sectionName: 'documente registratură',
+  },
+  users: {
+    type: 'users',
+    titleKey: 'users',
+    description: 'Introduceți numărul de utilizatori de generat',
+    deleteMessage: 'Sunteți sigur că doriți să ștergeți toate datele fake pentru utilizatori? Această acțiune este ireversibilă.',
+    sectionName: 'utilizatori',
+  },
+};
+
+// Reusable Components
+interface EntityCardProps {
+  label: string;
+  value: number;
+  color: 'primary' | 'success' | 'info' | 'warning' | 'danger' | 'secondary';
+  icon: React.ReactElement;
+}
+
+function EntityCard({ label, value, color, icon }: EntityCardProps) {
+  const colorStyles = {
+    primary: { text: 'text-primary', bg: 'bg-primary bg-opacity-10', icon: 'text-primary' },
+    success: { text: 'text-success', bg: 'bg-success bg-opacity-10', icon: 'text-success' },
+    info: { text: 'text-info', bg: 'bg-info bg-opacity-10', icon: 'text-info' },
+    warning: { text: 'text-warning', bg: 'bg-warning bg-opacity-10', icon: 'text-warning' },
+    danger: { text: 'text-danger', bg: 'bg-danger bg-opacity-10', icon: 'text-danger' },
+    secondary: { text: 'text-secondary', bg: 'bg-secondary bg-opacity-10', icon: 'text-secondary' },
+  };
+
+  const styles = colorStyles[color];
+
+  return (
+    <Card variant="elevated">
+      <CardBody>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-text-secondary mb-1">{label}</p>
+            <p className={`text-2xl font-bold ${styles.text}`}>{value}</p>
+          </div>
+          <div className={`w-12 h-12 ${styles.bg} rounded-lg flex items-center justify-center`}>
+            <div className={`w-6 h-6 ${styles.icon}`}>{icon}</div>
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+interface BreakdownCardProps {
+  title: string;
+  items: BreakdownItem[];
+  sectionType: SectionType;
+  onGenerate: (type: SectionType) => void;
+  onDelete: (type: SectionType) => void;
+  generating: boolean;
+  deleting: boolean;
+  t: (key: string) => string;
+}
+
+function BreakdownCard({ title, items, sectionType, onGenerate, onDelete, generating, deleting, t }: BreakdownCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onGenerate(sectionType)}
+              variant="outline"
+              size="sm"
+              disabled={generating}
+            >
+              {generating ? t('generating') : t('generateFakeData')}
+            </Button>
+            <Button
+              onClick={() => onDelete(sectionType)}
+              variant="outline"
+              size="sm"
+              disabled={deleting}
+              className="text-danger hover:bg-danger hover:text-white"
+            >
+              {deleting ? 'Ștergere...' : 'Șterge date'}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardBody>
+        <div className="space-y-3">
+          {items.map((item) => (
+            <div key={item.key} className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
+              <div className="flex items-center gap-3">
+                <Badge variant={item.variant} size="sm">{t(item.labelKey)}</Badge>
+                <span className="text-sm text-text-secondary">{t(item.labelKey)}</span>
+              </div>
+              <span className="text-lg font-semibold">{item.value}</span>
+            </div>
+          ))}
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+interface RelationshipCardProps {
+  label: string;
+  value: number;
+  total: number;
+  color: 'primary' | 'success' | 'info' | 'warning' | 'danger' | 'secondary';
+  percentageLabel: string;
+  t: (key: string) => string;
+}
+
+function RelationshipCard({ label, value, total, color, percentageLabel, t }: RelationshipCardProps) {
+  const percentage = useMemo(() => {
+    if (total === 0) return null;
+    return Math.round((value / total) * 100);
+  }, [value, total]);
+
+  const colorStyles = {
+    primary: 'text-primary',
+    success: 'text-success',
+    info: 'text-info',
+    warning: 'text-warning',
+    danger: 'text-danger',
+    secondary: 'text-secondary',
+  };
+
+  return (
+    <div className="p-4 rounded-md bg-bg-secondary">
+      <p className="text-sm text-text-secondary mb-2">{label}</p>
+      <p className={`text-2xl font-bold ${colorStyles[color]}`}>{value}</p>
+      {percentage !== null && (
+        <p className="text-xs text-text-secondary mt-1">
+          {percentage}% {percentageLabel}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function DataStatisticsPage() {
@@ -77,34 +305,31 @@ export default function DataStatisticsPage() {
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('dataStatistics'));
+
   const [statistics, setStatistics] = useState<DataStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generatingSection, setGeneratingSection] = useState<string | null>(null);
-  const [showSectionModal, setShowSectionModal] = useState<{
-    type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users' | null;
-    count: number;
-  }>({ type: null, count: 10 });
-  const [showDeleteModal, setShowDeleteModal] = useState<{
-    type: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users' | null;
-  }>({ type: null });
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [generatingSection, setGeneratingSection] = useState<SectionType | null>(null);
+  const [showSectionModal, setShowSectionModal] = useState<{ type: SectionType | null; count: number }>({
+    type: null,
+    count: 10,
+  });
+  const [showDeleteModal, setShowDeleteModal] = useState<{ type: SectionType | null }>({ type: null });
+  const [deleting, setDeleting] = useState<SectionType | null>(null);
   const [generateConfig, setGenerateConfig] = useState({
     clients: 100,
     suppliers: 20,
   });
 
-  useEffect(() => {
-    fetchStatistics();
-  }, []);
-
-  const fetchStatistics = async () => {
+  // Fetch statistics
+  const fetchStatistics = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/statistics/data');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -122,21 +347,25 @@ export default function DataStatisticsPage() {
         setError(data.error || 'Failed to load statistics');
       }
     } catch (err) {
-      setError('Failed to load statistics');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load statistics';
+      setError(errorMessage);
       console.error('Error fetching statistics:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleGenerateFakeData = async () => {
+  useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
+
+  // Generate fake data handlers
+  const handleGenerateFakeData = useCallback(async () => {
     try {
       setGenerating(true);
       const response = await fetch('/api/statistics/generate-fake-data', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(generateConfig),
       });
 
@@ -144,7 +373,6 @@ export default function DataStatisticsPage() {
 
       if (data.success) {
         setShowGenerateModal(false);
-        // Refresh statistics
         await fetchStatistics();
         alert(data.message || 'Fake data generated successfully');
       } else {
@@ -156,17 +384,42 @@ export default function DataStatisticsPage() {
     } finally {
       setGenerating(false);
     }
-  };
+  }, [generateConfig, fetchStatistics]);
 
-  const handleOpenSectionModal = (sectionType: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users') => {
+  // Build request body for section data generation
+  const buildSectionRequestBody = useCallback((sectionType: SectionType, count: number): Record<string, number> => {
+    const requestBody: Record<string, number> = {};
+
+    if (sectionType === 'clients') {
+      requestBody.clientsCount = count;
+    } else if (sectionType === 'fixedAssets') {
+      requestBody.fixedAssets = count;
+    } else if (sectionType === 'documents') {
+      requestBody.documents = count;
+    } else if (sectionType === 'users') {
+      requestBody.users = count;
+    } else if (sectionType === 'pangarProducts') {
+      requestBody.pangarProducts = count;
+    } else {
+      requestBody[sectionType] = count;
+    }
+
+    return requestBody;
+  }, []);
+
+  // Get section name for display
+  const getSectionName = useCallback((sectionType: SectionType): string => {
+    return SECTION_CONFIGS[sectionType]?.sectionName || sectionType;
+  }, []);
+
+  const handleOpenSectionModal = useCallback((sectionType: SectionType) => {
     setShowSectionModal({ type: sectionType, count: 10 });
-  };
+  }, []);
 
-  const handleGenerateSectionData = async () => {
+  const handleGenerateSectionData = useCallback(async () => {
     if (!showSectionModal.type) return;
 
-    const sectionType = showSectionModal.type;
-    const count = showSectionModal.count;
+    const { type: sectionType, count } = showSectionModal;
 
     if (count <= 0) {
       alert('Numărul trebuie să fie mai mare decât 0');
@@ -175,31 +428,11 @@ export default function DataStatisticsPage() {
 
     try {
       setGeneratingSection(sectionType);
-      const requestBody: any = {};
-      
-      // For partners, generate both clients and suppliers
-      if (sectionType === 'partners') {
-        requestBody.clients = Math.floor(count * 0.7); // 70% clients
-        requestBody.suppliers = Math.floor(count * 0.3); // 30% suppliers
-      } else if (sectionType === 'clients') {
-        requestBody.clientsCount = count; // Generate clients directly
-      } else if (sectionType === 'fixedAssets') {
-        requestBody.fixedAssets = count;
-      } else if (sectionType === 'documents') {
-        requestBody.documents = count;
-      } else if (sectionType === 'users') {
-        requestBody.users = count;
-      } else if (sectionType === 'pangarProducts') {
-        requestBody.pangarProducts = count;
-      } else {
-        requestBody[sectionType] = count;
-      }
+      const requestBody = buildSectionRequestBody(sectionType, count);
 
       const response = await fetch('/api/statistics/generate-fake-data', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
 
@@ -207,41 +440,27 @@ export default function DataStatisticsPage() {
 
       if (data.success) {
         setShowSectionModal({ type: null, count: 10 });
-        // Refresh statistics
         await fetchStatistics();
-        const sectionName = sectionType === 'clients' ? 'clienți' 
-          : sectionType === 'fixedAssets' ? 'mijloace fixe'
-          : sectionType === 'products' ? 'produse'
-          : sectionType === 'pangarProducts' ? 'produse pangar'
-          : sectionType === 'inventory' ? 'inventar'
-          : sectionType === 'documents' ? 'documente registratură'
-          : sectionType === 'users' ? 'utilizatori'
-          : sectionType;
+        const sectionName = getSectionName(sectionType);
         alert(data.message || `Date ${sectionName} generate cu succes`);
       } else {
-        const sectionName = sectionType === 'clients' ? 'clienți'
-          : sectionType === 'fixedAssets' ? 'mijloace fixe'
-          : sectionType === 'products' ? 'produse'
-          : sectionType === 'pangarProducts' ? 'produse pangar'
-          : sectionType === 'inventory' ? 'inventar'
-          : sectionType === 'documents' ? 'documente registratură'
-          : sectionType === 'users' ? 'utilizatori'
-          : sectionType;
+        const sectionName = getSectionName(sectionType);
         alert(data.error || `Eroare la generarea datelor ${sectionName}`);
       }
     } catch (err) {
-      alert(`Failed to generate ${sectionType} data`);
-      console.error(`Error generating ${sectionType} data:`, err);
+      const sectionName = getSectionName(showSectionModal.type);
+      alert(`Failed to generate ${sectionName} data`);
+      console.error(`Error generating ${showSectionModal.type} data:`, err);
     } finally {
       setGeneratingSection(null);
     }
-  };
+  }, [showSectionModal, buildSectionRequestBody, getSectionName, fetchStatistics]);
 
-  const handleOpenDeleteModal = (sectionType: 'partners' | 'clients' | 'invoices' | 'payments' | 'events' | 'contracts' | 'products' | 'pangarProducts' | 'fixedAssets' | 'inventory' | 'documents' | 'users') => {
+  const handleOpenDeleteModal = useCallback((sectionType: SectionType) => {
     setShowDeleteModal({ type: sectionType });
-  };
+  }, []);
 
-  const handleDeleteFakeData = async () => {
+  const handleDeleteFakeData = useCallback(async () => {
     if (!showDeleteModal.type) return;
 
     const sectionType = showDeleteModal.type;
@@ -256,43 +475,372 @@ export default function DataStatisticsPage() {
 
       if (data.success) {
         setShowDeleteModal({ type: null });
-        // Refresh statistics
         await fetchStatistics();
-        const sectionName = sectionType === 'clients' ? 'clienți' 
-          : sectionType === 'fixedAssets' ? 'mijloace fixe'
-          : sectionType === 'products' ? 'produse'
-          : sectionType === 'pangarProducts' ? 'produse pangar'
-          : sectionType === 'inventory' ? 'inventar'
-          : sectionType === 'documents' ? 'documente registratură'
-          : sectionType === 'users' ? 'utilizatori'
-          : sectionType === 'partners' ? 'parteneri'
-          : sectionType;
+        const sectionName = getSectionName(sectionType);
         alert(data.message || `Date ${sectionName} șterse cu succes`);
       } else {
-        const sectionName = sectionType === 'clients' ? 'clienți'
-          : sectionType === 'fixedAssets' ? 'mijloace fixe'
-          : sectionType === 'products' ? 'produse'
-          : sectionType === 'pangarProducts' ? 'produse pangar'
-          : sectionType === 'inventory' ? 'inventar'
-          : sectionType === 'documents' ? 'documente registratură'
-          : sectionType === 'users' ? 'utilizatori'
-          : sectionType === 'partners' ? 'parteneri'
-          : sectionType;
+        const sectionName = getSectionName(sectionType);
         alert(data.error || `Eroare la ștergerea datelor ${sectionName}`);
       }
     } catch (err) {
-      alert(`Failed to delete ${sectionType} data`);
+      const sectionName = getSectionName(sectionType);
+      alert(`Failed to delete ${sectionName} data`);
       console.error(`Error deleting ${sectionType} data:`, err);
     } finally {
       setDeleting(null);
     }
-  };
+  }, [showDeleteModal, getSectionName, fetchStatistics]);
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('dataStatistics') },
-  ];
+  // Memoized breadcrumbs
+  const breadcrumbs = useMemo(
+    () => [
+      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+      { label: t('dataStatistics') },
+    ],
+    [locale, t]
+  );
 
+  // Memoized entity cards configuration
+  const entityCards = useMemo((): EntityCardConfig[] => {
+    if (!statistics) return [];
+
+    return [
+      {
+        key: 'parishes',
+        labelKey: 'parishes',
+        color: 'primary',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        ),
+      },
+      {
+        key: 'clients',
+        labelKey: 'clients',
+        color: 'info',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'invoices',
+        labelKey: 'invoices',
+        color: 'success',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'payments',
+        labelKey: 'payments',
+        color: 'warning',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'events',
+        labelKey: 'events',
+        color: 'danger',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'users',
+        labelKey: 'users',
+        color: 'secondary',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'donations',
+        labelKey: 'donations',
+        color: 'primary',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        ),
+      },
+      {
+        key: 'contracts',
+        labelKey: 'contracts',
+        color: 'warning',
+        icon: (
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        ),
+      },
+    ];
+  }, [statistics]);
+
+  // Memoized breakdown cards data
+  const breakdownCards = useMemo(() => {
+    if (!statistics) return [];
+
+    return [
+      {
+        title: t('clients'),
+        sectionType: 'clients' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'success' as const,
+            value: statistics.entities.clients || 0,
+          },
+        ],
+      },
+      {
+        title: `${t('invoices')} - ${t('byType')}`,
+        sectionType: 'invoices' as SectionType,
+        items: [
+          {
+            key: 'issued',
+            labelKey: 'issued',
+            variant: 'success' as const,
+            value: statistics.breakdown.invoices.issued,
+          },
+          {
+            key: 'received',
+            labelKey: 'received',
+            variant: 'info' as const,
+            value: statistics.breakdown.invoices.received,
+          },
+        ],
+      },
+      {
+        title: `${t('payments')} - ${t('byType')}`,
+        sectionType: 'payments' as SectionType,
+        items: [
+          {
+            key: 'income',
+            labelKey: 'income',
+            variant: 'success' as const,
+            value: statistics.breakdown.payments.income,
+          },
+          {
+            key: 'expense',
+            labelKey: 'expense',
+            variant: 'danger' as const,
+            value: statistics.breakdown.payments.expense,
+          },
+        ],
+      },
+      {
+        title: `${t('events')} - ${t('byType')}`,
+        sectionType: 'events' as SectionType,
+        items: [
+          {
+            key: 'wedding',
+            labelKey: 'wedding',
+            variant: 'secondary' as const,
+            value: statistics.breakdown.events.wedding,
+          },
+          {
+            key: 'baptism',
+            labelKey: 'baptism',
+            variant: 'secondary' as const,
+            value: statistics.breakdown.events.baptism,
+          },
+          {
+            key: 'funeral',
+            labelKey: 'funeral',
+            variant: 'secondary' as const,
+            value: statistics.breakdown.events.funeral,
+          },
+        ],
+      },
+      {
+        title: `${t('contracts')} - ${t('byType')}`,
+        sectionType: 'contracts' as SectionType,
+        items: [
+          {
+            key: 'incoming',
+            labelKey: 'incoming',
+            variant: 'info' as const,
+            value: statistics.breakdown.contracts.incoming,
+          },
+          {
+            key: 'outgoing',
+            labelKey: 'outgoing',
+            variant: 'warning' as const,
+            value: statistics.breakdown.contracts.outgoing,
+          },
+          {
+            key: 'rental',
+            labelKey: 'rental',
+            variant: 'secondary' as const,
+            value: statistics.breakdown.contracts.rental,
+          },
+          {
+            key: 'concession',
+            labelKey: 'concession',
+            variant: 'secondary' as const,
+            value: statistics.breakdown.contracts.concession,
+          },
+        ],
+      },
+      {
+        title: 'Produse Stoc',
+        sectionType: 'products' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'success' as const,
+            value: statistics.entities.products || 0,
+          },
+        ],
+      },
+      {
+        title: 'Produse Pangar',
+        sectionType: 'pangarProducts' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'warning' as const,
+            value: statistics.entities.pangarProducts || 0,
+          },
+        ],
+      },
+      {
+        title: 'Mijloace Fixe',
+        sectionType: 'fixedAssets' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'info' as const,
+            value: statistics.entities.fixedAssets || 0,
+          },
+        ],
+      },
+      {
+        title: 'Inventar',
+        sectionType: 'inventory' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'warning' as const,
+            value: statistics.entities.inventory || 0,
+          },
+        ],
+      },
+      {
+        title: 'Documente Registratură',
+        sectionType: 'documents' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'secondary' as const,
+            value: statistics.entities.documents || 0,
+          },
+        ],
+      },
+      {
+        title: 'Utilizatori',
+        sectionType: 'users' as SectionType,
+        items: [
+          {
+            key: 'total',
+            labelKey: 'total',
+            variant: 'primary' as const,
+            value: statistics.entities.users || 0,
+          },
+        ],
+      },
+    ];
+  }, [statistics, t]);
+
+  // Memoized relationship cards
+  const relationshipCards = useMemo(() => {
+    if (!statistics) return [];
+
+    const totalClients = statistics.entities.clients || 0;
+
+    return [
+      {
+        label: t('clientsWithInvoices'),
+        value: statistics.relationships.clientsWithInvoices,
+        total: totalClients,
+        color: 'primary' as const,
+        percentageLabel: t('ofClients'),
+      },
+      {
+        label: t('clientsWithPayments'),
+        value: statistics.relationships.clientsWithPayments,
+        total: totalClients,
+        color: 'info' as const,
+        percentageLabel: t('ofClients'),
+      },
+      {
+        label: t('parishesWithClients'),
+        value: statistics.relationships.parishesWithClients,
+        total: statistics.entities.parishes,
+        color: 'success' as const,
+        percentageLabel: t('ofParishes'),
+      },
+      {
+        label: t('parishesWithInvoices'),
+        value: statistics.relationships.parishesWithInvoices,
+        total: statistics.entities.parishes,
+        color: 'warning' as const,
+        percentageLabel: t('ofParishes'),
+      },
+      {
+        label: t('parishesWithPayments'),
+        value: statistics.relationships.parishesWithPayments,
+        total: statistics.entities.parishes,
+        color: 'danger' as const,
+        percentageLabel: t('ofParishes'),
+      },
+      {
+        label: t('parishesWithEvents'),
+        value: statistics.relationships.parishesWithEvents,
+        total: statistics.entities.parishes,
+        color: 'secondary' as const,
+        percentageLabel: t('ofParishes'),
+      },
+      {
+        label: t('parishesWithContracts'),
+        value: statistics.relationships.parishesWithContracts,
+        total: statistics.entities.parishes,
+        color: 'warning' as const,
+        percentageLabel: t('ofParishes'),
+      },
+    ];
+  }, [statistics, t]);
+
+  // Get current section config
+  const currentSectionConfig = useMemo(() => {
+    if (!showSectionModal.type) return null;
+    return SECTION_CONFIGS[showSectionModal.type];
+  }, [showSectionModal.type]);
+
+  const currentDeleteConfig = useMemo(() => {
+    if (!showDeleteModal.type) return null;
+    return SECTION_CONFIGS[showDeleteModal.type];
+  }, [showDeleteModal.type]);
+
+  // Early returns
   if (permissionLoading) {
     return <div>{t('loading')}</div>;
   }
@@ -300,7 +848,11 @@ export default function DataStatisticsPage() {
   if (loading) {
     return (
       <div>
-        <Breadcrumbs items={breadcrumbs} className="mb-6" />
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          title={t('dataStatistics') || 'Data Statistics'}
+          className="mb-6"
+        />
         <div className="text-center py-12">
           <div className="text-text-secondary">{t('loading')}</div>
         </div>
@@ -311,7 +863,11 @@ export default function DataStatisticsPage() {
   if (error) {
     return (
       <div>
-        <Breadcrumbs items={breadcrumbs} className="mb-6" />
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          title={t('dataStatistics') || 'Data Statistics'}
+          className="mb-6"
+        />
         <Card>
           <CardBody>
             <div className="text-red-500">{error}</div>
@@ -327,672 +883,48 @@ export default function DataStatisticsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{t('dataStatistics')}</h1>
-        <Button onClick={() => setShowGenerateModal(true)} variant="primary">
-          {t('generateFakeData')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('dataStatistics') || 'Data Statistics'}
+        action={
+          <Button onClick={() => setShowGenerateModal(true)} variant="primary">
+            {t('generateFakeData')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Main Entities */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('parishes')}</p>
-                <p className="text-2xl font-bold text-primary">{statistics.entities.parishes}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('parteneri')}</p>
-                <p className="text-2xl font-bold text-info">{statistics.entities.partners}</p>
-              </div>
-              <div className="w-12 h-12 bg-info bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('clients')}</p>
-                <p className="text-2xl font-bold text-success">{statistics.entities.clients || 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-success bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('invoices')}</p>
-                <p className="text-2xl font-bold text-success">{statistics.entities.invoices}</p>
-              </div>
-              <div className="w-12 h-12 bg-success bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('payments')}</p>
-                <p className="text-2xl font-bold text-warning">{statistics.entities.payments}</p>
-              </div>
-              <div className="w-12 h-12 bg-warning bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('events')}</p>
-                <p className="text-2xl font-bold text-danger">{statistics.entities.events}</p>
-              </div>
-              <div className="w-12 h-12 bg-danger bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('users')}</p>
-                <p className="text-2xl font-bold text-secondary">{statistics.entities.users}</p>
-              </div>
-              <div className="w-12 h-12 bg-secondary bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('donations')}</p>
-                <p className="text-2xl font-bold text-primary">{statistics.entities.donations}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card variant="elevated">
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-text-secondary mb-1">{t('contracts')}</p>
-                <p className="text-2xl font-bold text-warning">{statistics.entities.contracts}</p>
-              </div>
-              <div className="w-12 h-12 bg-warning bg-opacity-10 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+        {entityCards.map((card) => {
+          const value = statistics.entities[card.key] ?? 0;
+          return (
+            <EntityCard
+              key={card.key}
+              label={t(card.labelKey)}
+              value={value}
+              color={card.color}
+              icon={card.icon}
+            />
+          );
+        })}
       </div>
 
       {/* Breakdown by Category */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Partners Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('parteneri')} - {t('byCategory')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('partners')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'partners'}
-                >
-                  {generatingSection === 'partners' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('partners')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'partners'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'partners' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Clients Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('clients')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('clients')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'clients'}
-                >
-                  {generatingSection === 'clients' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('clients')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'clients'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'clients' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="success" size="sm">{t('total')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('totalClients')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.clients || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Invoices Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('invoices')} - {t('byType')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('invoices')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'invoices'}
-                >
-                  {generatingSection === 'invoices' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('invoices')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'invoices'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'invoices' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="success" size="sm">{t('issued')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('issuedInvoices')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.invoices.issued}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="info" size="sm">{t('received')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('receivedInvoices')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.invoices.received}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Payments Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('payments')} - {t('byType')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('payments')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'payments'}
-                >
-                  {generatingSection === 'payments' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('payments')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'payments'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'payments' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="success" size="sm">{t('income')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('income')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.payments.income}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="danger" size="sm">{t('expense')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('expense')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.payments.expense}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Events Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('events')} - {t('byType')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('events')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'events'}
-                >
-                  {generatingSection === 'events' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('events')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'events'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'events' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">{t('wedding')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('wedding')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.events.wedding}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">{t('baptism')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('baptism')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.events.baptism}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">{t('funeral')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('funeral')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.events.funeral}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Contracts Breakdown */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t('contracts')} - {t('byType')}</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('contracts')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'contracts'}
-                >
-                  {generatingSection === 'contracts' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('contracts')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'contracts'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'contracts' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="info" size="sm">{t('incoming')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('incoming')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.contracts.incoming}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="warning" size="sm">{t('outgoing')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('outgoing')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.contracts.outgoing}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">{t('rental')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('rental')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.contracts.rental}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">{t('concession')}</Badge>
-                  <span className="text-sm text-text-secondary">{t('concession')}</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.breakdown.contracts.concession}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Products/Stock Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Produse Stoc</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('products')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'products'}
-                >
-                  {generatingSection === 'products' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('products')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'products'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'products' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="success" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Produse în stoc</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.products || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Pangar Products Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Produse Pangar</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('pangarProducts')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'pangarProducts'}
-                >
-                  {generatingSection === 'pangarProducts' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('pangarProducts')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'pangarProducts'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'pangarProducts' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="warning" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Produse pangar</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.pangarProducts || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Fixed Assets Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Mijloace Fixe</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('fixedAssets')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'fixedAssets'}
-                >
-                  {generatingSection === 'fixedAssets' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('fixedAssets')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'fixedAssets'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'fixedAssets' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="info" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Mijloace fixe</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.fixedAssets || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Inventory Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Inventar</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('inventory')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'inventory'}
-                >
-                  {generatingSection === 'inventory' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('inventory')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'inventory'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'inventory' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="warning" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Sesiuni inventar</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.inventory || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Documents Registry Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Documente Registratură</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('documents')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'documents'}
-                >
-                  {generatingSection === 'documents' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('documents')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'documents'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'documents' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Documente registratură</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.documents || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Users Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Utilizatori</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleOpenSectionModal('users')}
-                  variant="outline"
-                  size="sm"
-                  disabled={generatingSection === 'users'}
-                >
-                  {generatingSection === 'users' ? t('generating') : t('generateFakeData')}
-                </Button>
-                <Button
-                  onClick={() => handleOpenDeleteModal('users')}
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting === 'users'}
-                  className="text-danger hover:bg-danger hover:text-white"
-                >
-                  {deleting === 'users' ? 'Ștergere...' : 'Șterge date'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary">
-                <div className="flex items-center gap-3">
-                  <Badge variant="primary" size="sm">Total</Badge>
-                  <span className="text-sm text-text-secondary">Utilizatori</span>
-                </div>
-                <span className="text-lg font-semibold">{statistics.entities.users || 0}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+        {breakdownCards.map((card) => (
+          <BreakdownCard
+            key={card.sectionType}
+            title={card.title}
+            items={card.items}
+            sectionType={card.sectionType}
+            onGenerate={handleOpenSectionModal}
+            onDelete={handleOpenDeleteModal}
+            generating={generatingSection === card.sectionType}
+            deleting={deleting === card.sectionType}
+            t={t}
+          />
+        ))}
       </div>
 
       {/* Relationships */}
@@ -1004,83 +936,25 @@ export default function DataStatisticsPage() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('partnersWithInvoices')}</p>
-              <p className="text-2xl font-bold text-primary">{statistics.relationships.partnersWithInvoices}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.partners > 0
-                  ? `${Math.round((statistics.relationships.partnersWithInvoices / statistics.entities.partners) * 100)}% ${t('ofPartners')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('partnersWithPayments')}</p>
-              <p className="text-2xl font-bold text-info">{statistics.relationships.partnersWithPayments}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.partners > 0
-                  ? `${Math.round((statistics.relationships.partnersWithPayments / statistics.entities.partners) * 100)}% ${t('ofPartners')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('parishesWithPartners')}</p>
-              <p className="text-2xl font-bold text-success">{statistics.relationships.parishesWithPartners}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.parishes > 0
-                  ? `${Math.round((statistics.relationships.parishesWithPartners / statistics.entities.parishes) * 100)}% ${t('ofParishes')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('parishesWithInvoices')}</p>
-              <p className="text-2xl font-bold text-warning">{statistics.relationships.parishesWithInvoices}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.parishes > 0
-                  ? `${Math.round((statistics.relationships.parishesWithInvoices / statistics.entities.parishes) * 100)}% ${t('ofParishes')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('parishesWithPayments')}</p>
-              <p className="text-2xl font-bold text-danger">{statistics.relationships.parishesWithPayments}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.parishes > 0
-                  ? `${Math.round((statistics.relationships.parishesWithPayments / statistics.entities.parishes) * 100)}% ${t('ofParishes')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('parishesWithEvents')}</p>
-              <p className="text-2xl font-bold text-secondary">{statistics.relationships.parishesWithEvents}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.parishes > 0
-                  ? `${Math.round((statistics.relationships.parishesWithEvents / statistics.entities.parishes) * 100)}% ${t('ofParishes')}`
-                  : '-'}
-              </p>
-            </div>
-            <div className="p-4 rounded-md bg-bg-secondary">
-              <p className="text-sm text-text-secondary mb-2">{t('parishesWithContracts')}</p>
-              <p className="text-2xl font-bold text-warning">{statistics.relationships.parishesWithContracts}</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {statistics.entities.parishes > 0
-                  ? `${Math.round((statistics.relationships.parishesWithContracts / statistics.entities.parishes) * 100)}% ${t('ofParishes')}`
-                  : '-'}
-              </p>
-            </div>
+            {relationshipCards.map((card, index) => (
+              <RelationshipCard
+                key={index}
+                label={card.label}
+                value={card.value}
+                total={card.total}
+                color={card.color}
+                percentageLabel={card.percentageLabel}
+                t={t}
+              />
+            ))}
           </div>
         </CardBody>
       </Card>
 
       {/* Generate Fake Data Modal */}
-      <Modal
-        isOpen={showGenerateModal}
-        onClose={() => setShowGenerateModal(false)}
-        title={t('generateFakeData')}
-      >
+      <Modal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} title={t('generateFakeData')}>
         <div className="space-y-4">
-          <p className="text-text-secondary mb-4">
-            {t('generateFakeDataDescription')}
-          </p>
+          <p className="text-text-secondary mb-4">{t('generateFakeDataDescription')}</p>
           <div>
             <label className="block text-sm font-medium mb-1">
               {t('clients')} ({t('default')}: 100)
@@ -1118,17 +992,10 @@ export default function DataStatisticsPage() {
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowGenerateModal(false)}
-              disabled={generating}
-            >
+            <Button variant="outline" onClick={() => setShowGenerateModal(false)} disabled={generating}>
               {t('cancel')}
             </Button>
-            <Button
-              onClick={handleGenerateFakeData}
-              disabled={generating}
-            >
+            <Button onClick={handleGenerateFakeData} disabled={generating}>
               {generating ? t('generating') : t('generate')}
             </Button>
           </div>
@@ -1139,22 +1006,10 @@ export default function DataStatisticsPage() {
       <Modal
         isOpen={showSectionModal.type !== null}
         onClose={() => setShowSectionModal({ type: null, count: 10 })}
-        title={showSectionModal.type ? `${t('generateFakeData')} - ${t(showSectionModal.type)}` : t('generateFakeData')}
+        title={currentSectionConfig ? `${t('generateFakeData')} - ${t(currentSectionConfig.titleKey)}` : t('generateFakeData')}
       >
         <div className="space-y-4">
-          <p className="text-text-secondary mb-4">
-            {showSectionModal.type === 'partners' && 'Introduceți numărul de parteneri de generat (se vor genera 70% clienți și 30% furnizori)'}
-            {showSectionModal.type === 'invoices' && 'Introduceți numărul de facturi de generat'}
-            {showSectionModal.type === 'payments' && 'Introduceți numărul de plăți de generat'}
-            {showSectionModal.type === 'events' && 'Introduceți numărul de evenimente de generat'}
-            {showSectionModal.type === 'contracts' && 'Introduceți numărul de contracte de generat'}
-            {showSectionModal.type === 'products' && 'Introduceți numărul de produse de generat (se vor genera și mișcări de stoc)'}
-            {showSectionModal.type === 'pangarProducts' && 'Introduceți numărul de produse pangar de generat (se vor genera și mișcări de stoc)'}
-            {showSectionModal.type === 'fixedAssets' && 'Introduceți numărul de mijloace fixe de generat'}
-            {showSectionModal.type === 'inventory' && 'Introduceți numărul de sesiuni de inventar de generat'}
-            {showSectionModal.type === 'documents' && 'Introduceți numărul de documente registratură de generat'}
-            {showSectionModal.type === 'users' && 'Introduceți numărul de utilizatori de generat'}
-          </p>
+          <p className="text-text-secondary mb-4">{currentSectionConfig?.description || ''}</p>
           <div>
             <label className="block text-sm font-medium mb-1">
               Număr de înregistrări ({t('default')}: 10)
@@ -1182,10 +1037,7 @@ export default function DataStatisticsPage() {
             >
               {t('cancel')}
             </Button>
-            <Button
-              onClick={handleGenerateSectionData}
-              disabled={generatingSection !== null || showSectionModal.count <= 0}
-            >
+            <Button onClick={handleGenerateSectionData} disabled={generatingSection !== null || showSectionModal.count <= 0}>
               {generatingSection ? t('generating') : t('generate')}
             </Button>
           </div>
@@ -1201,34 +1053,13 @@ export default function DataStatisticsPage() {
         <div className="space-y-4">
           <div className="bg-danger bg-opacity-10 border border-danger rounded-lg p-4">
             <p className="text-danger font-semibold mb-2">⚠️ Atenție!</p>
-            <p className="text-text-secondary">
-              {showDeleteModal.type === 'clients' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru clienți? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'partners' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru parteneri? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'invoices' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru facturi? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'payments' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru plăți? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'events' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru evenimente? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'contracts' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru contracte? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'products' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'pangarProducts' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru produse pangar? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'fixedAssets' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru mijloace fixe? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'inventory' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru inventar? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'documents' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru documente registratură? Această acțiune este ireversibilă.'}
-              {showDeleteModal.type === 'users' && 'Sunteți sigur că doriți să ștergeți toate datele fake pentru utilizatori? Această acțiune este ireversibilă.'}
-            </p>
+            <p className="text-text-secondary">{currentDeleteConfig?.deleteMessage || ''}</p>
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteModal({ type: null })}
-              disabled={deleting !== null}
-            >
+            <Button variant="outline" onClick={() => setShowDeleteModal({ type: null })} disabled={deleting !== null}>
               {t('cancel')}
             </Button>
-            <Button
-              onClick={handleDeleteFakeData}
-              disabled={deleting !== null}
-              variant="danger"
-            >
+            <Button onClick={handleDeleteFakeData} disabled={deleting !== null} variant="danger">
               {deleting ? 'Ștergere...' : 'Da, șterge datele'}
             </Button>
           </div>
@@ -1237,4 +1068,3 @@ export default function DataStatisticsPage() {
     </div>
   );
 }
-

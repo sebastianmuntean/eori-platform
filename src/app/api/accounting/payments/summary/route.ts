@@ -51,11 +51,9 @@ export async function GET(request: Request) {
       })
       .from(payments);
 
-    if (whereClause) {
-      summaryQuery = summaryQuery.where(whereClause);
-    }
+    const finalSummaryQuery = whereClause ? summaryQuery.where(whereClause) : summaryQuery;
 
-    const summaryResult = await summaryQuery;
+    const summaryResult = await finalSummaryQuery;
     const summary = summaryResult[0];
 
     if (!summary) {

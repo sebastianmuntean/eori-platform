@@ -55,7 +55,17 @@ export function useProducts(): UseProductsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseProductsReturn['pagination']>(null);
 
-  const fetchProducts = useCallback(async (params = {}) => {
+  const fetchProducts = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    category?: string;
+    isActive?: boolean;
+    trackStock?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

@@ -34,7 +34,8 @@ const createPilgrimageSchema = z.object({
 }, { message: 'End date must be after or equal to start date', path: ['endDate'] })
 .refine((data) => {
   // Validate maxParticipants >= minParticipants
-  if (data.maxParticipants !== null && data.minParticipants !== null) {
+  if (data.maxParticipants !== null && data.maxParticipants !== undefined && 
+      data.minParticipants !== null && data.minParticipants !== undefined) {
     return data.maxParticipants >= data.minParticipants;
   }
   return true;
@@ -126,38 +127,35 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(pilgrimages);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(pilgrimages);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(pilgrimages);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(pilgrimages);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Apply sorting
+    let queryWithOrder;
     if (sortBy === 'startDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(pilgrimages.startDate))
-        : query.orderBy(asc(pilgrimages.startDate));
+      queryWithOrder = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(pilgrimages.startDate))
+        : queryWithWhere.orderBy(asc(pilgrimages.startDate));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(pilgrimages.createdAt))
-        : query.orderBy(asc(pilgrimages.createdAt));
+      queryWithOrder = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(pilgrimages.createdAt))
+        : queryWithWhere.orderBy(asc(pilgrimages.createdAt));
     } else if (sortBy === 'title') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(pilgrimages.title))
-        : query.orderBy(asc(pilgrimages.title));
+      queryWithOrder = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(pilgrimages.title))
+        : queryWithWhere.orderBy(asc(pilgrimages.title));
     } else {
-      query = query.orderBy(desc(pilgrimages.createdAt));
+      queryWithOrder = queryWithWhere.orderBy(desc(pilgrimages.createdAt));
     }
 
-    const allPilgrimages = await query.limit(pageSize).offset(offset);
+    const allPilgrimages = await queryWithOrder.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

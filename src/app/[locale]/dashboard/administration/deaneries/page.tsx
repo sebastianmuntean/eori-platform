@@ -1,15 +1,17 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Table, Column } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
+import { DeaneryAddModal, DeaneryFormData } from '@/components/administration/DeaneryAddModal';
+import { DeaneryEditModal } from '@/components/administration/DeaneryEditModal';
+import { DeleteDeaneryDialog } from '@/components/administration/DeleteDeaneryDialog';
+import { DeaneriesFiltersCard } from '@/components/administration/DeaneriesFiltersCard';
+import { DeaneriesTableCard } from '@/components/administration/DeaneriesTableCard';
 import { useDeaneries, Deanery } from '@/hooks/useDeaneries';
 import { useDioceses } from '@/hooks/useDioceses';
 import { useTranslations } from 'next-intl';
@@ -36,7 +38,7 @@ export default function DeaneriesPage() {
     deleteDeanery,
   } = useDeaneries();
 
-  const { dioceses, fetchDioceses } = useDioceses();
+  const { dioceses, loading: diocesesLoading, fetchDioceses } = useDioceses();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [dioceseFilter, setDioceseFilter] = useState('');
@@ -44,7 +46,12 @@ export default function DeaneriesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDeanery, setSelectedDeanery] = useState<Deanery | null>(null);
-  const [formData, setFormData] = useState({
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<DeaneryFormData>({
     dioceseId: '',
     code: '',
     name: '',
@@ -72,42 +79,116 @@ export default function DeaneriesPage() {
     });
   }, [currentPage, searchTerm, dioceseFilter, fetchDeaneries]);
 
-  const handleCreate = async () => {
-    const result = await createDeanery(formData);
-    if (result) {
-      setShowAddModal(false);
-      setFormData({
-        dioceseId: '',
-        code: '',
-        name: '',
-        address: '',
-        city: '',
-        county: '',
-        deanName: '',
-        phone: '',
-        email: '',
-        isActive: true,
-      });
-    }
-  };
+  const resetForm = useCallback(() => {
+    setFormData({
+      dioceseId: '',
+      code: '',
+      name: '',
+      address: '',
+      city: '',
+      county: '',
+      deanName: '',
+      phone: '',
+      email: '',
+      isActive: true,
+    });
+    setFormError(null);
+    setFormErrors({});
+  }, []);
 
-  const handleUpdate = async () => {
-    if (selectedDeanery) {
+  const validateForm = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.dioceseId.trim()) {
+      errors.dioceseId = t('required') || 'This field is required';
+    }
+
+    if (!formData.code.trim()) {
+      errors.code = t('required') || 'This field is required';
+    }
+
+    if (!formData.name.trim()) {
+      errors.name = t('required') || 'This field is required';
+    }
+
+    if (formData.email && formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        errors.email = t('invalidEmail') || 'Invalid email format';
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData, t]);
+
+  const handleCreate = useCallback(async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormError(null);
+
+    try {
+      const result = await createDeanery(formData);
+      if (result) {
+        setShowAddModal(false);
+        resetForm();
+      } else {
+        setFormError(t('createError') || 'Failed to create deanery. Please try again.');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('createError') || 'Failed to create deanery';
+      setFormError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, validateForm, createDeanery, resetForm, t]);
+
+  const handleUpdate = useCallback(async () => {
+    if (!selectedDeanery) return;
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormError(null);
+
+    try {
       const result = await updateDeanery(selectedDeanery.id, formData);
       if (result) {
         setShowEditModal(false);
         setSelectedDeanery(null);
+        resetForm();
+      } else {
+        setFormError(t('updateError') || 'Failed to update deanery. Please try again.');
       }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('updateError') || 'Failed to update deanery';
+      setFormError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [selectedDeanery, formData, validateForm, updateDeanery, resetForm, t]);
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this deanery?')) {
-      await deleteDeanery(id);
+  const handleDelete = useCallback(async (id: string) => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteDeanery(id);
+      if (result) {
+        setDeleteConfirm(null);
+      }
+    } catch (err) {
+      // Error is handled by the hook and displayed in the table
+      console.error('Failed to delete deanery:', err);
+    } finally {
+      setIsDeleting(false);
     }
-  };
+  }, [deleteDeanery]);
 
-  const handleEdit = (deanery: Deanery) => {
+  const handleEdit = useCallback((deanery: Deanery) => {
     setSelectedDeanery(deanery);
     setFormData({
       dioceseId: deanery.dioceseId,
@@ -121,27 +202,29 @@ export default function DeaneriesPage() {
       email: deanery.email || '',
       isActive: deanery.isActive,
     });
+    setFormErrors({});
+    setFormError(null);
     setShowEditModal(true);
-  };
+  }, []);
 
-  const columns = [
-    { key: 'code', label: 'Code', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'city', label: 'City', sortable: true },
-    { key: 'county', label: 'County', sortable: true },
+  const columns = useMemo<Column<Deanery>[]>(() => [
+    { key: 'code' as keyof Deanery, label: t('code') || 'Code', sortable: true },
+    { key: 'name' as keyof Deanery, label: t('name') || 'Name', sortable: true },
+    { key: 'city' as keyof Deanery, label: t('city') || 'City', sortable: true, render: (value: string | null) => value || '-' },
+    { key: 'county' as keyof Deanery, label: t('county') || 'County', sortable: true, render: (value: string | null) => value || '-' },
     {
-      key: 'isActive',
-      label: 'Status',
+      key: 'isActive' as keyof Deanery,
+      label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
         <Badge variant={value ? 'success' : 'secondary'} size="sm">
-          {value ? 'Active' : 'Inactive'}
+          {value ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
         </Badge>
       ),
     },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: 'actions' as keyof Deanery,
+      label: t('actions') || 'Actions',
       sortable: false,
       render: (_: any, row: Deanery) => (
         <Dropdown
@@ -153,14 +236,14 @@ export default function DeaneriesPage() {
             </Button>
           }
           items={[
-            { label: 'Edit', onClick: () => handleEdit(row) },
-            { label: 'Delete', onClick: () => handleDelete(row.id), variant: 'danger' },
+            { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+            { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' },
           ]}
           align="right"
         />
       ),
     },
-  ];
+  ], [t, handleEdit]);
 
   if (permissionLoading) {
     return (
@@ -170,225 +253,104 @@ export default function DeaneriesPage() {
     );
   }
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('administration'), href: `/${locale}/dashboard/administration` },
-    { label: 'Deaneries' },
-  ];
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleDioceseFilterChange = useCallback((value: string) => {
+    setDioceseFilter(value);
+    setCurrentPage(1);
+  }, []);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('protopopiate')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('protopopiate')}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('administration'), href: `/${locale}/dashboard/administration` },
+          { label: t('protopopiate') || 'Deaneries' },
+        ]}
+        title={t('protopopiate') || 'Deaneries'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('protopopiate')}</Button>}
+      />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <Input
-              placeholder="Search deaneries..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-md"
-            />
-            <select
-              value={dioceseFilter}
-              onChange={(e) => {
-                setDioceseFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border rounded"
-            >
-              <option value="">All Dioceses</option>
-              {dioceses.map((diocese) => (
-                <option key={diocese.id} value={diocese.id}>
-                  {diocese.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <>
-              <Table
-                data={deaneries}
-                columns={columns}
-                loading={loading}
-              />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      {/* Filters */}
+      <DeaneriesFiltersCard
+        searchTerm={searchTerm}
+        dioceseFilter={dioceseFilter}
+        dioceses={dioceses}
+        diocesesLoading={diocesesLoading}
+        onSearchChange={handleSearchChange}
+        onDioceseFilterChange={handleDioceseFilterChange}
+      />
 
-      <FormModal
+      {/* Deaneries Table */}
+      <DeaneriesTableCard
+        data={deaneries}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No deaneries available'}
+      />
+
+      {/* Add Modal */}
+      <DeaneryAddModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onCancel={() => setShowAddModal(false)}
-        title="Add Deanery"
+        onClose={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        dioceses={dioceses}
+        diocesesLoading={diocesesLoading}
+        formErrors={formErrors}
         onSubmit={handleCreate}
-        isSubmitting={false}
-        submitLabel="Create"
-        cancelLabel="Cancel"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Diocese *</label>
-            <select
-              value={formData.dioceseId}
-              onChange={(e) => setFormData({ ...formData, dioceseId: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
-              required
-            >
-              <option value="">Select Diocese</option>
-              {dioceses.map((diocese) => (
-                <option key={diocese.id} value={diocese.id}>
-                  {diocese.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Input
-            label="Code"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label="City"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-          />
-          <Input
-            label="County"
-            value={formData.county}
-            onChange={(e) => setFormData({ ...formData, county: e.target.value })}
-          />
-          <Input
-            label="Dean Name"
-            value={formData.deanName}
-            onChange={(e) => setFormData({ ...formData, deanName: e.target.value })}
-          />
-          <Input
-            label="Phone"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+        error={formError}
+      />
 
-      <FormModal
+      {/* Edit Modal */}
+      <DeaneryEditModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onCancel={() => setShowEditModal(false)}
-        title="Edit Deanery"
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedDeanery(null);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedDeanery(null);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        dioceses={dioceses}
+        diocesesLoading={diocesesLoading}
+        formErrors={formErrors}
         onSubmit={handleUpdate}
-        isSubmitting={false}
-        submitLabel="Update"
-        cancelLabel="Cancel"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Diocese *</label>
-            <select
-              value={formData.dioceseId}
-              onChange={(e) => setFormData({ ...formData, dioceseId: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
-              required
-            >
-              <option value="">Select Diocese</option>
-              {dioceses.map((diocese) => (
-                <option key={diocese.id} value={diocese.id}>
-                  {diocese.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Input
-            label="Code"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label="City"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-          />
-          <Input
-            label="County"
-            value={formData.county}
-            onChange={(e) => setFormData({ ...formData, county: e.target.value })}
-          />
-          <Input
-            label="Dean Name"
-            value={formData.deanName}
-            onChange={(e) => setFormData({ ...formData, deanName: e.target.value })}
-          />
-          <Input
-            label="Phone"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+        error={formError}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteDeaneryDialog
+        isOpen={!!deleteConfirm}
+        deaneryId={deleteConfirm}
+        onClose={() => {
+          setDeleteConfirm(null);
+          setFormError(null);
+        }}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

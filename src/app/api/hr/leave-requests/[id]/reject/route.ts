@@ -38,13 +38,13 @@ export async function POST(
 
     const data = validation.data;
 
-    const [request] = await db
+    const [leaveRequest] = await db
       .select()
       .from(leaveRequests)
       .where(eq(leaveRequests.id, id))
       .limit(1);
 
-    if (!request) {
+    if (!leaveRequest) {
       return NextResponse.json(
         { success: false, error: 'Leave request not found' },
         { status: 404 }

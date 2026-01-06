@@ -47,7 +47,15 @@ export function useTrainingCourses(): UseTrainingCoursesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseTrainingCoursesReturn['pagination']>(null);
 
-  const fetchTrainingCourses = useCallback(async (params = {}) => {
+  const fetchTrainingCourses = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -171,6 +179,9 @@ export function useTrainingCourses(): UseTrainingCoursesReturn {
     deleteTrainingCourse,
   };
 }
+
+
+
 
 
 

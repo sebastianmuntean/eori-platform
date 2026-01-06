@@ -125,7 +125,7 @@ export async function PUT(
       }
     }
 
-    // Check if partner exists (if provided)
+    // Check if client exists (if provided)
     if (data.clientId !== undefined && data.clientId !== null) {
       console.log(`Step 3: Checking if client ${data.clientId} exists`);
       const [existingClient] = await db
@@ -137,7 +137,7 @@ export async function PUT(
       if (!existingClient) {
         console.log(`❌ Client ${data.clientId} not found`);
         return NextResponse.json(
-          { success: false, error: 'Partner not found' },
+          { success: false, error: 'Client not found' },
           { status: 400 }
         );
       }

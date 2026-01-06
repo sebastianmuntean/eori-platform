@@ -1,16 +1,17 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { ToastContainer } from '@/components/ui/Toast';
+import { StudentAddModal, StudentFormData } from '@/components/catechesis/StudentAddModal';
+import { StudentEditModal } from '@/components/catechesis/StudentEditModal';
+import { DeleteStudentDialog } from '@/components/catechesis/DeleteStudentDialog';
+import { StudentsFiltersCard } from '@/components/catechesis/StudentsFiltersCard';
+import { StudentsTableCard } from '@/components/catechesis/StudentsTableCard';
 import { useCatechesisStudents, CatechesisStudent } from '@/hooks/useCatechesisStudents';
 import { useTranslations } from 'next-intl';
 import { useUser } from '@/hooks/useUser';
@@ -19,24 +20,10 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { CATECHESIS_PERMISSIONS } from '@/lib/permissions/catechesis';
 
-interface StudentFormData {
-  parishId: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  parentName: string;
-  parentEmail: string;
-  parentPhone: string;
-  address: string;
-  notes: string;
-  isActive: boolean;
-}
-
 const PAGE_SIZE = 10;
 
 export default function CatechesisStudentsPage() {
   const params = useParams();
-  const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tCatechesis = useTranslations('catechesis');
@@ -84,6 +71,16 @@ export default function CatechesisStudentsPage() {
     };
     fetchStudents(params);
   }, [permissionLoading, currentPage, searchTerm, isActiveFilter, fetchStudents]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleIsActiveFilterChange = useCallback((value: boolean | '') => {
+    setIsActiveFilter(value);
+    setCurrentPage(1);
+  }, []);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -267,110 +264,70 @@ export default function CatechesisStudentsPage() {
           </Badge>
         ),
       },
+      {
+        key: 'actions' as keyof CatechesisStudent,
+        label: t('actions'),
+        sortable: false,
+        render: (_: any, row: CatechesisStudent) => (
+          <Dropdown
+            trigger={
+              <Button variant="ghost" size="sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </Button>
+            }
+            items={[
+              { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+              { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
+            ]}
+            align="right"
+          />
+        ),
+      },
     ],
-    [tCatechesis, t, formatDate]
-  );
-
-  // Breadcrumbs configuration
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-      { label: tCatechesis('students.title') },
-    ],
-    [t, tCatechesis, locale]
+    [tCatechesis, t, formatDate, handleEdit]
   );
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{tCatechesis('students.title')}</h1>
-          <p className="text-text-secondary mt-1">{tCatechesis('manageStudents')}</p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {tCatechesis('actions.create')} {tCatechesis('students.title')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('students.title') },
+        ]}
+        title={tCatechesis('students.title')}
+        description={tCatechesis('manageStudents')}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {tCatechesis('actions.create')} {tCatechesis('students.title')}
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Card>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder={t('search')}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-            <select
-              value={isActiveFilter.toString()}
-              onChange={(e) => {
-                setIsActiveFilter(e.target.value === '' ? '' : e.target.value === 'true');
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2 border border-border rounded-md bg-bg-primary text-text-primary"
-            >
-              <option value="">All Status</option>
-              <option value="true">{tCatechesis('status.active')}</option>
-              <option value="false">{tCatechesis('status.inactive')}</option>
-            </select>
-          </div>
-        </CardBody>
-      </Card>
+      <StudentsFiltersCard
+        searchTerm={searchTerm}
+        isActiveFilter={isActiveFilter}
+        onSearchChange={handleSearchChange}
+        onIsActiveFilterChange={handleIsActiveFilterChange}
+      />
 
       {/* Table */}
-      <Card>
-        <CardBody>
-          {loading && !students.length ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-text-secondary">{t('loading')}</div>
-            </div>
-          ) : error ? (
-            <div className="p-4 bg-danger/10 text-danger rounded-md">{error}</div>
-          ) : (
-            <>
-              <Table
-                data={students}
-                columns={columns}
-                emptyMessage={t('noData')}
-              />
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-text-secondary">
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      <StudentsTableCard
+        data={students}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData')}
+      />
 
       {/* Add Modal */}
-      <FormModal
+      <StudentAddModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
@@ -380,70 +337,14 @@ export default function CatechesisStudentsPage() {
           setShowAddModal(false);
           resetForm();
         }}
-        title={`${tCatechesis('actions.create')} ${tCatechesis('students.title')}`}
+        formData={formData}
+        onFormDataChange={setFormData}
         onSubmit={handleCreate}
         isSubmitting={isSubmitting}
-        submitLabel={isSubmitting ? t('saving') || 'Saving...' : t('save') || 'Save'}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-4">
-          <Input
-            label={tCatechesis('students.firstName')}
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('students.lastName')}
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('students.dateOfBirth')}
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentName')}
-            value={formData.parentName}
-            onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentEmail')}
-            type="email"
-            value={formData.parentEmail}
-            onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentPhone')}
-            value={formData.parentPhone}
-            onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.address')}
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm text-text-primary">
-              {tCatechesis('students.isActive')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+      />
 
       {/* Edit Modal */}
-      <FormModal
+      <StudentEditModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
@@ -453,79 +354,19 @@ export default function CatechesisStudentsPage() {
           setShowEditModal(false);
           setSelectedStudent(null);
         }}
-        title={`${tCatechesis('actions.edit')} ${tCatechesis('students.title')}`}
+        formData={formData}
+        onFormDataChange={setFormData}
         onSubmit={handleUpdate}
         isSubmitting={isSubmitting}
-        submitLabel={isSubmitting ? t('saving') || 'Saving...' : t('save') || 'Save'}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-4">
-          <Input
-            label={tCatechesis('students.firstName')}
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('students.lastName')}
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('students.dateOfBirth')}
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentName')}
-            value={formData.parentName}
-            onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentEmail')}
-            type="email"
-            value={formData.parentEmail}
-            onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.parentPhone')}
-            value={formData.parentPhone}
-            onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('students.address')}
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActiveEdit"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActiveEdit" className="text-sm text-text-primary">
-              {tCatechesis('students.isActive')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+      />
 
       {/* Delete Confirmation */}
-      <ConfirmDialog
+      <DeleteStudentDialog
         isOpen={!!deleteConfirm}
+        studentId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirm') || 'Confirm Delete'}
-        message={tCatechesis('students.confirmDelete') || t('confirmDelete') || 'Are you sure you want to delete this student?'}
-        confirmLabel={isSubmitting ? t('deleting') || 'Deleting...' : t('delete') || 'Delete'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        variant="danger"
-        isLoading={isSubmitting}
+        onConfirm={handleDelete}
+        isSubmitting={isSubmitting}
       />
 
       {/* Toast Notifications */}

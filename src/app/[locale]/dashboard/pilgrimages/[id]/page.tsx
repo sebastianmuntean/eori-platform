@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -76,28 +76,29 @@ export default function PilgrimageDetailsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">{pilgrimage.title}</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant={pilgrimage.status === 'open' ? 'primary' : 'secondary'} size="sm">
-              {getStatusLabel(pilgrimage.status)}
-            </Badge>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={pilgrimage.title}
+        action={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/${locale}/dashboard/pilgrimages/${id}/edit`)}
+            >
+              {t('edit')}
+            </Button>
+            <Button onClick={() => router.push(`/${locale}/dashboard/pilgrimages`)}>
+              {t('back')}
+            </Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/${locale}/dashboard/pilgrimages/${id}/edit`)}
-          >
-            {t('edit')}
-          </Button>
-          <Button onClick={() => router.push(`/${locale}/dashboard/pilgrimages`)}>
-            {t('back')}
-          </Button>
-        </div>
+        }
+        className="mb-6"
+      />
+      
+      <div className="flex items-center gap-2 mb-6">
+        <Badge variant={pilgrimage.status === 'open' ? 'primary' : 'secondary'} size="sm">
+          {getStatusLabel(pilgrimage.status)}
+        </Badge>
       </div>
 
       <div className="mb-6">

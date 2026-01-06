@@ -63,7 +63,12 @@ export function usePilgrimageStatistics(): UsePilgrimageStatisticsReturn {
     }
   }, []);
 
-  const fetchGlobalStatistics = useCallback(async (params = {}) => {
+  const fetchGlobalStatistics = useCallback(async (params: {
+    parishId?: string;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -98,6 +103,9 @@ export function usePilgrimageStatistics(): UsePilgrimageStatisticsReturn {
     fetchGlobalStatistics,
   };
 }
+
+
+
 
 
 

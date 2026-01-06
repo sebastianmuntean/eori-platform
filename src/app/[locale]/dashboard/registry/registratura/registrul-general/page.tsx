@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { DocumentList } from '@/components/registratura/DocumentList';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
@@ -32,12 +32,14 @@ export default function RegistraturaGeneralPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tReg('registratura'), href: `/${locale}/dashboard/registry/registratura` },
-          { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/registratura/registrul-general` },
+          { label: tReg('generalRegister') },
         ]}
+        title={tReg('generalRegister') || 'General Register'}
+        className="mb-6"
       />
 
       <DocumentList

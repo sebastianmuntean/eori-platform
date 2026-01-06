@@ -64,7 +64,7 @@ export function DocumentAttachments({ documentId, onAttachmentsUpdate }: Documen
     if (!confirm('Sigur doriți să ștergeți acest atașament?')) return;
 
     try {
-      await deleteAttachment(documentId, attachmentId);
+      await deleteAttachment(attachmentId);
       if (onAttachmentsUpdate) onAttachmentsUpdate();
     } catch (err) {
       console.error('Error deleting attachment:', err);
@@ -74,20 +74,22 @@ export function DocumentAttachments({ documentId, onAttachmentsUpdate }: Documen
 
   const handleDownload = async (attachmentId: string, fileName: string) => {
     try {
-      await downloadAttachment(documentId, attachmentId);
+      await downloadAttachment(attachmentId);
     } catch (err) {
       console.error('Error downloading attachment:', err);
       alert('Eroare la descărcarea fișierului');
     }
   };
 
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = (bytes: number | null) => {
+    if (bytes === null) return 'N/A';
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
-  const getFileIcon = (mimeType: string) => {
+  const getFileIcon = (mimeType: string | null) => {
+    if (!mimeType) return '📎';
     if (mimeType.startsWith('image/')) return '🖼️';
     if (mimeType.startsWith('application/pdf')) return '📄';
     if (mimeType.includes('word')) return '📝';

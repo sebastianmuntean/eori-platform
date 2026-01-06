@@ -26,7 +26,13 @@ export async function GET(request: Request) {
       conditions.push(eq(salaries.status, status as any));
     }
 
-    let query = db
+    if (parishId) {
+      conditions.push(eq(employees.parishId, parishId));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const baseQuery = db
       .select({
         totalGross: sql<number>`coalesce(sum(${salaries.grossSalary}), 0)`,
         totalNet: sql<number>`coalesce(sum(${salaries.netSalary}), 0)`,
@@ -36,17 +42,11 @@ export async function GET(request: Request) {
       })
       .from(salaries);
 
-    if (parishId) {
-      query = query.innerJoin(employees, eq(salaries.employeeId, employees.id));
-      conditions.push(eq(employees.parishId, parishId));
-    }
+    const queryWithJoin = parishId 
+      ? baseQuery.innerJoin(employees, eq(salaries.employeeId, employees.id))
+      : baseQuery;
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
-    const result = await query;
+    const result = await (whereClause ? queryWithJoin.where(whereClause) : queryWithJoin);
 
     return NextResponse.json({
       success: true,
@@ -65,6 +65,7 @@ export async function GET(request: Request) {
     });
   }
 }
+
 
 
 

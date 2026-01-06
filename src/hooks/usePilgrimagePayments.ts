@@ -56,14 +56,17 @@ export function usePilgrimagePayments(): UsePilgrimagePaymentsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPayments = useCallback(async (pilgrimageId: string, params = {}) => {
+  const fetchPayments = useCallback(async (pilgrimageId: string, params?: {
+    participantId?: string;
+    status?: PaymentStatus;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.participantId) queryParams.append('participantId', params.participantId);
-      if (params.status) queryParams.append('status', params.status);
+      if (params?.participantId) queryParams.append('participantId', params.participantId);
+      if (params?.status) queryParams.append('status', params.status);
 
       const response = await fetch(`/api/pilgrimages/${pilgrimageId}/payments?${queryParams.toString()}`);
       const result = await response.json();
@@ -206,6 +209,10 @@ export function usePilgrimagePayments(): UsePilgrimagePaymentsReturn {
     getPaymentSummary,
   };
 }
+
+
+
+
 
 
 

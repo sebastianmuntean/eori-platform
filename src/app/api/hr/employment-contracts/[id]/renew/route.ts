@@ -78,11 +78,11 @@ export async function POST(
       })
       .returning();
 
-    // Update old contract status
+    // Update old contract status to expired
     await db
       .update(employmentContracts)
       .set({
-        status: 'renewed',
+        status: 'expired',
         updatedBy: userId,
         updatedAt: new Date(),
       })
@@ -99,6 +99,7 @@ export async function POST(
     });
   }
 }
+
 
 
 

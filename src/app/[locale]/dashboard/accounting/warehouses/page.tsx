@@ -2,24 +2,22 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { WarehouseAddModal, WarehouseFormData } from '@/components/accounting/WarehouseAddModal';
+import { WarehouseEditModal } from '@/components/accounting/WarehouseEditModal';
+import { DeleteWarehouseDialog } from '@/components/accounting/DeleteWarehouseDialog';
+import { WarehousesFiltersCard } from '@/components/accounting/WarehousesFiltersCard';
+import { WarehousesTableCard } from '@/components/accounting/WarehousesTableCard';
 import { useWarehouses, Warehouse } from '@/hooks/useWarehouses';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { validateWarehouseForm, ValidationErrors, WarehouseType } from '@/lib/validations/warehouses';
 
 export default function WarehousesPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
@@ -53,11 +51,12 @@ export default function WarehousesPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formErrors, setFormErrors] = useState<ValidationErrors>({});
+  const [formData, setFormData] = useState<WarehouseFormData>({
     parishId: '',
     code: '',
     name: '',
-    type: 'general' as 'general' | 'retail' | 'storage' | 'temporary',
+    type: 'general',
     address: '',
     responsibleName: '',
     phone: '',
@@ -71,18 +70,24 @@ export default function WarehousesPage() {
     fetchParishes({ all: true });
   }, [permissionLoading, fetchParishes]);
 
-  useEffect(() => {
-    if (permissionLoading) return;
-    const params: any = {
-      page: currentPage,
+  /**
+   * Build fetch parameters object for warehouses API
+   */
+  const buildFetchParams = useMemo(() => {
+    return (page: number = currentPage) => ({
+      page,
       pageSize: 10,
       search: searchTerm || undefined,
       parishId: parishFilter || undefined,
-      type: typeFilter || undefined,
+      type: (typeFilter || undefined) as WarehouseType | undefined,
       isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
-    };
-    fetchWarehouses(params);
-  }, [permissionLoading, currentPage, searchTerm, parishFilter, typeFilter, isActiveFilter, fetchWarehouses]);
+    });
+  }, [currentPage, searchTerm, parishFilter, typeFilter, isActiveFilter]);
+
+  useEffect(() => {
+    if (permissionLoading) return;
+    fetchWarehouses(buildFetchParams());
+  }, [permissionLoading, buildFetchParams, fetchWarehouses]);
 
   const handleAdd = () => {
     resetForm();
@@ -106,42 +111,49 @@ export default function WarehousesPage() {
     setShowEditModal(true);
   };
 
-  const handleSave = async () => {
+  const handleCreate = async () => {
+    // Validate form
+    const errors = validateWarehouseForm(formData, t);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
     setIsSubmitting(true);
     try {
-      if (selectedWarehouse) {
-        const result = await updateWarehouse(selectedWarehouse.id, formData);
-        if (result) {
-          setShowEditModal(false);
-          setSelectedWarehouse(null);
-          // Refetch with current filters to maintain state
-          const params: any = {
-            page: currentPage,
-            pageSize: 10,
-            search: searchTerm || undefined,
-            parishId: parishFilter || undefined,
-            type: typeFilter || undefined,
-            isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
-          };
-          fetchWarehouses(params);
-        }
-      } else {
-        const result = await createWarehouse(formData);
-        if (result) {
-          setShowAddModal(false);
-          resetForm();
-          // After creating, go to first page and refetch with current filters
-          setCurrentPage(1);
-          const params: any = {
-            page: 1,
-            pageSize: 10,
-            search: searchTerm || undefined,
-            parishId: parishFilter || undefined,
-            type: typeFilter || undefined,
-            isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
-          };
-          fetchWarehouses(params);
-        }
+      const result = await createWarehouse(formData);
+      if (result) {
+        setShowAddModal(false);
+        resetForm();
+        // After creating, go to first page and refetch with current filters
+        setCurrentPage(1);
+        fetchWarehouses(buildFetchParams(1));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedWarehouse) return;
+
+    // Validate form
+    const errors = validateWarehouseForm(formData, t);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
+    setIsSubmitting(true);
+    try {
+      const result = await updateWarehouse(selectedWarehouse.id, formData);
+      if (result) {
+        setShowEditModal(false);
+        setSelectedWarehouse(null);
+        // Refetch with current filters to maintain state
+        fetchWarehouses(buildFetchParams());
       }
     } finally {
       setIsSubmitting(false);
@@ -153,16 +165,16 @@ export default function WarehousesPage() {
     if (success) {
       setDeleteConfirm(null);
       // Refetch with current filters to maintain state
-      const params: any = {
-        page: currentPage,
-        pageSize: 10,
-        search: searchTerm || undefined,
-        parishId: parishFilter || undefined,
-        type: typeFilter || undefined,
-        isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
-      };
-      fetchWarehouses(params);
+      fetchWarehouses(buildFetchParams());
     }
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setParishFilter('');
+    setTypeFilter('');
+    setIsActiveFilter('');
+    setCurrentPage(1);
   };
 
   const resetForm = () => {
@@ -179,6 +191,7 @@ export default function WarehousesPage() {
       isActive: true,
     });
     setSelectedWarehouse(null);
+    setFormErrors({});
   };
 
   const columns = useMemo(() => [
@@ -247,231 +260,112 @@ export default function WarehousesPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
           { label: t('warehouses') || 'Warehouses', href: `/${locale}/dashboard/accounting/warehouses` },
         ]}
+        title={t('warehouses') || 'Warehouses'}
+        action={<Button onClick={handleAdd}>{t('add') || 'Add'}</Button>}
       />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t('warehouses') || 'Warehouses'}</h1>
-            <Button onClick={handleAdd}>{t('add') || 'Add'}</Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <SearchInput
-                value={searchTerm}
-                onChange={(value: string) => {
-                  setSearchTerm(value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('search') || 'Search...'}
-              />
-            </div>
+      {/* Filters */}
+      <WarehousesFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        typeFilter={typeFilter}
+        isActiveFilter={isActiveFilter}
+        parishes={parishes}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onTypeFilterChange={(value) => {
+          setTypeFilter(value);
+          setCurrentPage(1);
+        }}
+        onIsActiveFilterChange={(value) => {
+          setIsActiveFilter(value);
+          setCurrentPage(1);
+        }}
+        onClearFilters={handleClearFilters}
+      />
 
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                  setCurrentPage(1);
-                }}
-                parishes={parishes}
-              />
-              <FilterSelect
-                label={t('type') || 'Type'}
-                value={typeFilter}
-                onChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  { value: 'general', label: 'General' },
-                  { value: 'retail', label: 'Retail' },
-                  { value: 'storage', label: 'Storage' },
-                  { value: 'temporary', label: 'Temporary' },
-                ]}
-              />
-              <FilterSelect
-                label={t('status') || 'Status'}
-                value={isActiveFilter}
-                onChange={(value) => {
-                  setIsActiveFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  { value: 'true', label: t('active') || 'Active' },
-                  { value: 'false', label: t('inactive') || 'Inactive' },
-                ]}
-              />
-              <FilterClear
-                onClear={() => {
-                  setSearchTerm('');
-                  setParishFilter('');
-                  setTypeFilter('');
-                  setIsActiveFilter('');
-                  setCurrentPage(1);
-                }}
-              />
-            </FilterGrid>
+      {/* Warehouses Table */}
+      <WarehousesTableCard
+        data={warehouses}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No warehouses available'}
+      />
 
-            {error && (
-              <div className="p-4 bg-danger/10 text-danger rounded">
-                {error}
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
-            ) : (
-              <Table
-                data={warehouses}
-                columns={columns}
-              />
-            )}
-
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                <div className="text-sm text-text-secondary">
-                  {t('showing')} {(pagination.page - 1) * pagination.pageSize + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} {t('of')} {pagination.total}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                  >
-                    {t('previous')}
-                  </Button>
-                  <span className="text-sm text-text-secondary">
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === pagination.totalPages || loading}
-                  >
-                    {t('next')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Add/Edit Modal */}
-      <FormModal
-        isOpen={showAddModal || showEditModal}
+      {/* Add Modal */}
+      <WarehouseAddModal
+        isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
-          setShowEditModal(false);
           resetForm();
         }}
         onCancel={() => {
           setShowAddModal(false);
-          setShowEditModal(false);
           resetForm();
         }}
-        title={selectedWarehouse ? (t('editWarehouse') || 'Edit Warehouse') : (t('addWarehouse') || 'Add Warehouse')}
-        onSubmit={handleSave}
+        formData={formData}
+        onFormDataChange={(data) => {
+          setFormData(data);
+          // Clear errors when user modifies form
+          if (Object.keys(formErrors).length > 0) {
+            setFormErrors({});
+          }
+        }}
+        parishes={parishes}
+        onSubmit={handleCreate}
         isSubmitting={isSubmitting}
-        submitLabel={t('save') || 'Save'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        size="lg"
-      >
-        <div className="space-y-4">
-          <Select
-            label={t('parish') || 'Parish'}
-            value={formData.parishId}
-            onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Input
-            label={t('code') || 'Code'}
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label={t('name') || 'Name'}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Select
-            label={t('type') || 'Type'}
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-            options={[
-              { value: 'general', label: 'General' },
-              { value: 'retail', label: 'Retail' },
-              { value: 'storage', label: 'Storage' },
-              { value: 'temporary', label: 'Temporary' },
-            ]}
-          />
-          <Input
-            label={t('address') || 'Address'}
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          />
-          <Input
-            label={t('responsibleName') || 'Responsible Name'}
-            value={formData.responsibleName}
-            onChange={(e) => setFormData({ ...formData, responsibleName: e.target.value })}
-          />
-          <Input
-            label={t('phone') || 'Phone'}
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Input
-            label={t('email') || 'Email'}
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <Input
-            label={t('invoiceSeries') || 'Serie Factură'}
-            value={formData.invoiceSeries}
-            onChange={(e) => setFormData({ ...formData, invoiceSeries: e.target.value })}
-            placeholder="ex: INV, FACT, etc."
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm">{t('active') || 'Active'}</label>
-          </div>
-        </div>
-      </FormModal>
+        errors={formErrors}
+      />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* Edit Modal */}
+      <WarehouseEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedWarehouse(null);
+          setFormErrors({});
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedWarehouse(null);
+          setFormErrors({});
+        }}
+        formData={formData}
+        onFormDataChange={(data) => {
+          setFormData(data);
+          // Clear errors when user modifies form
+          if (Object.keys(formErrors).length > 0) {
+            setFormErrors({});
+          }
+        }}
+        parishes={parishes}
+        onSubmit={handleUpdate}
+        isSubmitting={isSubmitting}
+        errors={formErrors}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteWarehouseDialog
         isOpen={!!deleteConfirm}
+        warehouseId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete') || 'Confirm Delete'}
-        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this warehouse?'}
-        confirmLabel={t('delete') || 'Delete'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

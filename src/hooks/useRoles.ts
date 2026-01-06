@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface Role {
+export interface Role {
   id: string;
   name: string;
   description: string | null;

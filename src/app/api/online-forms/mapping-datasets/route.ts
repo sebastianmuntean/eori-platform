@@ -11,7 +11,7 @@ import { handleApiRoute, createSuccessResponse, createErrorResponse } from '@/li
 import { logger } from '@/lib/utils/logger';
 
 // Allowed target modules
-const ALLOWED_TARGET_MODULES = ['registratura', 'general_register', 'events', 'partners'] as const;
+const ALLOWED_TARGET_MODULES = ['registratura', 'general_register', 'events', 'clients'] as const;
 
 /**
  * GET /api/online-forms/mapping-datasets - List mapping datasets with filtering

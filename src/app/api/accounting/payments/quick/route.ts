@@ -8,6 +8,7 @@ import { eq, and, like, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { sendEmailWithTemplateName, getTemplateByName } from '@/lib/email';
 import { getClientName, isValidEmail } from '@/lib/utils/client-helpers';
+import { Client } from '@/hooks/useClients';
 
 const MAX_PAYMENT_AMOUNT = 999999999.99;
 
@@ -234,7 +235,7 @@ export async function POST(request: Request) {
         console.log(`Step 6: Sending email receipt to ${emailToSend}`);
         try {
           // Get client display name using helper
-          const clientName = getClientName(existingClient);
+          const clientName = getClientName(existingClient as Client);
 
           // Format payment date (parse string date properly)
           const paymentDateObj = new Date(currentDate + 'T00:00:00');

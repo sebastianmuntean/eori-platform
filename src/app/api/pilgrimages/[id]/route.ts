@@ -161,7 +161,6 @@ export async function PUT(
       registrationDeadline: (body as any).registrationDeadline ?? existingPilgrimage.registrationDeadline,
       maxParticipants: (body as any).maxParticipants ?? existingPilgrimage.maxParticipants,
       minParticipants: (body as any).minParticipants ?? existingPilgrimage.minParticipants,
-      ...body,
     };
 
     const validation = updatePilgrimageSchema.safeParse(mergedData);

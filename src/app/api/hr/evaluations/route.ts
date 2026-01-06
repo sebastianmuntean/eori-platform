@@ -53,11 +53,39 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = evaluations[sortBy as keyof typeof evaluations];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = desc(evaluations.evaluationDate);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.id) : desc(evaluations.id);
+        break;
+      case 'employeeId':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.employeeId) : desc(evaluations.employeeId);
+        break;
+      case 'evaluatorId':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.evaluatorId) : desc(evaluations.evaluatorId);
+        break;
+      case 'evaluationPeriodStart':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.evaluationPeriodStart) : desc(evaluations.evaluationPeriodStart);
+        break;
+      case 'evaluationPeriodEnd':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.evaluationPeriodEnd) : desc(evaluations.evaluationPeriodEnd);
+        break;
+      case 'evaluationDate':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.evaluationDate) : desc(evaluations.evaluationDate);
+        break;
+      case 'overallScore':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.overallScore) : desc(evaluations.overallScore);
+        break;
+      case 'status':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.status) : desc(evaluations.status);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.createdAt) : desc(evaluations.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(evaluations.updatedAt) : desc(evaluations.updatedAt);
+        break;
+      default:
+        orderBy = desc(evaluations.evaluationDate);
     }
 
     const offset = (page - 1) * pageSize;
@@ -169,6 +197,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

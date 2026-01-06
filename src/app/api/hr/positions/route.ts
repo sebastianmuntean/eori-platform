@@ -64,11 +64,33 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = positions[sortBy as keyof typeof positions];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = asc(positions.title);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(positions.id) : desc(positions.id);
+        break;
+      case 'code':
+        orderBy = sortOrder === 'asc' ? asc(positions.code) : desc(positions.code);
+        break;
+      case 'title':
+        orderBy = sortOrder === 'asc' ? asc(positions.title) : desc(positions.title);
+        break;
+      case 'minSalary':
+        orderBy = sortOrder === 'asc' ? asc(positions.minSalary) : desc(positions.minSalary);
+        break;
+      case 'maxSalary':
+        orderBy = sortOrder === 'asc' ? asc(positions.maxSalary) : desc(positions.maxSalary);
+        break;
+      case 'isActive':
+        orderBy = sortOrder === 'asc' ? asc(positions.isActive) : desc(positions.isActive);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(positions.createdAt) : desc(positions.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(positions.updatedAt) : desc(positions.updatedAt);
+        break;
+      default:
+        orderBy = asc(positions.title);
     }
 
     const offset = (page - 1) * pageSize;

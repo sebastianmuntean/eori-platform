@@ -27,3 +27,7 @@ export const pilgrimageMeals = pgTable('pilgrimage_meals', {
 
 
 
+
+
+
+

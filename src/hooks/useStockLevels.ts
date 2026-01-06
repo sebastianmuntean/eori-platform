@@ -42,7 +42,12 @@ export function useStockLevels(): UseStockLevelsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStockLevels = useCallback(async (params = {}) => {
+  const fetchStockLevels = useCallback(async (params: {
+    warehouseId?: string;
+    productId?: string;
+    parishId?: string;
+    lowStock?: boolean;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

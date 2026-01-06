@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
+import { TablePagination } from '@/components/ui/TablePagination';
 
 const PAGE_SIZE = 10;
 
@@ -28,10 +29,7 @@ export default function ParishionerContractsPage() {
   const t = useTranslations('common');
   usePageTitle(t('contracts'));
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     contracts,
     loading,
@@ -53,6 +51,8 @@ export default function ParishionerContractsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedContract, setSelectedContract] = useState<ParishionerContract | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     contractNumber: '',
     parishionerId: '',
@@ -73,11 +73,13 @@ export default function ParishionerContractsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchContracts({
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -87,45 +89,87 @@ export default function ParishionerContractsPage() {
       sortBy: 'startDate',
       sortOrder: 'desc',
     });
-  }, [currentPage, searchTerm, parishFilter, statusFilter, fetchContracts]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, fetchContracts]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.parishionerId || !formData.contractNumber || !formData.startDate) {
-      alert(t('fillRequiredFields') || 'Please fill all required fields');
+      setErrorMessage(t('fillRequiredFields') || 'Please fill all required fields');
       return;
     }
 
-    const result = await createContract({
-      ...formData,
-      amount: formData.amount || null,
-      signingDate: formData.signingDate || null,
-      renewalDate: formData.renewalDate || null,
-    });
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await createContract({
+        ...formData,
+        amount: formData.amount || null,
+        signingDate: formData.signingDate || null,
+        renewalDate: formData.renewalDate || null,
+      });
 
-    if (result) {
-      setShowAddModal(false);
-      resetForm();
+      if (result) {
+        setShowAddModal(false);
+        resetForm();
+        // Refetch contracts to show the new one
+        fetchContracts({
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          status: statusFilter || undefined,
+        });
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorCreatingContract') || 'Failed to create contract');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdate = async () => {
     if (!selectedContract) return;
 
-    const result = await updateContract(selectedContract.id, {
-      ...formData,
-      amount: formData.amount || null,
-      signingDate: formData.signingDate || null,
-      renewalDate: formData.renewalDate || null,
-    });
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await updateContract(selectedContract.id, {
+        ...formData,
+        amount: formData.amount || null,
+        signingDate: formData.signingDate || null,
+        renewalDate: formData.renewalDate || null,
+      });
 
-    if (result) {
-      setShowEditModal(false);
-      setSelectedContract(null);
+      if (result) {
+        setShowEditModal(false);
+        setSelectedContract(null);
+        // Refetch contracts to show updated data
+        fetchContracts({
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          status: statusFilter || undefined,
+        });
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorUpdatingContract') || 'Failed to update contract');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirmDelete') || 'Are you sure you want to delete this contract?')) {
+    if (!window.confirm(t('confirmDelete') || 'Are you sure you want to delete this contract?')) {
+      return;
+    }
+
+    setErrorMessage(null);
+    try {
       const success = await deleteContract(id);
       if (success) {
         fetchContracts({
@@ -135,7 +179,11 @@ export default function ParishionerContractsPage() {
           parishId: parishFilter || undefined,
           status: statusFilter || undefined,
         });
+      } else {
+        setErrorMessage(t('errorDeletingContract') || 'Failed to delete contract');
       }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorDeletingContract') || 'Failed to delete contract');
     }
   };
 
@@ -185,44 +233,45 @@ export default function ParishionerContractsPage() {
       renewalDate: '',
       autoRenewal: false,
     });
+    setErrorMessage(null);
   };
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
-  };
+  }, [locale]);
 
-  const getParishionerName = (parishionerId: string) => {
+  const getParishionerName = useCallback((parishionerId: string) => {
     const client = clients.find((c) => c.id === parishionerId);
     if (!client) return parishionerId;
     return client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code;
-  };
+  }, [clients]);
 
-  const getParishName = (parishId: string) => {
+  const getParishName = useCallback((parishId: string) => {
     const parish = parishes.find((p) => p.id === parishId);
     return parish ? parish.name : parishId;
-  };
+  }, [parishes]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
-      key: 'contractNumber',
+      key: 'contractNumber' as keyof ParishionerContract,
       label: t('contractNumber') || 'Contract Number',
       sortable: true,
     },
     {
-      key: 'startDate',
+      key: 'startDate' as keyof ParishionerContract,
       label: t('startDate') || 'Start Date',
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'parishionerId',
+      key: 'parishionerId' as keyof ParishionerContract,
       label: t('parishioner') || 'Parishioner',
       sortable: false,
       render: (_: any, row: ParishionerContract) => getParishionerName(row.parishionerId),
     },
     {
-      key: 'contractType',
+      key: 'contractType' as keyof ParishionerContract,
       label: t('type') || 'Type',
       sortable: false,
       render: (value: ParishionerContractType) => (
@@ -232,7 +281,7 @@ export default function ParishionerContractsPage() {
       ),
     },
     {
-      key: 'status',
+      key: 'status' as keyof ParishionerContract,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: ParishionerContractStatus) => {
@@ -251,7 +300,7 @@ export default function ParishionerContractsPage() {
       },
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof ParishionerContract,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: ParishionerContract) => (
@@ -272,28 +321,26 @@ export default function ParishionerContractsPage() {
         />
       ),
     },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('contracts') || 'Contracts' },
-  ];
+  ], [t, formatDate, getParishionerName]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('contracts') || 'Parishioner Contracts'}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {t('add')} {t('contract') || 'Contract'}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('contracts') || 'Contracts' },
+        ]}
+        title={t('contracts') || 'Parishioner Contracts'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {t('add')} {t('contract') || 'Contract'}
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
@@ -346,16 +393,26 @@ export default function ParishionerContractsPage() {
               {error}
             </div>
           )}
-          <Table
-            data={contracts}
-            columns={columns}
-            loading={loading}
-            pagination={pagination ? {
-              currentPage: pagination.page,
-              totalPages: pagination.totalPages,
-              onPageChange: setCurrentPage,
-            } : undefined}
-          />
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+          ) : (
+            <>
+              <Table
+                data={contracts}
+                columns={columns}
+                emptyMessage={t('noData') || 'No contracts available'}
+              />
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
+              )}
+            </>
+          )}
         </CardBody>
       </Card>
 
@@ -369,6 +426,11 @@ export default function ParishionerContractsPage() {
         title={`${t('add')} ${t('contract') || 'Contract'}`}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">{t('contractNumber') || 'Contract Number'} *</label>
             <Input
@@ -402,7 +464,7 @@ export default function ParishionerContractsPage() {
               required
             >
               <option value="">{t('selectParishioner') || 'Select Parishioner'}</option>
-              {clients.filter((c) => c.isParishioner || c.id === formData.parishionerId).map((client) => (
+              {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
                 </option>
@@ -518,10 +580,12 @@ export default function ParishionerContractsPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }}>
+            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
+              {isSubmitting ? t('creating') || 'Creating...' : t('create')}
+            </Button>
           </div>
         </div>
       </Modal>
@@ -531,10 +595,16 @@ export default function ParishionerContractsPage() {
         onClose={() => {
           setShowEditModal(false);
           setSelectedContract(null);
+          setErrorMessage(null);
         }}
         title={`${t('edit')} ${t('contract') || 'Contract'}`}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">{t('contractNumber') || 'Contract Number'} *</label>
             <Input
@@ -568,7 +638,7 @@ export default function ParishionerContractsPage() {
               required
             >
               <option value="">{t('selectParishioner') || 'Select Parishioner'}</option>
-              {clients.filter((c) => c.isParishioner || c.id === formData.parishionerId).map((client) => (
+              {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
                 </option>
@@ -698,10 +768,12 @@ export default function ParishionerContractsPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedContract(null); }}>
+            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedContract(null); setErrorMessage(null); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleUpdate}>{t('save')}</Button>
+            <Button onClick={handleUpdate} disabled={isSubmitting}>
+              {isSubmitting ? t('saving') || 'Saving...' : t('save')}
+            </Button>
           </div>
         </div>
       </Modal>

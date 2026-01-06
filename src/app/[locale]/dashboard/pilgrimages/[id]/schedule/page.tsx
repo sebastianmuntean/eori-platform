@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -167,30 +167,30 @@ export default function PilgrimageSchedulePage() {
 
   const columns = [
     {
-      key: 'dayNumber',
+      key: 'dayNumber' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('dayNumber'),
       sortable: true,
       render: (value: number | null) => value || '-',
     },
     {
-      key: 'date',
+      key: 'date' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('date'),
       sortable: true,
       render: (value: string | null) => formatDate(value),
     },
     {
-      key: 'time',
+      key: 'time' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('time'),
       sortable: false,
       render: (value: string | null) => formatTime(value),
     },
     {
-      key: 'title',
+      key: 'title' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('titleField'),
       sortable: true,
     },
     {
-      key: 'activityType',
+      key: 'activityType' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('activityType'),
       sortable: false,
       render: (value: ActivityType) => (
@@ -200,19 +200,19 @@ export default function PilgrimageSchedulePage() {
       ),
     },
     {
-      key: 'location',
+      key: 'location' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('location'),
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'durationMinutes',
+      key: 'durationMinutes' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('durationMinutes'),
       sortable: false,
       render: (value: number | null) => value ? `${value} min` : '-',
     },
     {
-      key: 'isOptional',
+      key: 'isOptional' as keyof PilgrimageScheduleItem,
       label: tPilgrimages('isOptional'),
       sortable: false,
       render: (value: boolean) => (
@@ -222,7 +222,7 @@ export default function PilgrimageSchedulePage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof PilgrimageScheduleItem,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: PilgrimageScheduleItem) => (
@@ -253,14 +253,16 @@ export default function PilgrimageSchedulePage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('schedule')}</h1>
-        <Button onClick={() => setShowAddModal(true)}>
-          {t('add')} {tPilgrimages('activity')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('schedule') || 'Schedule'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {t('add')} {tPilgrimages('activity')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Schedule Table */}
       <Card variant="outlined">
@@ -271,11 +273,12 @@ export default function PilgrimageSchedulePage() {
             </div>
           )}
           {loading ? (
-            <div className="text-center py-8">{t('loading') || 'Loading...'}</div>
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <Table
               data={schedule}
               columns={columns}
+              emptyMessage={tPilgrimages('noSchedule') || 'No schedule items available'}
             />
           )}
         </CardBody>

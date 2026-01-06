@@ -31,3 +31,7 @@ export const pilgrimageSchedule = pgTable('pilgrimage_schedule', {
 
 
 
+
+
+
+

@@ -77,37 +77,34 @@ export async function GET(
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryParcels);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryParcels);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db.select().from(cemeteryParcels);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(cemeteryParcels);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'code') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryParcels.code))
-        : query.orderBy(asc(cemeteryParcels.code));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryParcels.code))
+        : queryWithWhere.orderBy(asc(cemeteryParcels.code));
     } else if (sortBy === 'name') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryParcels.name))
-        : query.orderBy(asc(cemeteryParcels.name));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryParcels.name))
+        : queryWithWhere.orderBy(asc(cemeteryParcels.name));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryParcels.createdAt))
-        : query.orderBy(asc(cemeteryParcels.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryParcels.createdAt))
+        : queryWithWhere.orderBy(asc(cemeteryParcels.createdAt));
     } else {
-      query = query.orderBy(asc(cemeteryParcels.code));
+      finalQuery = queryWithWhere.orderBy(asc(cemeteryParcels.code));
     }
 
-    const allParcels = await query.limit(pageSize).offset(offset);
+    const allParcels = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

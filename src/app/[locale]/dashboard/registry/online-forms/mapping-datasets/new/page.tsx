@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -35,7 +35,7 @@ export default function CreateMappingDatasetPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'partners',
+    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'clients',
     parishId: '' as string | null,
     isDefault: false,
   });
@@ -119,19 +119,18 @@ export default function CreateMappingDatasetPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: t('dashboard'), href: `/${locale}/dashboard` },
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tForms('onlineForms'), href: `/${locale}/dashboard/registry/online-forms` },
           { label: tForms('mappingDatasets'), href: `/${locale}/dashboard/registry/online-forms/mapping-datasets` },
           { label: tForms('createDataset') },
         ]}
+        title={tForms('createDataset') || 'Create Dataset'}
+        className="mb-6"
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tForms('createDataset')}</h1>
-        </CardHeader>
         <CardBody>
           <div className="space-y-6">
             {/* Basic Configuration */}
@@ -165,7 +164,7 @@ export default function CreateMappingDatasetPage() {
                   { value: 'registratura', label: tForms('targetModuleRegistratura') },
                   { value: 'general_register', label: tForms('targetModuleGeneralRegister') },
                   { value: 'events', label: tForms('targetModuleEvents') },
-                  { value: 'partners', label: tForms('targetModulePartners') },
+                  { value: 'clients', label: tForms('targetModuleClients') },
                 ]}
                 required
               />

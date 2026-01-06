@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { pilgrimageParticipants } from '@/database/schema';
-import { formatErrorResponse, logError } from '@/lib/errors';
+import { formatErrorResponse, logError, AuthorizationError } from '@/lib/errors';
 import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { eq, and } from 'drizzle-orm';
 import { getPilgrimageById } from '@/lib/services/pilgrimages-service';
+import { isValidUUID } from '@/lib/api-utils/validation';
+import { requireParishAccess } from '@/lib/api-utils/authorization';
 
 /**
  * POST /api/pilgrimages/[id]/participants/[participantId]/cancel - Cancel a participant

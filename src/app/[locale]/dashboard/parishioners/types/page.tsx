@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -24,10 +24,7 @@ export default function ParishionerTypesPage() {
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('parishionerTypes'));
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     types,
     loading,
@@ -41,6 +38,8 @@ export default function ParishionerTypesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedType, setSelectedType] = useState<ParishionerType | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -48,35 +47,64 @@ export default function ParishionerTypesPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchTypes({ all: true });
-  }, [fetchTypes]);
+  }, [permissionLoading, fetchTypes]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const handleCreate = async () => {
     if (!formData.name) {
-      alert(t('fillRequiredFields') || 'Please fill all required fields');
+      setErrorMessage(t('fillRequiredFields') || 'Please fill all required fields');
       return;
     }
 
-    const result = await createType(formData);
-    if (result) {
-      setShowAddModal(false);
-      resetForm();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await createType(formData);
+      if (result) {
+        setShowAddModal(false);
+        resetForm();
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorCreatingType') || 'Failed to create type');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdate = async () => {
     if (!selectedType) return;
 
-    const result = await updateType(selectedType.id, formData);
-    if (result) {
-      setShowEditModal(false);
-      setSelectedType(null);
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await updateType(selectedType.id, formData);
+      if (result) {
+        setShowEditModal(false);
+        setSelectedType(null);
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorUpdatingType') || 'Failed to update type');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirmDelete') || 'Are you sure you want to delete this type?')) {
+    if (!window.confirm(t('confirmDelete') || 'Are you sure you want to delete this type?')) {
+      return;
+    }
+
+    setErrorMessage(null);
+    try {
       await deleteType(id);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorDeletingType') || 'Failed to delete type');
     }
   };
 
@@ -96,13 +124,14 @@ export default function ParishionerTypesPage() {
       description: '',
       isActive: true,
     });
+    setErrorMessage(null);
   };
 
   const columns = [
-    { key: 'name', label: t('name'), sortable: true },
-    { key: 'description', label: t('description'), sortable: false },
+    { key: 'name' as keyof ParishionerType, label: t('name'), sortable: true },
+    { key: 'description' as keyof ParishionerType, label: t('description'), sortable: false },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof ParishionerType,
       label: t('status'),
       sortable: false,
       render: (value: boolean) => (
@@ -112,7 +141,7 @@ export default function ParishionerTypesPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof ParishionerType,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: ParishionerType) => (
@@ -134,23 +163,21 @@ export default function ParishionerTypesPage() {
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('parishionerTypes') || 'Parishioner Types' },
-  ];
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('parishionerTypes') || 'Parishioner Types'}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {t('add')} {t('type') || 'Type'}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('parishionerTypes') || 'Parishioner Types' },
+        ]}
+        title={t('parishionerTypes') || 'Parishioner Types'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {t('add')} {t('type') || 'Type'}
+          </Button>
+        }
+      />
 
       <Card>
         <CardBody>
@@ -172,6 +199,11 @@ export default function ParishionerTypesPage() {
         title={`${t('add')} ${t('type') || 'Type'}`}
       >
         <div className="space-y-4">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <Input
             label={`${t('name')} *`}
             value={formData.name}
@@ -198,10 +230,12 @@ export default function ParishionerTypesPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }}>
+            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
+              {isSubmitting ? t('creating') || 'Creating...' : t('create')}
+            </Button>
           </div>
         </div>
       </Modal>
@@ -211,10 +245,16 @@ export default function ParishionerTypesPage() {
         onClose={() => {
           setShowEditModal(false);
           setSelectedType(null);
+          setErrorMessage(null);
         }}
         title={`${t('edit')} ${t('type') || 'Type'}`}
       >
         <div className="space-y-4">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <Input
             label={`${t('name')} *`}
             value={formData.name}
@@ -241,10 +281,12 @@ export default function ParishionerTypesPage() {
             </label>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedType(null); }}>
+            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedType(null); setErrorMessage(null); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleUpdate}>{t('save')}</Button>
+            <Button onClick={handleUpdate} disabled={isSubmitting}>
+              {isSubmitting ? t('saving') || 'Saving...' : t('save')}
+            </Button>
           </div>
         </div>
       </Modal>

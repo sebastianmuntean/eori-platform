@@ -58,11 +58,36 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = leaveRequests[sortBy as keyof typeof leaveRequests];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = desc(leaveRequests.startDate);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.id) : desc(leaveRequests.id);
+        break;
+      case 'employeeId':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.employeeId) : desc(leaveRequests.employeeId);
+        break;
+      case 'leaveTypeId':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.leaveTypeId) : desc(leaveRequests.leaveTypeId);
+        break;
+      case 'startDate':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.startDate) : desc(leaveRequests.startDate);
+        break;
+      case 'endDate':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.endDate) : desc(leaveRequests.endDate);
+        break;
+      case 'totalDays':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.totalDays) : desc(leaveRequests.totalDays);
+        break;
+      case 'status':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.status) : desc(leaveRequests.status);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.createdAt) : desc(leaveRequests.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(leaveRequests.updatedAt) : desc(leaveRequests.updatedAt);
+        break;
+      default:
+        orderBy = desc(leaveRequests.startDate);
     }
 
     const offset = (page - 1) * pageSize;
@@ -177,6 +202,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-interface DropdownItem {
+export interface DropdownItem {
   label: string;
   onClick: () => void;
   disabled?: boolean;

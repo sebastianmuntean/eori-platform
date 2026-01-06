@@ -63,7 +63,17 @@ export function usePilgrimages(): UsePilgrimagesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UsePilgrimagesReturn['pagination']>(null);
 
-  const fetchPilgrimages = useCallback(async (params = {}) => {
+  const fetchPilgrimages = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    status?: PilgrimageStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -300,6 +310,9 @@ export function usePilgrimages(): UsePilgrimagesReturn {
     cancelPilgrimage,
   };
 }
+
+
+
 
 
 

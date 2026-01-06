@@ -43,10 +43,11 @@ export async function GET(
       ORDER BY uploaded_at DESC
     `);
 
-    console.log(`✓ Found ${attachments.rows?.length || 0} documents`);
+    const attachmentArray = Array.isArray(attachments) ? attachments : (attachments as any).rows || [];
+    console.log(`✓ Found ${attachmentArray.length} documents`);
     return NextResponse.json({
       success: true,
-      data: attachments.rows || [],
+      data: attachmentArray,
     });
   } catch (error) {
     console.error('❌ Error fetching documents:', error);

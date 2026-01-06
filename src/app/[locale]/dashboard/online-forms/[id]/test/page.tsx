@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { WidgetForm } from '@/components/online-forms/WidgetForm';
 import { useOnlineForm } from '@/hooks/useOnlineForms';
@@ -59,20 +59,18 @@ export default function TestFormPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tForms('onlineForms'), href: `/${locale}/dashboard/online-forms` },
           { label: form.name, href: `/${locale}/dashboard/online-forms/${id}` },
           { label: tForms('testForm') },
         ]}
+        title={tForms('testForm') || 'Test Form'}
+        description={tForms('testFormDescription')}
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tForms('testForm')}</h1>
-          <p className="text-sm text-text-secondary">{tForms('testFormDescription')}</p>
-        </CardHeader>
         <CardBody>
           <div className="mb-4 p-4 bg-bg-secondary rounded">
             <h3 className="font-semibold mb-2">Widget Code:</h3>

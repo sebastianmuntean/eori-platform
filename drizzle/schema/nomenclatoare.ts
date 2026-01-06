@@ -50,27 +50,6 @@ export const constXmlData = pgTable("const_xml_data", {
   xmldata: text("xmldata"),
 });
 
-// Parteneri (partners/families/clients)
-export const parteneri = pgTable("parteneri", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tip: varchar("tip", { length: 255 }),
-  cod: serial("cod").unique(),
-  denumire: varchar("denumire", { length: 255 }).notNull(),
-  cif: varchar("cif", { length: 255 }),
-  rc: varchar("rc", { length: 255 }),
-  banca: varchar("banca", { length: 255 }),
-  iban: varchar("iban", { length: 255 }),
-  idj: integer("idj"),
-  idl: integer("idl"),
-  adresa: text("adresa"),
-  nume: varchar("nume", { length: 255 }),
-  prenume: varchar("prenume", { length: 255 }),
-  telefon: varchar("telefon", { length: 255 }),
-  email: varchar("email", { length: 255 }),
-  observatii: text("observatii"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
 
 // Enoriasi clasificare (parishioner classification)
 export const enoriasiClasificare = pgTable("enoriasi_clasificare", {

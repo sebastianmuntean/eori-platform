@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { usePilgrimage } from '@/hooks/usePilgrimage';
 import { usePilgrimageStatistics } from '@/hooks/usePilgrimageStatistics';
@@ -48,11 +48,12 @@ export default function PilgrimageStatisticsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('statistics') || 'Statistics'}
+        className="mb-6"
+      />
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tPilgrimages('statistics')}</h1>
-        </CardHeader>
         <CardBody>
           {statistics ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

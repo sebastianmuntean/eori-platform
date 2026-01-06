@@ -54,22 +54,33 @@ export function useBurials(): UseBurialsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseBurialsReturn['pagination']>(null);
 
-  const fetchBurials = useCallback(async (params = {}) => {
+  const fetchBurials = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    cemeteryId?: string;
+    graveId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.cemeteryId) queryParams.append('cemeteryId', params.cemeteryId);
-      if (params.graveId) queryParams.append('graveId', params.graveId);
-      if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
-      if (params.dateTo) queryParams.append('dateTo', params.dateTo);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.cemeteryId) queryParams.append('cemeteryId', params.cemeteryId);
+      if (params?.graveId) queryParams.append('graveId', params.graveId);
+      if (params?.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+      if (params?.dateTo) queryParams.append('dateTo', params.dateTo);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/cemeteries/burials?${queryParams.toString()}`);
       const result = await response.json();
@@ -185,6 +196,9 @@ export function useBurials(): UseBurialsReturn {
     deleteBurial,
   };
 }
+
+
+
 
 
 

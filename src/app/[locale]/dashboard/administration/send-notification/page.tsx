@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -12,13 +12,9 @@ import { Badge } from '@/components/ui/Badge';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { useTranslations } from 'next-intl';
-import { useUsers } from '@/hooks/useUsers';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { useUsers, User } from '@/hooks/useUsers';
+import { useRequirePermission } from '@/hooks/useRequirePermission';
+import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 
 type NotificationType = 'info' | 'warning' | 'error' | 'success';
 
@@ -62,7 +58,7 @@ export default function SendNotificationPage() {
         if (!userSearch) return true;
         const searchLower = userSearch.toLowerCase();
         return (
-          user.name.toLowerCase().includes(searchLower) ||
+          (user.name?.toLowerCase().includes(searchLower) || false) ||
           user.email.toLowerCase().includes(searchLower)
         );
       })
@@ -195,20 +191,18 @@ export default function SendNotificationPage() {
     );
   }
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
-    { label: t('sendNotification') || 'Send Notification' },
-  ];
-
   const selectedUsers = getSelectedUsers();
 
   return (
     <div className="space-y-6">
-      <div>
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{t('sendNotification') || 'Send Notification'}</h1>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
+          { label: t('sendNotification') || 'Send Notification' },
+        ]}
+        title={t('sendNotification') || 'Send Notification'}
+      />
 
       <Card>
         <CardBody>
@@ -229,12 +223,12 @@ export default function SendNotificationPage() {
                       size="sm"
                       className="flex items-center gap-2"
                     >
-                      {user.name} ({user.email})
+                      {user.name || user.email} ({user.email})
                       <button
                         type="button"
                         onClick={() => handleRemoveUser(user.id)}
                         className="ml-1 hover:text-danger"
-                        aria-label={`Remove ${user.name}`}
+                        aria-label={`Remove ${user.name || user.email}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -274,7 +268,7 @@ export default function SendNotificationPage() {
                         onClick={() => handleAddUser(user)}
                         className="w-full px-4 py-2 text-left hover:bg-bg-secondary focus:bg-bg-secondary focus:outline-none"
                       >
-                        <div className="font-medium text-text-primary">{user.name}</div>
+                        <div className="font-medium text-text-primary">{user.name || user.email}</div>
                         <div className="text-sm text-text-secondary">{user.email}</div>
                       </button>
                     ))}

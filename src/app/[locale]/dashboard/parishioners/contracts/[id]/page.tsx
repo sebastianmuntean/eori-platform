@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -21,10 +21,7 @@ export default function ParishionerContractDetailPage() {
   const locale = params.locale as string;
   const t = useTranslations('common');
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const { contracts, fetchContracts } = useParishionerContracts();
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
@@ -33,25 +30,29 @@ export default function ParishionerContractDetailPage() {
   const contract = contracts.find((c) => c.id === contractId);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
     fetchContracts({ page: 1, pageSize: 1000 });
-  }, [fetchParishes, fetchClients, fetchContracts]);
+  }, [permissionLoading, contractId, fetchParishes, fetchClients, fetchContracts]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   if (!contract) {
     return (
-      <div>
-        <div className="mb-6">
-          <Breadcrumbs
-            items={[
-              { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-              { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-              { label: t('contracts') || 'Contracts', href: `/${locale}/dashboard/parishioners/contracts` },
-              { label: t('contract') || 'Contract' },
-            ]}
-            className="mb-2"
-          />
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumbs={[
+            { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+            { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+            { label: t('contracts') || 'Contracts', href: `/${locale}/dashboard/parishioners/contracts` },
+            { label: t('contract') || 'Contract' },
+          ]}
+          title={t('contract') || 'Contract'}
+        />
         <Card>
           <CardBody>
             <div>{t('loading') || 'Loading...'}</div>
@@ -78,24 +79,21 @@ export default function ParishionerContractDetailPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs
-            items={[
-              { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-              { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-              { label: t('contracts') || 'Contracts', href: `/${locale}/dashboard/parishioners/contracts` },
-              { label: contract.contractNumber },
-            ]}
-            className="mb-2"
-          />
-          <h1 className="text-3xl font-bold text-text-primary">{contract.title || contract.contractNumber}</h1>
-        </div>
-        <Button variant="outline" onClick={() => router.back()}>
-          {t('back') || 'Back'}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('contracts') || 'Contracts', href: `/${locale}/dashboard/parishioners/contracts` },
+          { label: contract.contractNumber },
+        ]}
+        title={contract.title || contract.contractNumber}
+        action={
+          <Button variant="outline" onClick={() => router.back()}>
+            {t('back') || 'Back'}
+          </Button>
+        }
+      />
 
       <Card>
         <CardBody>

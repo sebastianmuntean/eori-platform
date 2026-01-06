@@ -51,20 +51,29 @@ export function useCatechesisLessons(): UseCatechesisLessonsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseCatechesisLessonsReturn['pagination']>(null);
 
-  const fetchLessons = useCallback(async (params = {}) => {
+  const fetchLessons = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    classId?: string;
+    isPublished?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.classId) queryParams.append('classId', params.classId);
-      if (params.isPublished !== undefined) queryParams.append('isPublished', params.isPublished.toString());
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.classId) queryParams.append('classId', params.classId);
+      if (params?.isPublished !== undefined) queryParams.append('isPublished', params.isPublished.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/catechesis/lessons?${queryParams.toString()}`);
       const result = await response.json();

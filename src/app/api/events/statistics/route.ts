@@ -63,24 +63,23 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let totalQuery = db.select({ count: sql<number>`count(*)` }).from(churchEvents);
-    if (whereClause) {
-      totalQuery = totalQuery.where(whereClause);
-    }
+    const totalQuery = whereClause
+      ? db.select({ count: sql<number>`count(*)`.as('count') }).from(churchEvents).where(whereClause)
+      : db.select({ count: sql<number>`count(*)`.as('count') }).from(churchEvents);
     const totalResult = await totalQuery;
     const total = Number(totalResult[0]?.count || 0);
 
     // Get counts by type
-    let typeQuery = db
+    const baseTypeQuery = db
       .select({
         type: churchEvents.type,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)`.as('count'),
       })
       .from(churchEvents)
       .groupBy(churchEvents.type);
-    if (whereClause) {
-      typeQuery = typeQuery.where(whereClause);
-    }
+    const typeQuery = whereClause
+      ? baseTypeQuery.where(whereClause)
+      : baseTypeQuery;
     const typeResults = await typeQuery;
     const byType = {
       wedding: 0,
@@ -94,16 +93,16 @@ export async function GET(request: Request) {
     });
 
     // Get counts by status
-    let statusQuery = db
+    const baseStatusQuery = db
       .select({
         status: churchEvents.status,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)`.as('count'),
       })
       .from(churchEvents)
       .groupBy(churchEvents.status);
-    if (whereClause) {
-      statusQuery = statusQuery.where(whereClause);
-    }
+    const statusQuery = whereClause
+      ? baseStatusQuery.where(whereClause)
+      : baseStatusQuery;
     const statusResults = await statusQuery;
     const byStatus = {
       pending: 0,

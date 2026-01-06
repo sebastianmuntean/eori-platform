@@ -53,7 +53,17 @@ export function useLeaveRequests(): UseLeaveRequestsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseLeaveRequestsReturn['pagination']>(null);
 
-  const fetchLeaveRequests = useCallback(async (params = {}) => {
+  const fetchLeaveRequests = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    leaveTypeId?: string;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -235,6 +245,9 @@ export function useLeaveRequests(): UseLeaveRequestsReturn {
     rejectLeaveRequest,
   };
 }
+
+
+
 
 
 

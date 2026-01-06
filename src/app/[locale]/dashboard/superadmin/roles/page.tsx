@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { useRoles } from '@/hooks/useRoles';
+import { useRoles, Role } from '@/hooks/useRoles';
 import { useTable } from '@/hooks/useTable';
 import { Badge } from '@/components/ui/Badge';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -43,7 +43,7 @@ export default function RolesPage() {
 
   const columns = [
     {
-      key: 'name' as const,
+      key: 'name' as keyof Role,
       label: 'Nume',
       sortable: true,
       render: (value: string, row: typeof roles[0]) => (
@@ -56,7 +56,7 @@ export default function RolesPage() {
       ),
     },
     {
-      key: 'createdAt' as const,
+      key: 'createdAt' as keyof Role,
       label: 'Data Creării',
       sortable: true,
       render: (value: Date) => (
@@ -66,7 +66,7 @@ export default function RolesPage() {
       ),
     },
     {
-      key: 'actions' as const,
+      key: 'actions' as keyof Role,
       label: 'Acțiuni',
       sortable: false,
       render: (_: any, row: typeof roles[0]) => (
@@ -135,19 +135,20 @@ export default function RolesPage() {
   console.log('✓ Rendering roles page');
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('manageRoles')}</h1>
-        </div>
-        <Button onClick={() => {
-          setEditingRole(null);
-          setFormData({ name: '', description: '' });
-          setIsModalOpen(true);
-        }}>
-          {t('addRole')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('manageRoles') || 'Manage Roles'}
+        action={
+          <Button onClick={() => {
+            setEditingRole(null);
+            setFormData({ name: '', description: '' });
+            setIsModalOpen(true);
+          }}>
+            {t('addRole')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-4 p-4 bg-danger bg-opacity-10 border border-danger rounded-md text-danger">

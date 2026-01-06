@@ -8,7 +8,7 @@ import { validateSqlQuery, extractSelectColumns } from '@/lib/online-forms/sql-v
 
 const testSqlSchema = z.object({
   sqlQuery: z.string().min(1),
-  targetModule: z.enum(['registratura', 'general_register', 'events', 'partners']),
+  targetModule: z.enum(['registratura', 'general_register', 'events', 'clients']),
 });
 
 // Allowed tables per module
@@ -16,7 +16,7 @@ const ALLOWED_TABLES: Record<string, string[]> = {
   registratura: ['document_registry', 'document_attachments', 'document_workflow'],
   general_register: ['general_register', 'general_register_attachments', 'general_register_workflow'],
   events: ['church_events', 'church_event_participants', 'church_event_documents'],
-  partners: ['partners'],
+  clients: ['clients'],
 };
 
 /**
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    logError('Error testing SQL query', error);
+    logError(error, { endpoint: '/api/online-forms/mapping-datasets/test-sql', method: 'POST' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

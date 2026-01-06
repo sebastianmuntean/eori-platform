@@ -51,9 +51,15 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = employeeTraining[sortBy as keyof typeof employeeTraining];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+    // Map sortBy to actual column, with validation
+    if (sortBy === 'enrollmentDate') {
+      orderBy = sortOrder === 'asc' ? asc(employeeTraining.enrollmentDate) : desc(employeeTraining.enrollmentDate);
+    } else if (sortBy === 'completionDate') {
+      orderBy = sortOrder === 'asc' ? asc(employeeTraining.completionDate) : desc(employeeTraining.completionDate);
+    } else if (sortBy === 'status') {
+      orderBy = sortOrder === 'asc' ? asc(employeeTraining.status) : desc(employeeTraining.status);
+    } else if (sortBy === 'score') {
+      orderBy = sortOrder === 'asc' ? asc(employeeTraining.score) : desc(employeeTraining.score);
     } else {
       orderBy = desc(employeeTraining.enrollmentDate);
     }
@@ -165,6 +171,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

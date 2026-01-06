@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { RegisterConfigurationList } from '@/components/registratura/RegisterConfigurationList';
 import { useTranslations } from 'next-intl';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Card, CardBody } from '@/components/ui/Card';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 
@@ -24,21 +24,18 @@ export default function RegisterConfigurationsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tReg('registratura'), href: `/${locale}/dashboard/registry/registratura` },
-          { label: tReg('registerConfigurations.title'), href: `/${locale}/dashboard/registry/registratura/configurari-registre` },
+          { label: tReg('registerConfigurations.title') },
         ]}
+        title={tReg('registerConfigurations.title') || 'Register Configurations'}
+        description={tReg('registerConfigurations.description')}
+        className="mb-6"
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tReg('registerConfigurations.title')}</h1>
-          <p className="text-gray-600">
-            {tReg('registerConfigurations.description')}
-          </p>
-        </CardHeader>
         <CardBody>
           <RegisterConfigurationList />
         </CardBody>

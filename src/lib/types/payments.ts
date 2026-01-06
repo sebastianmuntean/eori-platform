@@ -79,6 +79,60 @@ export function paymentToCreateData(payment: Payment): CreatePaymentData {
 }
 
 /**
+ * Donation data for creating a new donation
+ * Amount is a number (as expected by API)
+ * Donations are payments with type='income' and category='donation'
+ */
+export interface CreateDonationData {
+  parishId: string;
+  paymentNumber: string;
+  date: string;
+  clientId?: string | null;
+  amount: number; // Number for API, converted to string in database
+  currency?: string;
+  description?: string | null;
+  paymentMethod?: 'cash' | 'bank_transfer' | 'card' | 'check' | null;
+  referenceNumber?: string | null;
+  status?: 'pending' | 'completed' | 'cancelled';
+}
+
+/**
+ * Donation data for updating an existing donation
+ * All fields are optional except those required for update
+ */
+export type UpdateDonationData = Partial<CreateDonationData>;
+
+/**
+ * Fixed Asset data for creating a new fixed asset
+ * usefulLifeYears is a number (as expected by API)
+ */
+export interface CreateFixedAssetData {
+  parishId: string;
+  inventoryNumber: string;
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  type?: string | null;
+  location?: string | null;
+  acquisitionDate?: string | null;
+  acquisitionValue?: string | null;
+  currentValue?: string | null;
+  depreciationMethod?: string | null;
+  usefulLifeYears?: number | null;
+  status?: 'active' | 'inactive' | 'disposed' | 'damaged';
+  disposalDate?: string | null;
+  disposalValue?: string | null;
+  disposalReason?: string | null;
+  notes?: string | null;
+}
+
+/**
+ * Fixed Asset data for updating an existing fixed asset
+ * All fields are optional except those required for update
+ */
+export type UpdateFixedAssetData = Partial<CreateFixedAssetData>;
+
+/**
  * Convert QuickPaymentFormData to QuickPaymentRequest
  * Validates and converts amount from string to number
  */

@@ -58,22 +58,33 @@ export function useCemeteryConcessions(): UseCemeteryConcessionsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseCemeteryConcessionsReturn['pagination']>(null);
 
-  const fetchConcessions = useCallback(async (params = {}) => {
+  const fetchConcessions = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    cemeteryId?: string;
+    graveId?: string;
+    status?: string;
+    clientId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.cemeteryId) queryParams.append('cemeteryId', params.cemeteryId);
-      if (params.graveId) queryParams.append('graveId', params.graveId);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.clientId) queryParams.append('clientId', params.clientId);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.cemeteryId) queryParams.append('cemeteryId', params.cemeteryId);
+      if (params?.graveId) queryParams.append('graveId', params.graveId);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.clientId) queryParams.append('clientId', params.clientId);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/cemeteries/concessions?${queryParams.toString()}`);
       const result = await response.json();
@@ -189,6 +200,9 @@ export function useCemeteryConcessions(): UseCemeteryConcessionsReturn {
     deleteConcession,
   };
 }
+
+
+
 
 
 

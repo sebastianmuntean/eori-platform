@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { CreateFixedAssetData, UpdateFixedAssetData } from '@/lib/types/payments';
 
 export interface FixedAsset {
   id: string;
@@ -46,8 +47,8 @@ interface UseFixedAssetsReturn {
     sortBy?: string;
     sortOrder?: string;
   }) => Promise<void>;
-  createFixedAsset: (data: Partial<FixedAsset>) => Promise<FixedAsset | null>;
-  updateFixedAsset: (id: string, data: Partial<FixedAsset>) => Promise<FixedAsset | null>;
+  createFixedAsset: (data: CreateFixedAssetData) => Promise<FixedAsset | null>;
+  updateFixedAsset: (id: string, data: UpdateFixedAssetData) => Promise<FixedAsset | null>;
   deleteFixedAsset: (id: string) => Promise<boolean>;
 }
 
@@ -57,7 +58,17 @@ export function useFixedAssets(): UseFixedAssetsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseFixedAssetsReturn['pagination']>(null);
 
-  const fetchFixedAssets = useCallback(async (params = {}) => {
+  const fetchFixedAssets = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    category?: string;
+    type?: string;
+    status?: 'active' | 'inactive' | 'disposed' | 'damaged';
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -91,7 +102,7 @@ export function useFixedAssets(): UseFixedAssetsReturn {
     }
   }, []);
 
-  const createFixedAsset = useCallback(async (data: Partial<FixedAsset>): Promise<FixedAsset | null> => {
+  const createFixedAsset = useCallback(async (data: CreateFixedAssetData): Promise<FixedAsset | null> => {
     setLoading(true);
     setError(null);
 
@@ -119,7 +130,7 @@ export function useFixedAssets(): UseFixedAssetsReturn {
     }
   }, []);
 
-  const updateFixedAsset = useCallback(async (id: string, data: Partial<FixedAsset>): Promise<FixedAsset | null> => {
+  const updateFixedAsset = useCallback(async (id: string, data: UpdateFixedAssetData): Promise<FixedAsset | null> => {
     setLoading(true);
     setError(null);
 

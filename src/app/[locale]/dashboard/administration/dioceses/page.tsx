@@ -1,20 +1,52 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
+import { Table, Column } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useDioceses, Diocese } from '@/hooks/useDioceses';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
+import { TablePagination } from '@/components/ui/TablePagination';
+
+// Form data type for diocese forms
+interface DioceseFormData {
+  code: string;
+  name: string;
+  address: string;
+  city: string;
+  county: string;
+  country: string;
+  phone: string;
+  email: string;
+  website: string;
+  bishopName: string;
+  isActive: boolean;
+}
+
+// Initial form data factory function
+const getInitialFormData = (): DioceseFormData => ({
+  code: '',
+  name: '',
+  address: '',
+  city: '',
+  county: '',
+  country: 'România',
+  phone: '',
+  email: '',
+  website: '',
+  bishopName: '',
+  isActive: true,
+});
 
 export default function DiocesesPage() {
   const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.DIOCESES_VIEW);
@@ -40,20 +72,10 @@ export default function DiocesesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDiocese, setSelectedDiocese] = useState<Diocese | null>(null);
-  const [formData, setFormData] = useState({
-    code: '',
-    name: '',
-    address: '',
-    city: '',
-    county: '',
-    country: 'România',
-    phone: '',
-    email: '',
-    website: '',
-    bishopName: '',
-    isActive: true,
-  });
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [formData, setFormData] = useState<DioceseFormData>(getInitialFormData());
 
+  // Fetch dioceses when filters change
   useEffect(() => {
     fetchDioceses({
       page: currentPage,
@@ -64,44 +86,13 @@ export default function DiocesesPage() {
     });
   }, [currentPage, searchTerm, fetchDioceses]);
 
-  const handleCreate = async () => {
-    const result = await createDiocese(formData);
-    if (result) {
-      setShowAddModal(false);
-      setFormData({
-        code: '',
-        name: '',
-        address: '',
-        city: '',
-        county: '',
-        country: 'România',
-        phone: '',
-        email: '',
-        website: '',
-        bishopName: '',
-        isActive: true,
-      });
-    }
-  };
+  // Reset form to initial state
+  const resetForm = useCallback(() => {
+    setFormData(getInitialFormData());
+  }, []);
 
-  const handleUpdate = async () => {
-    if (selectedDiocese) {
-      const result = await updateDiocese(selectedDiocese.id, formData);
-      if (result) {
-        setShowEditModal(false);
-        setSelectedDiocese(null);
-      }
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this diocese?')) {
-      await deleteDiocese(id);
-    }
-  };
-
-  const handleEdit = (diocese: Diocese) => {
-    setSelectedDiocese(diocese);
+  // Populate form from diocese data
+  const populateFormFromDiocese = useCallback((diocese: Diocese) => {
     setFormData({
       code: diocese.code,
       name: diocese.name,
@@ -115,27 +106,94 @@ export default function DiocesesPage() {
       bishopName: diocese.bishopName || '',
       isActive: diocese.isActive,
     });
-    setShowEditModal(true);
-  };
+  }, []);
 
-  const columns = [
-    { key: 'code', label: 'Code', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'city', label: 'City', sortable: true },
-    { key: 'county', label: 'County', sortable: true },
+  // Handlers
+  const handleCreate = useCallback(async () => {
+    if (!formData.code || !formData.name) {
+      alert(t('fillRequiredFields') || 'Please fill all required fields');
+      return;
+    }
+
+    const result = await createDiocese(formData);
+    if (result) {
+      setShowAddModal(false);
+      resetForm();
+    }
+  }, [formData, createDiocese, resetForm, t]);
+
+  const handleUpdate = useCallback(async () => {
+    if (!selectedDiocese) return;
+
+    const result = await updateDiocese(selectedDiocese.id, formData);
+    if (result) {
+      setShowEditModal(false);
+      setSelectedDiocese(null);
+      resetForm();
+    }
+  }, [selectedDiocese, formData, updateDiocese, resetForm]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    const result = await deleteDiocese(id);
+    if (result) {
+      setDeleteConfirm(null);
+    }
+  }, [deleteDiocese]);
+
+  const handleEdit = useCallback((diocese: Diocese) => {
+    setSelectedDiocese(diocese);
+    populateFormFromDiocese(diocese);
+    setShowEditModal(true);
+  }, [populateFormFromDiocese]);
+
+  const handleAddModalClose = useCallback(() => {
+    setShowAddModal(false);
+    resetForm();
+  }, [resetForm]);
+
+  const handleEditModalClose = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedDiocese(null);
+    resetForm();
+  }, [resetForm]);
+
+  // Memoized columns definition with proper TypeScript typing
+  const columns = useMemo<Column<Diocese>[]>(() => [
     {
-      key: 'isActive',
-      label: 'Status',
+      key: 'code' as keyof Diocese,
+      label: t('code') || 'Code',
+      sortable: true,
+    },
+    {
+      key: 'name' as keyof Diocese,
+      label: t('name') || 'Name',
+      sortable: true,
+    },
+    {
+      key: 'city' as keyof Diocese,
+      label: t('city') || 'City',
+      sortable: true,
+      render: (value: string | null) => value || '-',
+    },
+    {
+      key: 'county' as keyof Diocese,
+      label: t('county') || 'County',
+      sortable: true,
+      render: (value: string | null) => value || '-',
+    },
+    {
+      key: 'isActive' as keyof Diocese,
+      label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
         <Badge variant={value ? 'success' : 'secondary'} size="sm">
-          {value ? 'Active' : 'Inactive'}
+          {value ? t('active') || 'Active' : t('inactive') || 'Inactive'}
         </Badge>
       ),
     },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: 'actions' as keyof Diocese,
+      label: t('actions') || 'Actions',
       sortable: false,
       render: (_: any, row: Diocese) => (
         <Dropdown
@@ -147,36 +205,41 @@ export default function DiocesesPage() {
             </Button>
           }
           items={[
-            { label: 'Edit', onClick: () => handleEdit(row) },
-            { label: 'Delete', onClick: () => handleDelete(row.id), variant: 'danger' },
+            { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+            { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
           ]}
           align="right"
         />
       ),
     },
-  ];
+  ], [t, handleEdit]);
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('administration'), href: `/${locale}/dashboard/administration` },
-    { label: 'Dioceses' },
-  ];
+  // Don't render content while checking permissions
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">Dioceses</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>Add Diocese</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('administration') || 'Administration', href: `/${locale}/dashboard/administration` },
+          { label: t('dioceses') || 'Dioceses' },
+        ]}
+        title={t('dioceses') || 'Dioceses'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {t('add')} {t('diocese') || 'Diocese'}
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <Input
-              placeholder="Search dioceses..."
+              placeholder={t('search') || 'Search dioceses...'}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -187,139 +250,193 @@ export default function DiocesesPage() {
           </div>
         </CardHeader>
         <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
+          {error && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {error}
+            </div>
+          )}
           {loading ? (
-            <div>Loading...</div>
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <>
               <Table
                 data={dioceses}
                 columns={columns}
-                loading={loading}
+                emptyMessage={t('noData') || 'No dioceses available'}
               />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
               )}
             </>
           )}
         </CardBody>
       </Card>
 
+      {/* Add Diocese Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Add Diocese"
+        onClose={handleAddModalClose}
+        title={`${t('add')} ${t('diocese') || 'Diocese'}`}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
           <Input
-            label="Code"
+            label={`${t('code') || 'Code'} *`}
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             required
           />
           <Input
-            label="Name"
+            label={`${t('name') || 'Name'} *`}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
           <Input
-            label="City"
+            label={t('address') || 'Address'}
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+          <Input
+            label={t('city') || 'City'}
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
           />
           <Input
-            label="County"
+            label={t('county') || 'County'}
             value={formData.county}
             onChange={(e) => setFormData({ ...formData, county: e.target.value })}
           />
           <Input
-            label="Phone"
+            label={t('country') || 'Country'}
+            value={formData.country}
+            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+          />
+          <Input
+            label={t('phone') || 'Phone'}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
           <Input
-            label="Email"
+            label={t('email') || 'Email'}
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+          <Input
+            label={t('website') || 'Website'}
+            value={formData.website}
+            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+          />
+          <Input
+            label={t('bishopName') || 'Bishop Name'}
+            value={formData.bishopName}
+            onChange={(e) => setFormData({ ...formData, bishopName: e.target.value })}
+          />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              Cancel
+            <Button variant="outline" onClick={handleAddModalClose}>
+              {t('cancel')}
             </Button>
-            <Button onClick={handleCreate}>Create</Button>
+            <Button onClick={handleCreate}>{t('create')}</Button>
           </div>
         </div>
       </Modal>
 
+      {/* Edit Diocese Modal */}
       <Modal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        title="Edit Diocese"
+        onClose={handleEditModalClose}
+        title={`${t('edit')} ${t('diocese') || 'Diocese'}`}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
           <Input
-            label="Code"
+            label={`${t('code') || 'Code'} *`}
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             required
           />
           <Input
-            label="Name"
+            label={`${t('name') || 'Name'} *`}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
           <Input
-            label="City"
+            label={t('address') || 'Address'}
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+          <Input
+            label={t('city') || 'City'}
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
           />
           <Input
-            label="County"
+            label={t('county') || 'County'}
             value={formData.county}
             onChange={(e) => setFormData({ ...formData, county: e.target.value })}
           />
           <Input
-            label="Phone"
+            label={t('country') || 'Country'}
+            value={formData.country}
+            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+          />
+          <Input
+            label={t('phone') || 'Phone'}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
           <Input
-            label="Email"
+            label={t('email') || 'Email'}
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+          <Input
+            label={t('website') || 'Website'}
+            value={formData.website}
+            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+          />
+          <Input
+            label={t('bishopName') || 'Bishop Name'}
+            value={formData.bishopName}
+            onChange={(e) => setFormData({ ...formData, bishopName: e.target.value })}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="isActive" className="text-sm">{t('active') || 'Active'}</label>
+          </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              Cancel
+            <Button variant="outline" onClick={handleEditModalClose}>
+              {t('cancel')}
             </Button>
-            <Button onClick={handleUpdate}>Update</Button>
+            <Button onClick={handleUpdate}>{t('save')}</Button>
           </div>
         </div>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        title={t('confirmDelete')}
+        message={t('confirmDeleteDiocese') || t('confirmDeleteMessage') || 'Are you sure you want to delete this diocese?'}
+        variant="danger"
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+      />
     </div>
   );
 }

@@ -68,3 +68,7 @@ Refactorizarea a fost completată cu succes. Am eliminat ~200 linii de cod dupli
 
 
 
+
+
+
+

@@ -147,3 +147,7 @@ Compared to `src/app/[locale]/dashboard/hr/contracts/page.tsx`:
 The only potential improvement (API-level permission check) is out of scope for this change and would require a broader security review of all API endpoints.
 
 
+
+
+
+

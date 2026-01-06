@@ -47,12 +47,18 @@ export function useCemeteryConcessionPayments(): UseCemeteryConcessionPaymentsRe
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseCemeteryConcessionPaymentsReturn['pagination']>(null);
 
-  const fetchPayments = useCallback(async (params = {}) => {
+  const fetchPayments = useCallback(async (params?: {
+    concessionId?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
-      if (!params.concessionId) {
+      if (!params?.concessionId) {
         throw new Error('Concession ID is required');
       }
 
@@ -179,6 +185,9 @@ export function useCemeteryConcessionPayments(): UseCemeteryConcessionPaymentsRe
     deletePayment,
   };
 }
+
+
+
 
 
 

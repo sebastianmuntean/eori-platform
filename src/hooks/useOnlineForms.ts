@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 
 export type EmailValidationMode = 'start' | 'end';
 export type SubmissionFlow = 'direct' | 'review';
-export type FormTargetModule = 'registratura' | 'general_register' | 'events' | 'partners';
+export type FormTargetModule = 'registratura' | 'general_register' | 'events' | 'clients';
 
 export interface OnlineForm {
   id: string;
@@ -66,7 +66,16 @@ export function useOnlineForms(): UseOnlineFormsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseOnlineFormsReturn['pagination']>(null);
 
-  const fetchForms = useCallback(async (params = {}) => {
+  const fetchForms = useCallback(async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    parishId?: string;
+    targetModule?: FormTargetModule;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

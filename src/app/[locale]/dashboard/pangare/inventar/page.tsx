@@ -2,24 +2,22 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Button } from '@/components/ui/Button';
+import { SpotCheckModal } from '@/components/inventory/SpotCheckModal';
+import { InventorySessionModal } from '@/components/inventory/InventorySessionModal';
+import { DeleteSessionDialog } from '@/components/inventory/DeleteSessionDialog';
+import { CompleteSessionDialog } from '@/components/inventory/CompleteSessionDialog';
+import { BookInventoryCard } from '@/components/inventory/BookInventoryCard';
+import { InventorySessionsCard } from '@/components/inventory/InventorySessionsCard';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { useInventory, BookInventoryItem, InventorySession } from '@/hooks/useInventory';
 import { useParishes } from '@/hooks/useParishes';
 import { useWarehouses } from '@/hooks/useWarehouses';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
 
@@ -84,7 +82,7 @@ export default function InventarPage() {
       fetchBookInventory({
         parishId: parishFilter || undefined,
         warehouseId: warehouseFilter || undefined,
-        type: typeFilter || undefined,
+        type: (typeFilter === 'product' || typeFilter === 'fixed_asset') ? typeFilter : undefined,
       }).then(setBookInventory);
     }
   }, [parishFilter, warehouseFilter, typeFilter, fetchBookInventory]);
@@ -258,17 +256,17 @@ export default function InventarPage() {
 
   const bookInventoryColumns = useMemo(() => [
     {
-      key: 'code',
+      key: 'code' as keyof BookInventoryItem,
       label: t('code') || 'Cod',
       sortable: true,
     },
     {
-      key: 'name',
+      key: 'name' as keyof BookInventoryItem,
       label: t('name') || 'Denumire',
       sortable: true,
     },
     {
-      key: 'type',
+      key: 'type' as keyof BookInventoryItem,
       label: t('type') || 'Tip',
       sortable: false,
       render: (value: string) => (
@@ -278,25 +276,25 @@ export default function InventarPage() {
       ),
     },
     {
-      key: 'category',
+      key: 'category' as keyof BookInventoryItem,
       label: t('category') || 'Categorie',
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'quantity',
+      key: 'quantity' as keyof BookInventoryItem,
       label: t('quantity') || 'Cantitate',
       sortable: true,
       render: (value: number, row: BookInventoryItem) => `${value.toFixed(3)} ${row.unit}`,
     },
     {
-      key: 'value',
+      key: 'value' as keyof BookInventoryItem,
       label: t('value') || 'Valoare',
       sortable: true,
       render: (value: number) => `${value.toFixed(2)} ${t('currency') || 'RON'}`,
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof BookInventoryItem,
       label: t('actions') || 'Acțiuni',
       sortable: false,
       render: (_: any, row: BookInventoryItem) => (
@@ -313,25 +311,25 @@ export default function InventarPage() {
 
   const sessionsColumns = useMemo(() => [
     {
-      key: 'date',
+      key: 'date' as keyof InventorySession,
       label: t('date') || 'Data',
       sortable: true,
       render: (value: string) => new Date(value).toLocaleDateString(),
     },
     {
-      key: 'parish',
+      key: 'parish' as keyof InventorySession,
       label: t('parish') || 'Parohie',
       sortable: false,
       render: (value: any) => value?.name || '-',
     },
     {
-      key: 'warehouse',
+      key: 'warehouse' as keyof InventorySession,
       label: t('warehouse') || 'Gestiune',
       sortable: false,
       render: (value: any) => value?.name || '-',
     },
     {
-      key: 'status',
+      key: 'status' as keyof InventorySession,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: string) => {
@@ -349,13 +347,13 @@ export default function InventarPage() {
       },
     },
     {
-      key: 'itemCount',
+      key: 'itemCount' as keyof InventorySession,
       label: t('items') || 'Itemi',
       sortable: false,
       render: (value: number) => value || 0,
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof InventorySession,
       label: t('actions') || 'Acțiuni',
       sortable: false,
       render: (_: any, row: InventorySession) => (
@@ -387,241 +385,108 @@ export default function InventarPage() {
   return (
     <div className="space-y-6">
       <ToastContainer toasts={toasts} onClose={removeToast} />
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tMenu('pangare') || 'Pangare', href: `/${locale}/dashboard/pangare` },
-          { label: tMenu('inventar') || 'Inventar', href: `/${locale}/dashboard/pangare/inventar` },
+          { label: tMenu('inventar') || 'Inventar' },
         ]}
+        title={tMenu('inventar') || 'Inventar'}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Book Inventory */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">{t('bookInventory') || 'Inventar Scriptic'}</h2>
-              <Button onClick={handleStartInventory}>
-                {t('startInventory') || 'Începe Inventar'}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              <FilterGrid>
-                <ParishFilter
-                  value={parishFilter}
-                  onChange={(value) => {
-                    setParishFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  parishes={parishes}
-                />
-                <FilterSelect
-                  label={t('warehouse') || 'Gestiune'}
-                  value={warehouseFilter}
-                  onChange={(value) => {
-                    setWarehouseFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  options={[
-                    { value: '', label: t('all') || 'Toate' },
-                    ...warehouses.map(w => ({ value: w.id, label: w.name })),
-                  ]}
-                />
-                <FilterSelect
-                  label={t('type') || 'Tip'}
-                  value={typeFilter}
-                  onChange={(value) => {
-                    setTypeFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  options={[
-                    { value: '', label: t('all') || 'Toate' },
-                    { value: 'product', label: t('product') || 'Produse' },
-                    { value: 'fixed_asset', label: t('fixedAsset') || 'Mijloace Fixe' },
-                  ]}
-                />
-                <FilterClear
-                  onClear={() => {
-                    setParishFilter('');
-                    setWarehouseFilter('');
-                    setTypeFilter('');
-                    setCurrentPage(1);
-                  }}
-                />
-              </FilterGrid>
-
-              <Table
-                data={bookInventory}
-                columns={bookInventoryColumns}
-                loading={loading}
-              />
-            </div>
-          </CardBody>
-        </Card>
+        <BookInventoryCard
+          title={t('bookInventory') || 'Inventar Scriptic'}
+          data={bookInventory}
+          columns={bookInventoryColumns}
+          loading={loading}
+          emptyMessage={t('noData') || 'No inventory items available'}
+          parishes={parishes}
+          warehouses={warehouses}
+          parishFilter={parishFilter}
+          warehouseFilter={warehouseFilter}
+          typeFilter={typeFilter}
+          onParishFilterChange={(value) => {
+            setParishFilter(value);
+            setCurrentPage(1);
+          }}
+          onWarehouseFilterChange={(value) => {
+            setWarehouseFilter(value);
+            setCurrentPage(1);
+          }}
+          onTypeFilterChange={(value) => {
+            setTypeFilter(value);
+            setCurrentPage(1);
+          }}
+          onClearFilters={() => {
+            setParishFilter('');
+            setWarehouseFilter('');
+            setTypeFilter('');
+            setCurrentPage(1);
+          }}
+          onStartInventory={handleStartInventory}
+          onSpotCheck={handleSpotCheck}
+        />
 
         {/* Inventory Sessions */}
-        <Card>
-          <CardHeader>
-            <h2 className="text-xl font-bold">{t('inventorySessions') || 'Sesiuni Inventar'}</h2>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              {error && (
-                <div className="p-4 bg-danger/10 text-danger rounded">
-                  {error}
-                </div>
-              )}
-
-              <Table
-                data={sessions}
-                columns={sessionsColumns}
-                loading={loading}
-              />
-
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                  <div className="text-sm text-text-secondary">
-                    {t('showing')} {(pagination.page - 1) * pagination.pageSize + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} {t('of')} {pagination.total}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1 || loading}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <span className="text-sm text-text-secondary">
-                      {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage === pagination.totalPages || loading}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardBody>
-        </Card>
+        <InventorySessionsCard
+          title={t('inventorySessions') || 'Sesiuni Inventar'}
+          data={sessions}
+          columns={sessionsColumns}
+          loading={loading}
+          error={error}
+          pagination={pagination}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          emptyMessage={t('noData') || 'No inventory sessions available'}
+        />
       </div>
 
       {/* Spot Check Modal */}
-      {spotCheckItem && (
-        <FormModal
-          isOpen={showSpotCheckModal}
-          onClose={handleCloseSpotCheckModal}
-          onCancel={handleCloseSpotCheckModal}
-          title={t('spotCheck') || 'Spot Check'}
-          onSubmit={handleSaveSpotCheck}
-          isSubmitting={isSubmitting}
-          submitLabel={t('save') || 'Salvează'}
-          cancelLabel={t('cancel') || 'Anulează'}
-          size="md"
-        >
-          <div>
-            <p className="font-semibold">{spotCheckItem.name}</p>
-            <p className="text-sm text-text-secondary">Cod: {spotCheckItem.code}</p>
-            <p className="text-sm text-text-secondary">
-              {t('bookQuantity') || 'Cantitate scriptică'}: {spotCheckItem.quantity.toFixed(3)} {spotCheckItem.unit}
-            </p>
-          </div>
-          <Input
-            label={t('physicalQuantity') || 'Cantitate fizică'}
-            type="number"
-            step="0.001"
-            value={spotCheckPhysicalQuantity}
-            onChange={(e) => setSpotCheckPhysicalQuantity(e.target.value)}
-            placeholder={spotCheckItem.quantity.toFixed(3)}
-          />
-          <Input
-            label={t('notes') || 'Note'}
-            type="text"
-            value={spotCheckNotes}
-            onChange={(e) => setSpotCheckNotes(e.target.value)}
-            placeholder={t('optionalNotes') || 'Note opționale...'}
-          />
-        </FormModal>
-      )}
+      <SpotCheckModal
+        isOpen={showSpotCheckModal}
+        onClose={handleCloseSpotCheckModal}
+        onCancel={handleCloseSpotCheckModal}
+        item={spotCheckItem}
+        physicalQuantity={spotCheckPhysicalQuantity}
+        notes={spotCheckNotes}
+        onPhysicalQuantityChange={setSpotCheckPhysicalQuantity}
+        onNotesChange={setSpotCheckNotes}
+        onSubmit={handleSaveSpotCheck}
+        isSubmitting={isSubmitting}
+      />
 
-      {/* Inventory Form Modal */}
-      <FormModal
+      {/* Inventory Session Modal */}
+      <InventorySessionModal
         isOpen={showInventoryForm}
         onClose={handleCloseInventoryForm}
         onCancel={handleCloseInventoryForm}
-        title={selectedSession ? (t('editInventorySession') || 'Editează Sesiune Inventar') : (t('startInventory') || 'Începe Inventar')}
+        session={selectedSession}
+        formData={sessionFormData}
+        onFormDataChange={setSessionFormData}
+        parishes={parishes}
+        warehouses={warehouses}
+        filteredWarehouses={filteredWarehouses}
         onSubmit={handleSaveInventory}
         isSubmitting={isSubmitting}
-        submitLabel={t('save') || 'Salvează'}
-        cancelLabel={t('cancel') || 'Anulează'}
-        size="lg"
-      >
-        <Select
-          label={t('parish') || 'Parohie'}
-          value={sessionFormData.parishId}
-          onChange={(e) => setSessionFormData({ ...sessionFormData, parishId: e.target.value, warehouseId: '' })}
-          options={parishes.map(p => ({ value: p.id, label: p.name }))}
-          required
-          disabled={isSubmitting}
-        />
-        <Select
-          label={t('warehouse') || 'Gestiune'}
-          value={sessionFormData.warehouseId}
-          onChange={(e) => setSessionFormData({ ...sessionFormData, warehouseId: e.target.value })}
-          options={[
-            { value: '', label: t('all') || 'Toate' },
-            ...filteredWarehouses.map(w => ({ value: w.id, label: w.name })),
-          ]}
-          disabled={isSubmitting}
-        />
-        <Input
-          label={t('date') || 'Data'}
-          type="date"
-          value={sessionFormData.date}
-          onChange={(e) => setSessionFormData({ ...sessionFormData, date: e.target.value })}
-          required
-          disabled={isSubmitting}
-        />
-        <Input
-          label={t('notes') || 'Note'}
-          value={sessionFormData.notes}
-          onChange={(e) => setSessionFormData({ ...sessionFormData, notes: e.target.value })}
-          placeholder={t('optionalNotes') || 'Note opționale...'}
-          disabled={isSubmitting}
-        />
-      </FormModal>
+      />
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
+      <DeleteSessionDialog
         isOpen={!!deleteConfirm}
+        session={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDeleteSession(deleteConfirm)}
-        title={t('confirmDelete') || 'Confirmă ștergerea'}
-        message={t('confirmDeleteMessage') || 'Sunteți sigur că doriți să ștergeți această sesiune?'}
-        confirmLabel={t('delete') || 'Șterge'}
-        cancelLabel={t('cancel') || 'Anulează'}
-        variant="danger"
+        onConfirm={handleDeleteSession}
         isLoading={isSubmitting}
       />
 
       {/* Complete Confirmation Dialog */}
-      <ConfirmDialog
+      <CompleteSessionDialog
         isOpen={!!completeConfirm}
+        session={completeConfirm}
         onClose={() => setCompleteConfirm(null)}
-        onConfirm={() => completeConfirm && handleCompleteSession(completeConfirm)}
-        title={t('confirmComplete') || 'Confirmă finalizarea'}
-        message={t('confirmComplete') || 'Sunteți sigur că doriți să finalizați această sesiune de inventar? Ajustările vor fi generate automat.'}
-        confirmLabel={t('complete') || 'Finalizează'}
-        cancelLabel={t('cancel') || 'Anulează'}
-        variant="warning"
+        onConfirm={handleCompleteSession}
         isLoading={isSubmitting}
       />
     </div>

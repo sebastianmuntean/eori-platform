@@ -55,7 +55,18 @@ export function useReceipts(): UseReceiptsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseReceiptsReturn['pagination']>(null);
 
-  const fetchReceipts = useCallback(async (params = {}) => {
+  const fetchReceipts = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    parishionerId?: string;
+    status?: ReceiptStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -200,6 +211,9 @@ export function useReceipts(): UseReceiptsReturn {
     getNextReceiptNumber,
   };
 }
+
+
+
 
 
 

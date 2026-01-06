@@ -22,7 +22,21 @@ export async function GET(request: Request) {
 
     // Build base query for stock levels
     // Convert enum to text for comparison to handle both old and new enum types
-    let query = db
+    const conditions = [];
+
+    if (warehouseId) {
+      conditions.push(eq(stockMovements.warehouseId, warehouseId));
+    }
+
+    if (productId) {
+      conditions.push(eq(stockMovements.productId, productId));
+    }
+
+    if (parishId) {
+      conditions.push(eq(stockMovements.parishId, parishId));
+    }
+
+    const baseQuery = db
       .select({
         warehouseId: stockMovements.warehouseId,
         productId: stockMovements.productId,
@@ -46,26 +60,13 @@ export async function GET(request: Request) {
         END), 0)`,
         lastMovementDate: sql<string>`MAX(${stockMovements.movementDate})`,
       })
-      .from(stockMovements)
-      .groupBy(stockMovements.warehouseId, stockMovements.productId);
+      .from(stockMovements);
 
-    const conditions = [];
+    const queryWithWhere = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
-    if (warehouseId) {
-      conditions.push(eq(stockMovements.warehouseId, warehouseId));
-    }
-
-    if (productId) {
-      conditions.push(eq(stockMovements.productId, productId));
-    }
-
-    if (parishId) {
-      conditions.push(eq(stockMovements.parishId, parishId));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = queryWithWhere.groupBy(stockMovements.warehouseId, stockMovements.productId);
 
     const stockLevels = await query;
 
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
 
       filteredLevels = filteredLevels.filter(level => {
         const minStock = minStockMap.get(level.productId);
-        if (minStock === null) return false;
+        if (minStock === null || minStock === undefined) return false;
         return Number(level.quantity) < minStock;
       });
     }

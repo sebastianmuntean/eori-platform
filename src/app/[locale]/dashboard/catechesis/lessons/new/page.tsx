@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -92,13 +92,6 @@ export default function NewCatechesisLessonPage() {
     }
   };
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
-    { label: tCatechesis('actions.create') + ' ' + tCatechesis('lessons.title') },
-  ];
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -109,16 +102,16 @@ export default function NewCatechesisLessonPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
-
-        <div>
-          <h1 className="text-3xl font-bold">
-            {tCatechesis('actions.create')} {tCatechesis('lessons.title')}
-          </h1>
-          <p className="text-text-secondary mt-1">
-            {tCatechesis('lessons.createDescription') || 'Create a new lesson'}
-          </p>
-        </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
+          { label: tCatechesis('actions.create') + ' ' + tCatechesis('lessons.title') },
+        ]}
+        title={tCatechesis('actions.create') + ' ' + tCatechesis('lessons.title')}
+        description={tCatechesis('lessons.createDescription') || 'Create a new lesson'}
+      />
 
       <Card>
         <CardHeader>

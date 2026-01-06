@@ -63,7 +63,19 @@ export function useParishionerContracts(): UseParishionerContractsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseParishionerContractsReturn['pagination']>(null);
 
-  const fetchContracts = useCallback(async (params = {}) => {
+  const fetchContracts = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    parishionerId?: string;
+    contractType?: ParishionerContractType;
+    status?: ParishionerContractStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -216,6 +228,9 @@ export function useParishionerContracts(): UseParishionerContractsReturn {
     renewContract,
   };
 }
+
+
+
 
 
 

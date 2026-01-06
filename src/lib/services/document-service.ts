@@ -28,11 +28,11 @@ export interface RegisterDocumentParams {
   registrationDate?: Date;
   externalNumber?: string | null;
   externalDate?: Date | null;
-  senderPartnerId?: string | null;
+  senderClientId?: string | null;
   senderName?: string | null;
   senderDocNumber?: string | null;
   senderDocDate?: Date | null;
-  recipientPartnerId?: string | null;
+  recipientClientId?: string | null;
   recipientName?: string | null;
   subject: string;
   content?: string | null;
@@ -81,6 +81,14 @@ export interface SearchDocumentsParams {
   assignedTo?: string;
   page?: number;
   limit?: number;
+}
+
+/**
+ * Helper to convert Date to string format YYYY-MM-DD for Drizzle date fields
+ */
+function dateToString(date: Date | null | undefined): string | null {
+  if (!date) return null;
+  return date.toISOString().split('T')[0];
 }
 
 /**
@@ -171,37 +179,39 @@ export async function registerDocument(
     formattedNumber = numberData.formattedNumber;
   }
 
+  const insertValues: typeof documentRegistry.$inferInsert = {
+    parishId,
+    documentType,
+    registrationNumber,
+    registrationYear,
+    formattedNumber,
+    registrationDate: dateToString(registrationDate),
+    externalNumber: rest.externalNumber || null,
+    externalDate: dateToString(rest.externalDate),
+    senderClientId: rest.senderClientId || null,
+    senderName: rest.senderName || null,
+    senderDocNumber: rest.senderDocNumber || null,
+    senderDocDate: dateToString(rest.senderDocDate),
+    recipientClientId: rest.recipientClientId || null,
+    recipientName: rest.recipientName || null,
+    subject,
+    content: content || null,
+    priority,
+    status,
+    departmentId: rest.departmentId || null,
+    assignedTo: rest.assignedTo || null,
+    dueDate: dateToString(rest.dueDate),
+    fileIndex: rest.fileIndex || null,
+    parentDocumentId: rest.parentDocumentId || null,
+    isSecret: rest.isSecret || false,
+    secretDeclassificationList: rest.secretDeclassificationList || null,
+    createdBy,
+    updatedBy: createdBy,
+  };
+
   const [newDocument] = await db
     .insert(documentRegistry)
-    .values({
-      parishId,
-      documentType,
-      registrationNumber,
-      registrationYear,
-      formattedNumber,
-      registrationDate: registrationDate || null,
-      externalNumber: rest.externalNumber || null,
-      externalDate: rest.externalDate || null,
-      senderPartnerId: rest.senderPartnerId || null,
-      senderName: rest.senderName || null,
-      senderDocNumber: rest.senderDocNumber || null,
-      senderDocDate: rest.senderDocDate || null,
-      recipientPartnerId: rest.recipientPartnerId || null,
-      recipientName: rest.recipientName || null,
-      subject,
-      content: content || null,
-      priority,
-      status,
-      departmentId: rest.departmentId || null,
-      assignedTo: rest.assignedTo || null,
-      dueDate: rest.dueDate || null,
-      fileIndex: rest.fileIndex || null,
-      parentDocumentId: rest.parentDocumentId || null,
-      isSecret: rest.isSecret || false,
-      secretDeclassificationList: rest.secretDeclassificationList || null,
-      createdBy,
-      updatedBy: createdBy,
-    })
+    .values(insertValues)
     .returning();
 
   return newDocument;
@@ -267,7 +277,7 @@ export async function routeDocument(
       updatedBy: fromUserId,
       updatedAt: new Date(),
       ...(action === 'resolved' && !document.resolvedDate
-        ? { resolvedDate: new Date() }
+        ? { resolvedDate: dateToString(new Date()) }
         : {}),
     })
     .where(eq(documentRegistry.id, documentId))
@@ -323,7 +333,7 @@ export async function resolveDocument(
     .update(documentRegistry)
     .set({
       status: 'resolved',
-      resolvedDate: new Date(),
+      resolvedDate: dateToString(new Date()),
       updatedBy: userId,
       updatedAt: new Date(),
     })
@@ -434,11 +444,11 @@ export async function searchDocuments(
   }
 
   if (startDate) {
-    conditions.push(gte(documentRegistry.registrationDate, startDate));
+    conditions.push(gte(documentRegistry.registrationDate, dateToString(startDate)!));
   }
 
   if (endDate) {
-    conditions.push(lte(documentRegistry.registrationDate, endDate));
+    conditions.push(lte(documentRegistry.registrationDate, dateToString(endDate)!));
   }
 
   if (subject) {

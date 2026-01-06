@@ -69,7 +69,20 @@ export function useStockMovements(): UseStockMovementsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseStockMovementsReturn['pagination']>(null);
 
-  const fetchStockMovements = useCallback(async (params = {}) => {
+  const fetchStockMovements = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    warehouseId?: string;
+    productId?: string;
+    parishId?: string;
+    type?: 'in' | 'out' | 'transfer' | 'adjustment' | 'return';
+    dateFrom?: string;
+    dateTo?: string;
+    invoiceId?: string;
+    clientId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

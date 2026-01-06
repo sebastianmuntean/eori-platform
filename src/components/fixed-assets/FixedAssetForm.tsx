@@ -142,7 +142,6 @@ export function FixedAssetForm({
             label={t('description') || 'Description'}
             value={formData.description}
             onChange={(e) => handleFieldChange('description', e.target.value)}
-            multiline
             error={errors.description}
           />
         </div>
@@ -231,7 +230,6 @@ export function FixedAssetForm({
             label={t('disposalReason') || 'Disposal Reason'}
             value={formData.disposalReason}
             onChange={(e) => handleFieldChange('disposalReason', e.target.value)}
-            multiline
             error={errors.disposalReason}
           />
         </div>
@@ -244,7 +242,6 @@ export function FixedAssetForm({
             label={t('notes') || 'Notes'}
             value={formData.notes}
             onChange={(e) => handleFieldChange('notes', e.target.value)}
-            multiline
             error={errors.notes}
           />
         </div>

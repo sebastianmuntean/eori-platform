@@ -131,7 +131,10 @@ export async function GET(request: Request) {
     // Convert to buffer
     const excelBuffer = await workbook.xlsx.writeBuffer();
 
-    console.log(`✓ Excel file generated: ${excelBuffer.length} bytes`);
+    const bufferLength = (excelBuffer as unknown as Buffer | ArrayBuffer) instanceof Buffer 
+      ? (excelBuffer as unknown as Buffer).length 
+      : (excelBuffer as unknown as ArrayBuffer).byteLength;
+    console.log(`✓ Excel file generated: ${bufferLength} bytes`);
 
     // Return file as download
     return new NextResponse(excelBuffer, {

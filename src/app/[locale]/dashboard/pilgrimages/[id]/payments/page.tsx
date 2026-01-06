@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -167,25 +167,25 @@ export default function PilgrimagePaymentsPage() {
 
   const columns = [
     {
-      key: 'participantId',
+      key: 'participantId' as keyof PilgrimagePayment,
       label: tPilgrimages('participant'),
       sortable: false,
       render: (value: string) => getParticipantName(value),
     },
     {
-      key: 'amount',
+      key: 'amount' as keyof PilgrimagePayment,
       label: tPilgrimages('amount'),
       sortable: true,
       render: (value: string) => formatAmount(value),
     },
     {
-      key: 'paymentDate',
+      key: 'paymentDate' as keyof PilgrimagePayment,
       label: tPilgrimages('paymentDate'),
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'paymentMethod',
+      key: 'paymentMethod' as keyof PilgrimagePayment,
       label: tPilgrimages('paymentMethod'),
       sortable: false,
       render: (value: PaymentMethod) => (
@@ -195,7 +195,7 @@ export default function PilgrimagePaymentsPage() {
       ),
     },
     {
-      key: 'status',
+      key: 'status' as keyof PilgrimagePayment,
       label: tPilgrimages('paymentStatus'),
       sortable: false,
       render: (value: PaymentStatus) => {
@@ -213,13 +213,13 @@ export default function PilgrimagePaymentsPage() {
       },
     },
     {
-      key: 'paymentReference',
+      key: 'paymentReference' as keyof PilgrimagePayment,
       label: tPilgrimages('paymentReference'),
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof PilgrimagePayment,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: PilgrimagePayment) => (
@@ -250,14 +250,15 @@ export default function PilgrimagePaymentsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('payments')}</h1>
-        <Button onClick={() => setShowAddModal(true)}>
-          {tPilgrimages('addPayment')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('payments') || 'Payments'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {tPilgrimages('addPayment')}
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       {summary && (
@@ -273,7 +274,7 @@ export default function PilgrimagePaymentsPage() {
           <Card variant="elevated">
             <CardBody>
               <div className="text-sm text-text-secondary">{tPilgrimages('paymentStatuses.completed')}</div>
-              <div className="text-2xl font-bold text-text-primary">{summary.payments?.completedPayments || 0}</div>
+              <div className="text-2xl font-bold text-text-primary">{summary.payments?.totalPayments || 0}</div>
             </CardBody>
           </Card>
           <Card variant="elevated">
@@ -304,11 +305,12 @@ export default function PilgrimagePaymentsPage() {
             </div>
           )}
           {loading ? (
-            <div className="text-center py-8">{t('loading') || 'Loading...'}</div>
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <Table
               data={payments}
               columns={columns}
+              emptyMessage={tPilgrimages('noPayments') || 'No payments available'}
             />
           )}
         </CardBody>

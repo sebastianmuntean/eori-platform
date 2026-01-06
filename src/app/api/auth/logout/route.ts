@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     
     // Log audit event for logout
     if (userId) {
-      logLogout(userId, extractIpAddress(request), extractUserAgent(request)).catch((err) => {
+      const ipAddress = extractIpAddress(request);
+      const userAgent = extractUserAgent(request);
+      logLogout(userId, ipAddress === null ? undefined : ipAddress, userAgent === null ? undefined : userAgent).catch((err) => {
         console.error('Failed to log logout audit event:', err);
       });
     }

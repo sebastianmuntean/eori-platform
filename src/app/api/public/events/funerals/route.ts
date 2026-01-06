@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (data.deceased) {
       participants.push({
         eventId: newEvent.id,
-        role: 'deceased',
+        role: 'deceased' as const,
         firstName: data.deceased.firstName,
         lastName: data.deceased.lastName || null,
         birthDate: data.deceased.birthDate || null,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       for (const member of data.familyMembers) {
         participants.push({
           eventId: newEvent.id,
-          role: 'other',
+          role: 'other' as const,
           firstName: member.firstName,
           lastName: member.lastName || null,
           birthDate: member.birthDate || null,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Contact person
     participants.push({
       eventId: newEvent.id,
-      role: 'other',
+      role: 'other' as const,
       firstName: data.contactName,
       phone: data.contactPhone,
       email: data.contactEmail || null,

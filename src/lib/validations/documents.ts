@@ -6,11 +6,11 @@ export const createDocumentSchema = z.object({
   registrationDate: z.string().optional(),
   externalNumber: z.string().max(100).optional().nullable(),
   externalDate: z.string().optional().nullable(),
-  senderPartnerId: z.string().uuid().optional().nullable(),
+  senderClientId: z.string().uuid().optional().nullable(),
   senderName: z.string().max(255).optional().nullable(),
   senderDocNumber: z.string().max(100).optional().nullable(),
   senderDocDate: z.string().optional().nullable(),
-  recipientPartnerId: z.string().uuid().optional().nullable(),
+  recipientClientId: z.string().uuid().optional().nullable(),
   recipientName: z.string().max(255).optional().nullable(),
   subject: z.string().min(1, 'Subject is required').max(500),
   content: z.string().optional().nullable(),
@@ -30,11 +30,11 @@ export const updateDocumentSchema = z.object({
   registrationDate: z.string().optional().nullable(),
   externalNumber: z.string().max(100).optional().nullable(),
   externalDate: z.string().optional().nullable(),
-  senderPartnerId: z.string().uuid().optional().nullable(),
+  senderClientId: z.string().uuid().optional().nullable(),
   senderName: z.string().max(255).optional().nullable(),
   senderDocNumber: z.string().max(100).optional().nullable(),
   senderDocDate: z.string().optional().nullable(),
-  recipientPartnerId: z.string().uuid().optional().nullable(),
+  recipientClientId: z.string().uuid().optional().nullable(),
   recipientName: z.string().max(255).optional().nullable(),
   subject: z.string().min(1).max(500).optional(),
   content: z.string().optional().nullable(),
@@ -85,3 +85,6 @@ export const searchDocumentsSchema = z.object({
   page: z.number().int().min(1).optional().default(1),
   limit: z.number().int().min(1).max(100).optional().default(10),
 });
+
+export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
+export type UpdateDocumentInput = z.infer<typeof updateDocumentSchema>;

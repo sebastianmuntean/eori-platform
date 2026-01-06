@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       conditions.push(eq(leaveRequests.employeeId, employeeId));
     }
 
-    let query = db
+    const baseQuery = db
       .select({
         leaveTypeId: leaveTypes.id,
         leaveTypeName: leaveTypes.name,
@@ -30,18 +30,17 @@ export async function GET(request: Request) {
       .from(leaveTypes)
       .leftJoin(leaveRequests, eq(leaveTypes.id, leaveRequests.leaveTypeId));
 
+    let queryWithJoins = baseQuery;
     if (parishId) {
-      query = query.leftJoin(employees, eq(leaveRequests.employeeId, employees.id));
+      queryWithJoins = queryWithJoins.leftJoin(employees, eq(leaveRequests.employeeId, employees.id));
       conditions.push(eq(employees.parishId, parishId));
     }
 
-    if (employeeId) {
-      query = query.where(eq(leaveRequests.employeeId, employeeId));
-    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const queryWithWhere = whereClause ? queryWithJoins.where(whereClause) : queryWithJoins;
+    const queryWithGroupBy = queryWithWhere.groupBy(leaveTypes.id, leaveTypes.name, leaveTypes.code, leaveTypes.maxDaysPerYear);
 
-    query = query.groupBy(leaveTypes.id, leaveTypes.name, leaveTypes.code, leaveTypes.maxDaysPerYear);
-
-    const result = await query;
+    const result = await queryWithGroupBy;
 
     const balance = result.map((item) => ({
       leaveTypeId: item.leaveTypeId,
@@ -64,6 +63,7 @@ export async function GET(request: Request) {
     });
   }
 }
+
 
 
 

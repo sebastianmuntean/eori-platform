@@ -158,7 +158,7 @@ export async function POST(
     if (!contractData.clientId) {
       console.log(`❌ Contract ${id} has no clientId`);
       return NextResponse.json(
-        { success: false, error: 'Contract must have a partner assigned' },
+        { success: false, error: 'Contract must have a client assigned' },
         { status: 400 }
       );
     }
@@ -204,7 +204,7 @@ export async function POST(
       if ('rows' in result && Array.isArray(result.rows) && result.rows.length > 0) {
         invoiceId = result.rows[0].id;
       } else if (Array.isArray(result) && result.length > 0) {
-        invoiceId = result[0].id;
+        invoiceId = (result[0] as { id: string }).id;
       } else if ('id' in result) {
         invoiceId = (result as any).id;
       } else {

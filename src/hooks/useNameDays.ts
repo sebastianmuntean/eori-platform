@@ -32,7 +32,12 @@ export function useNameDays(): UseNameDaysReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNameDays = useCallback(async (params = {}) => {
+  const fetchNameDays = useCallback(async (params: {
+    dateFrom?: string;
+    dateTo?: string;
+    parishId?: string;
+    daysAhead?: number;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -66,6 +71,9 @@ export function useNameDays(): UseNameDaysReturn {
     fetchNameDays,
   };
 }
+
+
+
 
 
 

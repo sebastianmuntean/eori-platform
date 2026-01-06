@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -148,11 +148,12 @@ export default function EditPilgrimagePage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('editPilgrimage') || 'Edit Pilgrimage'}
+        className="mb-6"
+      />
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tPilgrimages('editPilgrimage')}</h1>
-        </CardHeader>
         <CardBody>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
@@ -139,14 +139,16 @@ export default function PilgrimageMealsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('meals')}</h1>
-        <Button onClick={() => {/* TODO: Add meal modal */}}>
-          {tPilgrimages('addMeal')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('meals') || 'Meals'}
+        action={
+          <Button onClick={() => {/* TODO: Add meal modal */}}>
+            {tPilgrimages('addMeal')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Meals Table */}
       <Card variant="outlined">
@@ -156,13 +158,13 @@ export default function PilgrimageMealsPage() {
               {error}
             </div>
           )}
-          {meals.length === 0 && !loading ? (
-            <p className="text-text-secondary">{tPilgrimages('noMeals')}</p>
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <Table
               data={meals}
               columns={columns}
-              loading={loading}
+              emptyMessage={tPilgrimages('noMeals') || 'No meals available'}
             />
           )}
         </CardBody>

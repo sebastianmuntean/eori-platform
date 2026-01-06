@@ -112,7 +112,9 @@ export function useUserPermissions(): UseUserPermissionsReturn {
      */
     const handleStorageChange = (e: StorageEvent) => {
       // Security: Only process events from same origin
-      if (e.origin !== window.location.origin) {
+      // Note: origin is a standard StorageEvent property but not in TypeScript types
+      const eventOrigin = (e as StorageEvent & { origin?: string }).origin;
+      if (eventOrigin && eventOrigin !== window.location.origin) {
         return;
       }
 

@@ -16,6 +16,43 @@ import {
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { sql, eq, and } from 'drizzle-orm';
 
+// Type definitions for grouped query results
+type GroupedResult<T extends string> = {
+  [K in T]: string | null;
+} & {
+  count: string | number;
+};
+
+type CountResult = { count: string | number };
+
+// Helper function to extract count from query result
+const extractCount = (result: CountResult[]): number => {
+  return Number(result[0]?.count ?? 0);
+};
+
+// Helper function to process grouped results into a map with default values
+const processGroupedResults = <T extends string>(
+  results: GroupedResult<T>[],
+  keyField: T,
+  defaultValues: Record<string, number>
+): Record<string, number> => {
+  const map = { ...defaultValues };
+  results.forEach((row) => {
+    const key = row[keyField];
+    if (key && typeof key === 'string') {
+      map[key] = Number(row.count);
+    }
+  });
+  return map;
+};
+
+// Type-safe constants for enum values
+const INVOICE_TYPES = ['issued', 'received'] as const;
+const PAYMENT_TYPES = ['income', 'expense'] as const;
+const EVENT_TYPES = ['wedding', 'baptism', 'funeral'] as const;
+const CONTRACT_DIRECTIONS = ['incoming', 'outgoing'] as const;
+const CONTRACT_TYPES = ['rental', 'concession', 'sale_purchase', 'loan', 'other'] as const;
+
 /**
  * GET /api/statistics/data - Get data statistics for all entities
  */
@@ -47,16 +84,13 @@ export async function GET() {
         .select({ count: sql<number>`count(*)` })
         .from(parishes)
         .where(eq(parishes.isActive, true)),
-      
       // Total clients
       db
         .select({ count: sql<number>`count(*)` })
         .from(clients)
         .where(eq(clients.isActive, true)),
-      
       // Total invoices
       db.select({ count: sql<number>`count(*)` }).from(invoices),
-      
       // Invoices by type
       db
         .select({
@@ -65,10 +99,8 @@ export async function GET() {
         })
         .from(invoices)
         .groupBy(invoices.type),
-      
       // Total payments
       db.select({ count: sql<number>`count(*)` }).from(payments),
-      
       // Payments by type
       db
         .select({
@@ -77,10 +109,8 @@ export async function GET() {
         })
         .from(payments)
         .groupBy(payments.type),
-      
       // Total events
       db.select({ count: sql<number>`count(*)` }).from(churchEvents),
-      
       // Events by type
       db
         .select({
@@ -89,13 +119,11 @@ export async function GET() {
         })
         .from(churchEvents)
         .groupBy(churchEvents.type),
-      
       // Total users
       db
         .select({ count: sql<number>`count(*)` })
         .from(users)
         .where(eq(users.isActive, true)),
-      
       // Donations (payments with category='donation' and type='income')
       db
         .select({ count: sql<number>`count(*)` })
@@ -106,10 +134,8 @@ export async function GET() {
             eq(payments.category, 'donation')
           )
         ),
-      
       // Total contracts
       db.select({ count: sql<number>`count(*)` }).from(contracts),
-      
       // Contracts by direction
       db
         .select({
@@ -118,7 +144,6 @@ export async function GET() {
         })
         .from(contracts)
         .groupBy(contracts.direction),
-      
       // Contracts by type
       db
         .select({
@@ -127,13 +152,11 @@ export async function GET() {
         })
         .from(contracts)
         .groupBy(contracts.type),
-      
       // Total products
       db
         .select({ count: sql<number>`count(*)` })
         .from(products)
         .where(eq(products.isActive, true)),
-      
       // Total pangar products (products with category 'pangar')
       db
         .select({ count: sql<number>`count(*)` })
@@ -144,116 +167,46 @@ export async function GET() {
             eq(products.category, 'pangar')
           )
         ),
-      
       // Total fixed assets
       db.select({ count: sql<number>`count(*)` }).from(fixedAssets),
-      
       // Total inventory sessions
       db.select({ count: sql<number>`count(*)` }).from(inventorySessions),
-      
       // Total documents registry
       db.select({ count: sql<number>`count(*)` }).from(documentRegistry),
     ]);
 
+    // Process grouped results into maps
+    const invoicesByTypeMap = processGroupedResults(
+      invoicesByType as GroupedResult<'type'>[],
+      'type',
+      Object.fromEntries(INVOICE_TYPES.map((type) => [type, 0]))
+    );
 
-    // Process invoices by type
-    const invoicesByTypeMap: Record<string, number> = {
-      issued: 0,
-      received: 0,
-    };
-    invoicesByType.forEach((row: any) => {
-      invoicesByTypeMap[row.type] = Number(row.count);
-    });
+    const paymentsByTypeMap = processGroupedResults(
+      paymentsByType as GroupedResult<'type'>[],
+      'type',
+      Object.fromEntries(PAYMENT_TYPES.map((type) => [type, 0]))
+    );
 
-    // Process payments by type
-    const paymentsByTypeMap: Record<string, number> = {
-      income: 0,
-      expense: 0,
-    };
-    paymentsByType.forEach((row: any) => {
-      paymentsByTypeMap[row.type] = Number(row.count);
-    });
+    const eventsByTypeMap = processGroupedResults(
+      eventsByType as GroupedResult<'type'>[],
+      'type',
+      Object.fromEntries(EVENT_TYPES.map((type) => [type, 0]))
+    );
 
-    // Process events by type
-    const eventsByTypeMap: Record<string, number> = {
-      wedding: 0,
-      baptism: 0,
-      funeral: 0,
-    };
-    eventsByType.forEach((row: any) => {
-      eventsByTypeMap[row.type] = Number(row.count);
-    });
+    const contractsByDirectionMap = processGroupedResults(
+      contractsByDirection as GroupedResult<'direction'>[],
+      'direction',
+      Object.fromEntries(CONTRACT_DIRECTIONS.map((direction) => [direction, 0]))
+    );
 
-    // Process contracts by direction
-    const contractsByDirectionMap: Record<string, number> = {
-      incoming: 0,
-      outgoing: 0,
-    };
-    contractsByDirection.forEach((row: any) => {
-      contractsByDirectionMap[row.direction] = Number(row.count);
-    });
-
-    // Process contracts by type
-    const contractsByTypeMap: Record<string, number> = {
-      rental: 0,
-      concession: 0,
-      sale_purchase: 0,
-      loan: 0,
-      other: 0,
-    };
-    contractsByType.forEach((row: any) => {
-      contractsByTypeMap[row.type] = Number(row.count);
-    });
+    const contractsByTypeMap = processGroupedResults(
+      contractsByType as GroupedResult<'type'>[],
+      'type',
+      Object.fromEntries(CONTRACT_TYPES.map((type) => [type, 0]))
+    );
 
     // Get relationship statistics
-    const relationshipQueries = await Promise.all([
-      // Clients that have invoices
-      db
-        .select({
-          count: sql<number>`count(distinct ${invoices.clientId})`,
-        })
-        .from(invoices),
-      
-      // Clients that have payments
-      db
-        .select({
-          count: sql<number>`count(distinct ${payments.clientId})`,
-        })
-        .from(payments)
-        .where(sql`${payments.clientId} IS NOT NULL`),
-      
-      // Parishes with clients (returns 0 if parish_id column doesn't exist)
-      Promise.resolve([{ count: 0 }]),
-      
-      // Parishes with invoices
-      db
-        .select({
-          count: sql<number>`count(distinct ${invoices.parishId})`,
-        })
-        .from(invoices),
-      
-      // Parishes with payments
-      db
-        .select({
-          count: sql<number>`count(distinct ${payments.parishId})`,
-        })
-        .from(payments),
-      
-      // Parishes with events
-      db
-        .select({
-          count: sql<number>`count(distinct ${churchEvents.parishId})`,
-        })
-        .from(churchEvents),
-      
-      // Parishes with contracts
-      db
-        .select({
-          count: sql<number>`count(distinct ${contracts.parishId})`,
-        })
-        .from(contracts),
-    ]);
-
     const [
       clientsWithInvoices,
       clientsWithPayments,
@@ -262,23 +215,57 @@ export async function GET() {
       parishesWithPayments,
       parishesWithEvents,
       parishesWithContracts,
-    ] = relationshipQueries;
+    ] = await Promise.all([
+      db
+        .select({
+          count: sql<number>`count(distinct ${invoices.clientId})`,
+        })
+        .from(invoices),
+      db
+        .select({
+          count: sql<number>`count(distinct ${payments.clientId})`,
+        })
+        .from(payments)
+        .where(sql`${payments.clientId} IS NOT NULL`),
+      // Parishes with clients (returns 0 if parish_id column doesn't exist)
+      Promise.resolve<CountResult[]>([{ count: 0 }]),
+      db
+        .select({
+          count: sql<number>`count(distinct ${invoices.parishId})`,
+        })
+        .from(invoices),
+      db
+        .select({
+          count: sql<number>`count(distinct ${payments.parishId})`,
+        })
+        .from(payments),
+      db
+        .select({
+          count: sql<number>`count(distinct ${churchEvents.parishId})`,
+        })
+        .from(churchEvents),
+      db
+        .select({
+          count: sql<number>`count(distinct ${contracts.parishId})`,
+        })
+        .from(contracts),
+    ]);
 
     const statistics = {
       entities: {
-        parishes: Number(parishesCount[0]?.count || 0),
-        clients: Number(clientsCount[0]?.count || 0),
-        invoices: Number(invoicesCount[0]?.count || 0),
-        payments: Number(paymentsCount[0]?.count || 0),
-        events: Number(eventsCount[0]?.count || 0),
-        users: Number(usersCount[0]?.count || 0),
-        donations: Number(donationsCount[0]?.count || 0),
-        contracts: Number(contractsCount[0]?.count || 0),
-        products: Number(productsCount[0]?.count || 0),
-        pangarProducts: Number(pangarProductsCount[0]?.count || 0),
-        fixedAssets: Number(fixedAssetsCount[0]?.count || 0),
-        inventory: Number(inventoryCount[0]?.count || 0),
-        documents: Number(documentsCount[0]?.count || 0),
+        parishes: extractCount(parishesCount),
+        clients: extractCount(clientsCount),
+        invoices: extractCount(invoicesCount),
+        payments: extractCount(paymentsCount),
+        events: extractCount(eventsCount),
+        users: extractCount(usersCount),
+        donations: extractCount(donationsCount),
+        contracts: extractCount(contractsCount),
+        products: extractCount(productsCount),
+        pangarProducts: extractCount(pangarProductsCount),
+        fixedAssets: extractCount(fixedAssetsCount),
+        inventory: extractCount(inventoryCount),
+        documents: extractCount(documentsCount),
       },
       breakdown: {
         invoices: invoicesByTypeMap,
@@ -295,13 +282,13 @@ export async function GET() {
         },
       },
       relationships: {
-        clientsWithInvoices: Number(clientsWithInvoices[0]?.count || 0),
-        clientsWithPayments: Number(clientsWithPayments[0]?.count || 0),
-        parishesWithClients: Number(parishesWithClients[0]?.count || 0),
-        parishesWithInvoices: Number(parishesWithInvoices[0]?.count || 0),
-        parishesWithPayments: Number(parishesWithPayments[0]?.count || 0),
-        parishesWithEvents: Number(parishesWithEvents[0]?.count || 0),
-        parishesWithContracts: Number(parishesWithContracts[0]?.count || 0),
+        clientsWithInvoices: extractCount(clientsWithInvoices),
+        clientsWithPayments: extractCount(clientsWithPayments),
+        parishesWithClients: extractCount(parishesWithClients),
+        parishesWithInvoices: extractCount(parishesWithInvoices),
+        parishesWithPayments: extractCount(parishesWithPayments),
+        parishesWithEvents: extractCount(parishesWithEvents),
+        parishesWithContracts: extractCount(parishesWithContracts),
       },
     };
 

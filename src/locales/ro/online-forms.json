@@ -18,6 +18,7 @@
   "targetModuleGeneralRegister": "Registrul General",
   "targetModuleEvents": "Evenimente",
   "targetModulePartners": "Parteneri",
+  "targetModuleClients": "Clienți",
   "widgetCode": "Cod Widget",
   "widgetCodeDescription": "Codul unic pentru integrare pe site-uri terțe",
   "copyWidgetCode": "Copiază Cod Widget",

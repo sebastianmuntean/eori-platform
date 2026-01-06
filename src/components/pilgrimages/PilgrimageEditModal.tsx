@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 interface PilgrimageEditModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCancel?: () => void;
   formData: PilgrimageFormData;
   setFormData: (data: PilgrimageFormData) => void;
   parishes: Parish[];

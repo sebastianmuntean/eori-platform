@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db
+    const baseQuery = db
       .select({
         id: users.id,
         email: users.email,
@@ -58,17 +58,19 @@ export async function GET(request: Request) {
       .where(conditions[0] as any);
 
     // Apply sorting
-    if (sortBy === 'name') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(users.name))
-        : query.orderBy(asc(users.name));
-    } else if (sortBy === 'email') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(users.email))
-        : query.orderBy(asc(users.email));
-    }
-
-    const allUsers = await query.limit(pageSize).offset(offset);
+    const allUsers = await (() => {
+      if (sortBy === 'name') {
+        return sortOrder === 'desc'
+          ? baseQuery.orderBy(desc(users.name))
+          : baseQuery.orderBy(asc(users.name));
+      } else if (sortBy === 'email') {
+        return sortOrder === 'desc'
+          ? baseQuery.orderBy(desc(users.email))
+          : baseQuery.orderBy(asc(users.email));
+      } else {
+        return baseQuery.orderBy(asc(users.name));
+      }
+    })().limit(pageSize).offset(offset);
 
     console.log(`✓ Found ${allUsers.length} users (total: ${totalCount})`);
 

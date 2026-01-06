@@ -85,7 +85,7 @@ export async function POST(
           const [movement] = await tx
             .insert(stockMovements)
             .values({
-              warehouseId: session.warehouseId,
+              warehouseId: session.warehouseId!,
               productId: item.itemId,
               parishId: session.parishId,
               type: movementType,

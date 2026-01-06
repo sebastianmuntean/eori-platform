@@ -99,8 +99,8 @@ export async function GET(request: Request) {
     // Build order by clause
     let orderBy;
     const sortColumn = contracts[sortBy as keyof typeof contracts];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+    if (sortColumn && typeof sortColumn !== 'boolean') {
+      orderBy = sortOrder === 'asc' ? asc(sortColumn as any) : desc(sortColumn as any);
     } else {
       orderBy = desc(contracts.startDate);
     }
@@ -198,7 +198,7 @@ export async function POST(request: Request) {
     if (!existingClient) {
       console.log(`❌ Client ${data.clientId} not found`);
       return NextResponse.json(
-        { success: false, error: 'Partner not found' },
+        { success: false, error: 'Client not found' },
         { status: 400 }
       );
     }

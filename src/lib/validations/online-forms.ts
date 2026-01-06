@@ -7,7 +7,7 @@ export const createOnlineFormSchema = z.object({
   isActive: z.boolean().optional().default(true),
   emailValidationMode: z.enum(['start', 'end']).optional().default('end'),
   submissionFlow: z.enum(['direct', 'review']).optional().default('review'),
-  targetModule: z.enum(['registratura', 'general_register', 'events', 'partners']),
+  targetModule: z.enum(['registratura', 'general_register', 'events', 'clients']),
   widgetCode: z.string().min(1).max(100).optional(), // Optional - will be auto-generated if not provided
   successMessage: z.string().optional().nullable(),
   errorMessage: z.string().optional().nullable(),
@@ -19,7 +19,7 @@ export const updateOnlineFormSchema = z.object({
   isActive: z.boolean().optional(),
   emailValidationMode: z.enum(['start', 'end']).optional(),
   submissionFlow: z.enum(['direct', 'review']).optional(),
-  targetModule: z.enum(['registratura', 'general_register', 'events', 'partners']).optional(),
+  targetModule: z.enum(['registratura', 'general_register', 'events', 'clients']).optional(),
   successMessage: z.string().optional().nullable(),
   errorMessage: z.string().optional().nullable(),
 });

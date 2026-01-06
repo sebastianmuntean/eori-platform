@@ -172,38 +172,34 @@ export async function GET(request: Request) {
       : undefined;
 
     // Get total count using SQL count function
-    let countQuery = db
+    const baseCountQuery = db
       .select({ count: sql<number>`count(*)` })
       .from(parishes);
     
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
-    
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
-    let query = db.select().from(parishes);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
+    const baseQuery = db.select().from(parishes);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
+    
+    let queryWithOrder;
     if (sortBy === 'name') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(parishes.name))
-        : query.orderBy(asc(parishes.name));
+      queryWithOrder = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(parishes.name))
+        : queryWithWhere.orderBy(asc(parishes.name));
     } else if (sortBy === 'code') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(parishes.code))
-        : query.orderBy(asc(parishes.code));
+      queryWithOrder = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(parishes.code))
+        : queryWithWhere.orderBy(asc(parishes.code));
     } else {
-      query = query.orderBy(desc(parishes.createdAt));
+      queryWithOrder = queryWithWhere.orderBy(desc(parishes.createdAt));
     }
 
     // If all=true, don't apply LIMIT and OFFSET
     const allParishes = all 
-      ? await query 
-      : await query.limit(pageSize).offset((page - 1) * pageSize);
+      ? await queryWithOrder 
+      : await queryWithOrder.limit(pageSize).offset((page - 1) * pageSize);
 
     return NextResponse.json({
       success: true,
@@ -261,30 +257,32 @@ export async function POST(request: Request) {
     // Validate parish code is unique
     await validateParishCodeUnique(data.code);
 
+    const insertValues = {
+      deaneryId: data.deaneryId || null,
+      dioceseId: data.dioceseId,
+      code: data.code,
+      name: data.name,
+      patronSaintDay: data.patronSaintDay || null,
+      address: data.address || null,
+      city: data.city || null,
+      county: data.county || null,
+      postalCode: data.postalCode || null,
+      latitude: data.latitude !== null && data.latitude !== undefined ? String(data.latitude) : null,
+      longitude: data.longitude !== null && data.longitude !== undefined ? String(data.longitude) : null,
+      phone: data.phone || null,
+      email: data.email || null,
+      website: data.website || null,
+      priestName: data.priestName || null,
+      vicarName: data.vicarName || null,
+      parishionerCount: data.parishionerCount || null,
+      foundedYear: data.foundedYear || null,
+      notes: data.notes || null,
+      isActive: data.isActive ?? true,
+    };
+    
     const [newParish] = await db
       .insert(parishes)
-      .values({
-        deaneryId: data.deaneryId || null,
-        dioceseId: data.dioceseId,
-        code: data.code,
-        name: data.name,
-        patronSaintDay: data.patronSaintDay || null,
-        address: data.address || null,
-        city: data.city || null,
-        county: data.county || null,
-        postalCode: data.postalCode || null,
-        latitude: data.latitude || null,
-        longitude: data.longitude || null,
-        phone: data.phone || null,
-        email: data.email || null,
-        website: data.website || null,
-        priestName: data.priestName || null,
-        vicarName: data.vicarName || null,
-        parishionerCount: data.parishionerCount || null,
-        foundedYear: data.foundedYear || null,
-        notes: data.notes || null,
-        isActive: data.isActive ?? true,
-      })
+      .values(insertValues)
       .returning();
 
     return NextResponse.json(

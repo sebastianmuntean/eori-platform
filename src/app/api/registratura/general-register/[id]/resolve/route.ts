@@ -163,7 +163,7 @@ export async function POST(
     const hasApproved = allSteps.some(step => step.resolutionStatus === 'approved');
 
     // Update document status
-    let newStatus: 'draft' | 'in_work' | 'distributed' | 'resolved' | 'cancelled' = document.status;
+    let newStatus: 'draft' | 'registered' | 'in_work' | 'distributed' | 'resolved' | 'archived' | 'cancelled' = document.status;
     if (allCompleted) {
       newStatus = 'resolved';
     } else if (document.status !== 'in_work' && document.status !== 'distributed') {

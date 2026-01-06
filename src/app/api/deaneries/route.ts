@@ -57,21 +57,21 @@ export async function GET(request: Request) {
       .where(whereClause);
     const totalCount = totalCountResult.length;
 
-    let query = db.select().from(deaneries);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = whereClause 
+      ? db.select().from(deaneries).where(whereClause)
+      : db.select().from(deaneries);
 
+    let query;
     if (sortBy === 'name') {
       query = sortOrder === 'desc' 
-        ? query.orderBy(desc(deaneries.name))
-        : query.orderBy(asc(deaneries.name));
+        ? baseQuery.orderBy(desc(deaneries.name))
+        : baseQuery.orderBy(asc(deaneries.name));
     } else if (sortBy === 'code') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(deaneries.code))
-        : query.orderBy(asc(deaneries.code));
+        ? baseQuery.orderBy(desc(deaneries.code))
+        : baseQuery.orderBy(asc(deaneries.code));
     } else {
-      query = query.orderBy(desc(deaneries.createdAt));
+      query = baseQuery.orderBy(desc(deaneries.createdAt));
     }
 
     // If all=true, don't apply LIMIT and OFFSET

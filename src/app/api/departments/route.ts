@@ -60,31 +60,30 @@ export async function GET(request: Request) {
       : undefined;
 
     // Get total count
-    let countQuery = db.select({ count: departments.id }).from(departments);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const countQuery = whereClause
+      ? db.select({ count: departments.id }).from(departments).where(whereClause)
+      : db.select({ count: departments.id }).from(departments);
     const totalCountResult = await countQuery;
     const totalCount = totalCountResult.length;
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(departments);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = whereClause
+      ? db.select().from(departments).where(whereClause)
+      : db.select().from(departments);
 
     // Apply sorting
+    let query;
     if (sortBy === 'name') {
       query = sortOrder === 'desc' 
-        ? query.orderBy(desc(departments.name))
-        : query.orderBy(asc(departments.name));
+        ? baseQuery.orderBy(desc(departments.name))
+        : baseQuery.orderBy(asc(departments.name));
     } else if (sortBy === 'code') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(departments.code))
-        : query.orderBy(asc(departments.code));
+        ? baseQuery.orderBy(desc(departments.code))
+        : baseQuery.orderBy(asc(departments.code));
     } else {
-      query = query.orderBy(desc(departments.createdAt));
+      query = baseQuery.orderBy(desc(departments.createdAt));
     }
 
     const allDepartments = await query.limit(pageSize).offset(offset);

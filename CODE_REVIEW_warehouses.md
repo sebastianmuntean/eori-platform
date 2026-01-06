@@ -429,3 +429,7 @@ const columns = useMemo(() => [
 - The npm warning about `react-copy-to-clipboard` peer dependency is unrelated to this code review and should be addressed separately. It's a known issue with `swagger-ui-react@5.31.0` not yet supporting React 19.
 - This review focuses on the warehouses module specifically. The identified permission pattern inconsistency should trigger a broader audit of the accounting module.
 
+
+
+
+

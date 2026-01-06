@@ -52,7 +52,16 @@ export function useTimeEntries(): UseTimeEntriesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseTimeEntriesReturn['pagination']>(null);
 
-  const fetchTimeEntries = useCallback(async (params = {}) => {
+  const fetchTimeEntries = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -204,6 +213,9 @@ export function useTimeEntries(): UseTimeEntriesReturn {
     approveTimeEntry,
   };
 }
+
+
+
 
 
 

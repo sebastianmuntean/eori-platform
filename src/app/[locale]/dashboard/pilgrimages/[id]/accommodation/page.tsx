@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
@@ -145,14 +145,16 @@ export default function PilgrimageAccommodationPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('accommodation')}</h1>
-        <Button onClick={() => {/* TODO: Add accommodation modal */}}>
-          {tPilgrimages('addAccommodation')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('accommodation') || 'Accommodation'}
+        action={
+          <Button onClick={() => {/* TODO: Add accommodation modal */}}>
+            {tPilgrimages('addAccommodation')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Accommodation Table */}
       <Card variant="outlined">
@@ -162,13 +164,13 @@ export default function PilgrimageAccommodationPage() {
               {error}
             </div>
           )}
-          {accommodation.length === 0 && !loading ? (
-            <p className="text-text-secondary">{tPilgrimages('noAccommodation')}</p>
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <Table
               data={accommodation}
               columns={columns}
-              loading={loading}
+              emptyMessage={tPilgrimages('noAccommodation') || 'No accommodation available'}
             />
           )}
         </CardBody>

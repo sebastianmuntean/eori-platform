@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
@@ -21,10 +21,7 @@ export default function BirthdaysPage() {
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('birthdays'));
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const { birthdays, loading, error, fetchBirthdays } = useBirthdays();
   const { parishes, fetchParishes } = useParishes();
 
@@ -32,10 +29,12 @@ export default function BirthdaysPage() {
   const [daysAhead, setDaysAhead] = useState(30);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     const today = new Date();
     const dateTo = new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000);
     
@@ -45,56 +44,61 @@ export default function BirthdaysPage() {
       parishId: parishFilter || undefined,
       daysAhead,
     });
-  }, [parishFilter, daysAhead, fetchBirthdays]);
+  }, [permissionLoading, parishFilter, daysAhead, fetchBirthdays]);
 
-  const formatDate = (date: string) => {
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
+
+
+  const formatDate = useCallback((date: string) => {
     return new Date(date).toLocaleDateString(locale);
-  };
+  }, [locale]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
-      key: 'upcomingBirthday',
+      key: 'upcomingBirthday' as const,
       label: t('birthday') || 'Birthday',
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'firstName',
+      key: 'firstName' as const,
       label: t('name') || 'Name',
       sortable: false,
-      render: (_: any, row: any) => `${row.firstName || ''} ${row.lastName || ''}`.trim() || row.code,
+      render: (_: unknown, row: any) => 
+        `${row.firstName || ''} ${row.lastName || ''}`.trim() || row.code || '',
     },
     {
-      key: 'age',
+      key: 'age' as const,
       label: t('age') || 'Age',
       sortable: false,
     },
     {
-      key: 'daysUntil',
+      key: 'daysUntil' as const,
       label: t('daysUntil') || 'Days Until',
       sortable: false,
     },
     {
-      key: 'phone',
+      key: 'phone' as const,
       label: t('phone'),
       sortable: false,
     },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('birthdays') || 'Birthdays' },
-  ];
+  ], [t, formatDate]);
 
   return (
-    <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{t('birthdays') || 'Upcoming Birthdays'}</h1>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('birthdays') || 'Birthdays' },
+        ]}
+        title={t('birthdays') || 'Upcoming Birthdays'}
+      />
 
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select

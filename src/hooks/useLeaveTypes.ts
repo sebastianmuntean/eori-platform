@@ -46,7 +46,15 @@ export function useLeaveTypes(): UseLeaveTypesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseLeaveTypesReturn['pagination']>(null);
 
-  const fetchLeaveTypes = useCallback(async (params = {}) => {
+  const fetchLeaveTypes = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -170,6 +178,9 @@ export function useLeaveTypes(): UseLeaveTypesReturn {
     deleteLeaveType,
   };
 }
+
+
+
 
 
 

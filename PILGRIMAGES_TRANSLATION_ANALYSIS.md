@@ -49,3 +49,7 @@ Următoarele chei apar în mai multe structuri nested, dar nu sunt duplicate rea
 **Toate problemele critice (chei cu puncte) au fost rezolvate!** Modulul pilgrimages are acum o structură corectă de traduceri fără conflicte de tipul `participants.total` sau `revenue.*`.
 
 
+
+
+
+

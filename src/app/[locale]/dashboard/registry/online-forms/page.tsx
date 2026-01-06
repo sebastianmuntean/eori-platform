@@ -1,16 +1,17 @@
 'use client';
 
+import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Modal } from '@/components/ui/Modal';
-import { useOnlineForms, OnlineForm } from '@/hooks/useOnlineForms';
+import { useOnlineForms, OnlineForm, FormTargetModule } from '@/hooks/useOnlineForms';
 import { useParishes } from '@/hooks/useParishes';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
@@ -62,7 +63,7 @@ export default function OnlineFormsPage() {
       limit: 10,
       search: searchTerm || undefined,
       parishId: parishFilter || undefined,
-      targetModule: targetModuleFilter || undefined,
+      targetModule: (targetModuleFilter as FormTargetModule) || undefined,
       isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
       sortBy: 'createdAt',
       sortOrder: 'desc',
@@ -90,7 +91,7 @@ export default function OnlineFormsPage() {
         limit: 10,
         search: searchTerm || undefined,
         parishId: parishFilter || undefined,
-        targetModule: targetModuleFilter || undefined,
+        targetModule: (targetModuleFilter as FormTargetModule) || undefined,
         isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
       });
     }
@@ -125,34 +126,45 @@ export default function OnlineFormsPage() {
       registratura: tForms('targetModuleRegistratura'),
       general_register: tForms('targetModuleGeneralRegister'),
       events: tForms('targetModuleEvents'),
-      partners: tForms('targetModulePartners'),
+      clients: tForms('targetModuleClients'),
     };
     return labels[module] || module;
   };
 
+  type TableDataItem = {
+    id: string;
+    name: string;
+    parishName: string;
+    targetModule: string;
+    widgetCode: React.ReactElement;
+    isActive: React.ReactElement;
+    createdAt: string;
+    actions: React.ReactElement;
+  };
+
   const tableColumns = [
-    { key: 'name', label: tForms('formName') },
-    { key: 'parishName', label: t('parish') },
-    { key: 'targetModule', label: tForms('targetModule') },
+    { key: 'name' as keyof TableDataItem, label: tForms('formName') },
+    { key: 'parishName' as keyof TableDataItem, label: t('parish') },
+    { key: 'targetModule' as keyof TableDataItem, label: tForms('targetModule') },
     {
-      key: 'widgetCode',
+      key: 'widgetCode' as keyof TableDataItem,
       label: tForms('widgetCode'),
       render: (value: any) => value,
     },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof TableDataItem,
       label: t('status'),
       render: (value: any) => value,
     },
-    { key: 'createdAt', label: t('createdAt') },
+    { key: 'createdAt' as keyof TableDataItem, label: t('createdAt') },
     {
-      key: 'actions',
+      key: 'actions' as keyof TableDataItem,
       label: t('actions'),
       render: (value: any) => value,
     },
   ];
 
-  const tableData = forms.map((form) => ({
+  const tableData: TableDataItem[] = forms.map((form) => ({
     id: form.id,
     name: form.name,
     parishName: form.parishName || '-',
@@ -201,22 +213,17 @@ export default function OnlineFormsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tForms('onlineForms'), href: `/${locale}/dashboard/registry/online-forms` },
+          { label: tForms('onlineForms') },
         ]}
+        title={tForms('onlineForms') || 'Online Forms'}
+        action={<Button onClick={handleCreate}>{tForms('createForm')}</Button>}
+        className="mb-6"
       />
 
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{tForms('onlineForms')}</h1>
-            <Button onClick={handleCreate}>
-              {tForms('createForm')}
-            </Button>
-          </div>
-        </CardHeader>
         <CardBody>
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -255,7 +262,7 @@ export default function OnlineFormsPage() {
               <option value="registratura">{tForms('targetModuleRegistratura')}</option>
               <option value="general_register">{tForms('targetModuleGeneralRegister')}</option>
               <option value="events">{tForms('targetModuleEvents')}</option>
-              <option value="partners">{tForms('targetModulePartners')}</option>
+              <option value="clients">{tForms('targetModuleClients')}</option>
             </select>
             <select
               className="px-4 py-2 border rounded-md bg-bg-primary text-text-primary"

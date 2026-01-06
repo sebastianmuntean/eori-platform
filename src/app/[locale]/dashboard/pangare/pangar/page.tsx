@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table } from '@/components/ui/Table';
 import { useStockLevels } from '@/hooks/useStockLevels';
@@ -87,12 +87,13 @@ export default function PangarPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tMenu('pangare') || 'Pangare', href: `/${locale}/dashboard/pangare` },
-          { label: tMenu('pangar') || 'Pangar', href: `/${locale}/dashboard/pangare/pangar` },
+          { label: tMenu('pangar') || 'Pangar' },
         ]}
+        title={tMenu('pangar') || 'Pangar'}
       />
 
       <Card>
@@ -136,11 +137,15 @@ export default function PangarPage() {
               </div>
             )}
 
-            <Table
-              data={stockLevels}
-              columns={columns}
-              loading={loading}
-            />
+            {loading ? (
+              <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+            ) : (
+              <Table
+                data={stockLevels}
+                columns={columns}
+                emptyMessage={t('noData') || 'No stock levels available'}
+              />
+            )}
           </div>
         </CardBody>
       </Card>

@@ -31,3 +31,7 @@ export const fixedAssets = pgTable('fixed_assets', {
 
 
 
+
+
+
+

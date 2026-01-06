@@ -130,7 +130,7 @@ export async function generateReportData(
       parishId: report.parishId || undefined,
       dioceseId: report.dioceseId || undefined,
       config: report.config as ReportConfig,
-      isPublic: report.isPublic,
+      isPublic: report.isPublic ?? false,
       sharedWith: report.sharedWith as string[] | undefined,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
@@ -176,7 +176,7 @@ export async function createSavedReport(
     parishId: newReport.parishId || undefined,
     dioceseId: newReport.dioceseId || undefined,
     config: newReport.config as ReportConfig,
-    isPublic: newReport.isPublic,
+    isPublic: newReport.isPublic ?? false,
     sharedWith: newReport.sharedWith as string[] | undefined,
     createdAt: newReport.createdAt,
     updatedAt: newReport.updatedAt,
@@ -210,7 +210,7 @@ export async function getSavedReports(userId: string): Promise<SavedReport[]> {
     parishId: report.parishId || undefined,
     dioceseId: report.dioceseId || undefined,
     config: report.config as ReportConfig,
-    isPublic: report.isPublic,
+    isPublic: report.isPublic ?? false,
     sharedWith: report.sharedWith as string[] | undefined,
     createdAt: report.createdAt,
     updatedAt: report.updatedAt,
@@ -251,7 +251,7 @@ export async function getSavedReport(
     parishId: report.parishId || undefined,
     dioceseId: report.dioceseId || undefined,
     config: report.config as ReportConfig,
-    isPublic: report.isPublic,
+    isPublic: report.isPublic ?? false,
     sharedWith: report.sharedWith as string[] | undefined,
     createdAt: report.createdAt,
     updatedAt: report.updatedAt,
@@ -312,7 +312,7 @@ export async function updateSavedReport(
     parishId: updated.parishId || undefined,
     dioceseId: updated.dioceseId || undefined,
     config: updated.config as ReportConfig,
-    isPublic: updated.isPublic,
+    isPublic: updated.isPublic ?? false,
     sharedWith: updated.sharedWith as string[] | undefined,
     createdAt: updated.createdAt,
     updatedAt: updated.updatedAt,
@@ -345,6 +345,10 @@ export async function deleteSavedReport(
 
   await db.delete(savedReports).where(eq(savedReports.id, reportId));
 }
+
+
+
+
 
 
 

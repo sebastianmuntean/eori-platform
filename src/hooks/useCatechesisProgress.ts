@@ -46,14 +46,17 @@ export function useCatechesisProgress(): UseCatechesisProgressReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProgress = useCallback(async (params = {}) => {
+  const fetchProgress = useCallback(async (params?: {
+    enrollmentId?: string;
+    lessonId?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.enrollmentId) queryParams.append('enrollmentId', params.enrollmentId);
-      if (params.lessonId) queryParams.append('lessonId', params.lessonId);
+      if (params?.enrollmentId) queryParams.append('enrollmentId', params.enrollmentId);
+      if (params?.lessonId) queryParams.append('lessonId', params.lessonId);
 
       const response = await fetch(`/api/catechesis/progress?${queryParams.toString()}`);
       const result = await response.json();
@@ -157,6 +160,9 @@ export function useCatechesisProgress(): UseCatechesisProgressReturn {
     trackProgress,
   };
 }
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TimeEntryForm } from '@/components/hr/TimeEntryForm';
@@ -13,13 +13,16 @@ import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
+import { showErrorToast } from '@/lib/utils/hr';
 
 export default function TimeTrackingPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tMenu = useTranslations('menu');
   usePageTitle(t('timeEntries'));
+  
+  const breadcrumbs = useHRBreadcrumbs(locale, t('timeEntries'));
   const { showToast } = useToast();
 
   // Check permission to view time entries
@@ -37,12 +40,6 @@ export default function TimeTrackingPage() {
   if (loading) {
     return null;
   }
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tMenu('hr') || 'Resurse Umane', href: `/${locale}/dashboard/hr` },
-    { label: t('timeEntries') },
-  ];
 
   const handleAdd = () => {
     setSelectedEntry(null);
@@ -70,10 +67,7 @@ export default function TimeTrackingPage() {
         showToast(t('errorApprovingTimeEntry') || 'Error approving time entry', 'error');
       }
     } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred',
-        'error'
-      );
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,10 +87,7 @@ export default function TimeTrackingPage() {
       setSelectedEntry(null);
       await fetchTimeEntries({ page: 1, pageSize: 10 });
     } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred',
-        'error'
-      );
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
@@ -117,24 +108,19 @@ export default function TimeTrackingPage() {
         showToast(t('errorDeletingTimeEntry') || 'Error deleting time entry', 'error');
       }
     } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred',
-        'error'
-      );
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('timeEntries')}</h1>
-        </div>
-        <Button onClick={handleAdd}>{t('addTimeEntry') || 'Add Time Entry'}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('timeEntries')}
+        action={<Button onClick={handleAdd}>{t('addTimeEntry') || 'Add Time Entry'}</Button>}
+      />
 
       <TimeEntriesTable onEdit={handleEdit} onDelete={handleDelete} onApprove={handleApprove} />
 

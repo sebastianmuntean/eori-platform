@@ -32,7 +32,7 @@ export function generateContractInvoiceItem(
     amount: string;
     type: string;
     invoiceItemTemplate?: any;
-    partner?: { companyName: string | null; firstName: string | null; lastName: string | null; code: string } | null;
+    client?: { companyName: string | null; firstName: string | null; lastName: string | null; code: string } | null;
     startDate?: string | null;
     endDate?: string | null;
   },
@@ -45,9 +45,9 @@ export function generateContractInvoiceItem(
   // Build description from template or contract data
   let description: string;
   if (contractTemplate?.description) {
-    // Replace template variables - get partner name from contract
-    const partnerName = contract.partner 
-      ? (contract.partner.companyName || `${contract.partner.firstName || ''} ${contract.partner.lastName || ''}`.trim() || contract.partner.code)
+    // Replace template variables - get client name from contract
+    const clientName = contract.client 
+      ? (contract.client.companyName || `${contract.client.firstName || ''} ${contract.client.lastName || ''}`.trim() || contract.client.code)
       : '';
     const startDate = contract.startDate || '';
     const endDate = contract.endDate || '';
@@ -56,7 +56,7 @@ export function generateContractInvoiceItem(
     // Replace template variables - order matters: replace longer patterns first
     description = contractTemplate.description
       .replace(/{contractNumber}/g, contract.contractNumber)
-      .replace(/{partnerName}/g, partnerName)
+      .replace(/{clientName}/g, clientName)
       .replace(/{assetReference}/g, contract.assetReference || '')
       .replace(/{title}/g, contract.title || '')
       .replace(/{startDate}/g, startDate)
@@ -136,7 +136,7 @@ export function generateContractInvoiceItems(
     amount: string;
     type: string;
     invoiceItemTemplate?: any;
-    partner?: { companyName: string | null; firstName: string | null; lastName: string | null; code: string } | null;
+    client?: { companyName: string | null; firstName: string | null; lastName: string | null; code: string } | null;
     startDate?: string | null;
     endDate?: string | null;
   },

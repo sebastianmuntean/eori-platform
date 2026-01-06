@@ -1,30 +1,48 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
+import { Column } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToastContainer } from '@/components/ui/Toast';
+import { DonationAddModal } from '@/components/accounting/DonationAddModal';
+import { DonationFormData } from '@/lib/validations/donations';
+import { DonationEditModal } from '@/components/accounting/DonationEditModal';
+import { DeleteDonationDialog } from '@/components/accounting/DeleteDonationDialog';
+import { DonationsFiltersCard } from '@/components/accounting/DonationsFiltersCard';
+import { DonationsTableCard } from '@/components/accounting/DonationsTableCard';
 import { useDonations, Donation } from '@/hooks/useDonations';
 import { useParishes } from '@/hooks/useParishes';
 import { useClients } from '@/hooks/useClients';
 import { usePayments } from '@/hooks/usePayments';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter } from '@/components/ui/FilterGrid';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency, getClientDisplayName } from '@/lib/utils/accounting';
-import { validateDonationForm, DonationFormData } from '@/lib/validations/donations';
+import { validateDonationForm } from '@/lib/validations/donations';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+
+const PAGE_SIZE = 10;
+
+// Payment method translation map
+const PAYMENT_METHOD_MAP: Record<string, string> = {
+  cash: 'cash',
+  bank_transfer: 'bankTransfer',
+  card: 'card',
+  check: 'check',
+};
+
+// Status badge variant map
+const STATUS_VARIANT_MAP: Record<string, 'warning' | 'success' | 'danger'> = {
+  pending: 'warning',
+  completed: 'success',
+  cancelled: 'danger',
+};
 
 export default function DonationsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.DONATIONS_VIEW);
@@ -48,7 +66,7 @@ export default function DonationsPage() {
 
   const { parishes, fetchParishes } = useParishes();
   const { clients, fetchClients } = useClients();
-  const { fetchSummary, summary } = usePayments();
+  const { fetchSummary } = usePayments();
   const { toasts, success, error: toastError, removeToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,7 +104,7 @@ export default function DonationsPage() {
     if (permissionLoading) return;
     const params: any = {
       page: currentPage,
-      pageSize: 10,
+      pageSize: PAGE_SIZE,
       search: searchTerm || undefined,
       parishId: parishFilter || undefined,
       status: statusFilter || undefined,
@@ -105,25 +123,67 @@ export default function DonationsPage() {
     });
   }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchDonations, fetchSummary]);
 
-  const handleCreate = useCallback(async () => {
+  /**
+   * Normalizes form data for API submission
+   * Converts empty strings to null and parses numeric values
+   * Throws error if amount is invalid
+   */
+  const normalizeFormData = useCallback((data: DonationFormData) => {
+    const amount = parseFloat(data.amount);
+    if (isNaN(amount) || amount <= 0) {
+      throw new Error(t('invalidAmount') || 'Please enter a valid amount');
+    }
+    
+    return {
+      ...data,
+      amount,
+      clientId: data.clientId || null,
+      description: data.description || null,
+      paymentMethod: data.paymentMethod || null,
+      referenceNumber: data.referenceNumber || null,
+    };
+  }, [t]);
+
+  /**
+   * Validates form data and sets errors if any
+   * Returns true if validation passes, false otherwise
+   */
+  const validateAndSetErrors = useCallback((data: DonationFormData): boolean => {
     setFormErrors({});
-    const errors = validateDonationForm(formData, t);
+    const errors = validateDonationForm(data, t);
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      return false;
+    }
+    return true;
+  }, [t]);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      parishId: '',
+      paymentNumber: '',
+      date: new Date().toISOString().split('T')[0],
+      clientId: '',
+      amount: '',
+      currency: 'RON',
+      description: '',
+      paymentMethod: '',
+      referenceNumber: '',
+      status: 'pending',
+    });
+    setFormErrors({});
+  }, []);
+
+  const handleCreate = useCallback(async () => {
+    if (!validateAndSetErrors(formData)) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await createDonation({
-        ...formData,
-        amount: parseFloat(formData.amount),
-        clientId: formData.clientId || null,
-        description: formData.description || null,
-        paymentMethod: formData.paymentMethod || null,
-        referenceNumber: formData.referenceNumber || null,
-      });
+      const normalizedData = normalizeFormData(formData);
+      const result = await createDonation(normalizedData);
 
       if (result) {
         setShowAddModal(false);
@@ -133,33 +193,27 @@ export default function DonationsPage() {
         toastError(t('errorCreatingDonation') || 'Failed to create donation');
       }
     } catch (err) {
-      toastError(t('errorCreatingDonation') || 'Failed to create donation');
+      const errorMessage = err instanceof Error ? err.message : t('errorCreatingDonation') || 'Failed to create donation';
+      if (errorMessage.includes('amount') || errorMessage.includes('invalid')) {
+        setFormErrors({ amount: errorMessage });
+      } else {
+        toastError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, t, createDonation, success, toastError]);
+  }, [formData, t, createDonation, success, toastError, validateAndSetErrors, normalizeFormData, resetForm]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedDonation) return;
-
-    setFormErrors({});
-    const errors = validateDonationForm(formData, t);
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    if (!validateAndSetErrors(formData)) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await updateDonation(selectedDonation.id, {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        clientId: formData.clientId || null,
-        description: formData.description || null,
-        paymentMethod: formData.paymentMethod || null,
-        referenceNumber: formData.referenceNumber || null,
-      });
+      const normalizedData = normalizeFormData(formData);
+      const result = await updateDonation(selectedDonation.id, normalizedData);
 
       if (result) {
         setShowEditModal(false);
@@ -169,11 +223,16 @@ export default function DonationsPage() {
         toastError(t('errorUpdatingDonation') || 'Failed to update donation');
       }
     } catch (err) {
-      toastError(t('errorUpdatingDonation') || 'Failed to update donation');
+      const errorMessage = err instanceof Error ? err.message : t('errorUpdatingDonation') || 'Failed to update donation';
+      if (errorMessage.includes('amount') || errorMessage.includes('invalid')) {
+        setFormErrors({ amount: errorMessage });
+      } else {
+        toastError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedDonation, formData, t, updateDonation, success, toastError]);
+  }, [selectedDonation, formData, t, updateDonation, success, toastError, validateAndSetErrors, normalizeFormData]);
 
   const handleDelete = useCallback(async (id: string) => {
     const result = await deleteDonation(id);
@@ -202,79 +261,73 @@ export default function DonationsPage() {
     setShowEditModal(true);
   };
 
-  const resetForm = useCallback(() => {
-    setFormData({
-      parishId: '',
-      paymentNumber: '',
-      date: new Date().toISOString().split('T')[0],
-      clientId: '',
-      amount: '',
-      currency: 'RON',
-      description: '',
-      paymentMethod: '',
-      referenceNumber: '',
-      status: 'pending',
-    });
-    setFormErrors({});
-  }, []);
-
   const getClientName = useCallback((clientId: string | null) => {
     if (!clientId) return '-';
     const client = clients.find((c) => c.id === clientId);
     return getClientDisplayName(client);
   }, [clients]);
 
+  /**
+   * Resets filters and pagination to first page
+   * Used when filters change to ensure user sees results from page 1
+   */
+  const resetToFirstPage = useCallback(() => {
+    setCurrentPage(1);
+  }, []);
+
+  /**
+   * Clears all filters and resets to first page
+   */
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setParishFilter('');
+    setStatusFilter('');
+    setDateFrom('');
+    setDateTo('');
+    resetToFirstPage();
+  }, [resetToFirstPage]);
+
   const totalDonations = donations.reduce((sum, d) => sum + parseFloat(d.amount || '0'), 0);
 
-  const columns = [
-    { key: 'paymentNumber', label: t('paymentNumber'), sortable: true },
-    { key: 'date', label: t('date'), sortable: true },
+  const columns: Column<Donation>[] = useMemo(() => [
+    { key: 'paymentNumber' as keyof Donation, label: t('paymentNumber'), sortable: true },
+    { key: 'date' as keyof Donation, label: t('date'), sortable: true },
     {
-      key: 'clientId',
+      key: 'clientId' as keyof Donation,
       label: t('donor'),
       sortable: false,
       render: (value: string | null) => getClientName(value),
     },
     {
-      key: 'amount',
+      key: 'amount' as keyof Donation,
       label: t('amount'),
       sortable: true,
       render: (value: string, row: Donation) => formatCurrency(value, row.currency),
     },
     {
-      key: 'paymentMethod',
+      key: 'paymentMethod' as keyof Donation,
       label: t('paymentMethod'),
       sortable: false,
       render: (value: string | null) => {
         if (!value) return '-';
-        const methodMap: Record<string, string> = {
-          cash: t('cash'),
-          bank_transfer: t('bankTransfer'),
-          card: t('card'),
-          check: t('check'),
-        };
-        return methodMap[value] || value;
+        const translationKey = PAYMENT_METHOD_MAP[value];
+        return translationKey ? t(translationKey) : value;
       },
     },
     {
-      key: 'status',
+      key: 'status' as keyof Donation,
       label: t('status'),
       sortable: false,
       render: (value: 'pending' | 'completed' | 'cancelled') => {
-        const variantMap: Record<string, 'warning' | 'success' | 'danger'> = {
-          pending: 'warning',
-          completed: 'success',
-          cancelled: 'danger',
-        };
         return (
-          <Badge variant={variantMap[value] || 'secondary'} size="sm">
+          <Badge variant={STATUS_VARIANT_MAP[value] || 'secondary'} size="sm">
             {t(value)}
           </Badge>
         );
       },
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Donation,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: Donation) => (
@@ -294,13 +347,7 @@ export default function DonationsPage() {
         />
       ),
     },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-    { label: t('donations') },
-  ];
+  ], [t, getClientName]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -308,15 +355,17 @@ export default function DonationsPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <ToastContainer toasts={toasts} onClose={removeToast} />
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('donations')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('donation')}</Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
+          { label: t('donations') },
+        ]}
+        title={t('donations')}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('donation')}</Button>}
+      />
 
       {/* Summary Card */}
       <div className="mb-6">
@@ -337,330 +386,102 @@ export default function DonationsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-4">
-            <SearchInput
-              value={searchTerm}
-              onChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              placeholder={t('search') + '...'}
-            />
-          </div>
-          <FilterGrid>
-            <ParishFilter
-              value={parishFilter}
-              onChange={(value) => {
-                setParishFilter(value);
-                setCurrentPage(1);
-              }}
-              parishes={parishes}
-            />
-            <StatusFilter
-              value={statusFilter}
-              onChange={(value) => {
-                setStatusFilter(value);
-                setCurrentPage(1);
-              }}
-              statuses={[
-                { value: 'pending', label: t('pending') },
-                { value: 'completed', label: t('completed') },
-                { value: 'cancelled', label: t('cancelled') },
-              ]}
-            />
-            <FilterDate
-              label={t('dateFrom')}
-              value={dateFrom}
-              onChange={(value) => {
-                setDateFrom(value);
-                setCurrentPage(1);
-              }}
-            />
-            <FilterDate
-              label={t('dateTo')}
-              value={dateTo}
-              onChange={(value) => {
-                setDateTo(value);
-                setCurrentPage(1);
-              }}
-            />
-            <FilterClear
-              onClear={() => {
-                setSearchTerm('');
-                setParishFilter('');
-                setStatusFilter('');
-                setDateFrom('');
-                setDateTo('');
-                setCurrentPage(1);
-              }}
-            />
-          </FilterGrid>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>{t('loading')}</div>
-          ) : (
-            <>
-              <Table data={donations} columns={columns} loading={loading} />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages} ({pagination.total} {t('total')})
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      {/* Filters */}
+      <DonationsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        statusFilter={statusFilter}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        parishes={parishes}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value);
+          setCurrentPage(1);
+        }}
+        onDateFromChange={(value) => {
+          setDateFrom(value);
+          setCurrentPage(1);
+        }}
+        onDateToChange={(value) => {
+          setDateTo(value);
+          setCurrentPage(1);
+        }}
+        onClearFilters={() => {
+          setSearchTerm('');
+          setParishFilter('');
+          setStatusFilter('');
+          setDateFrom('');
+          setDateTo('');
+          setCurrentPage(1);
+        }}
+      />
+
+      {/* Table */}
+      <DonationsTableCard
+        data={donations}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No donations available'}
+      />
 
       {/* Add Modal */}
-      <FormModal
+      <DonationAddModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onCancel={() => setShowAddModal(false)}
-        title={`${t('add')} ${t('donation')}`}
+        onClose={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        clients={clients}
         onSubmit={handleCreate}
-        isSubmitting={false}
-        submitLabel={t('create')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
-              <select
-                value={formData.parishId}
-                onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="">{t('selectParish')}</option>
-                {parishes.map((parish) => (
-                  <option key={parish.id} value={parish.id}>
-                    {parish.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              label={`${t('paymentNumber')} *`}
-              value={formData.paymentNumber}
-              onChange={(e) => setFormData({ ...formData, paymentNumber: e.target.value })}
-              required
-            />
-            <Input
-              type="date"
-              label={`${t('date')} *`}
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('donor')}</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              type="number"
-              step="0.01"
-              label={`${t('amount')} *`}
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              required
-            />
-            <Input label={t('currency')} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('paymentMethod')}</label>
-              <select
-                value={formData.paymentMethod}
-                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                <option value="cash">{t('cash')}</option>
-                <option value="bank_transfer">{t('bankTransfer')}</option>
-                <option value="card">{t('card')}</option>
-                <option value="check">{t('check')}</option>
-              </select>
-            </div>
-            <Input
-              label={t('referenceNumber')}
-              value={formData.referenceNumber}
-              onChange={(e) => setFormData({ ...formData, referenceNumber: e.target.value })}
-            />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('status')}</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="pending">{t('pending')}</option>
-                <option value="completed">{t('completed')}</option>
-                <option value="cancelled">{t('cancelled')}</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label={t('description')}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+        formErrors={formErrors}
+      />
 
       {/* Edit Modal */}
-      <FormModal
+      <DonationEditModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onCancel={() => setShowEditModal(false)}
-        title={`${t('edit')} ${t('donation')}`}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedDonation(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedDonation(null);
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        clients={clients}
         onSubmit={handleUpdate}
-        isSubmitting={false}
-        submitLabel={t('update')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
-              <select
-                value={formData.parishId}
-                onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="">{t('selectParish')}</option>
-                {parishes.map((parish) => (
-                  <option key={parish.id} value={parish.id}>
-                    {parish.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              label={`${t('paymentNumber')} *`}
-              value={formData.paymentNumber}
-              onChange={(e) => setFormData({ ...formData, paymentNumber: e.target.value })}
-              required
-            />
-            <Input
-              type="date"
-              label={`${t('date')} *`}
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('donor')}</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              type="number"
-              step="0.01"
-              label={`${t('amount')} *`}
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              required
-            />
-            <Input label={t('currency')} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('paymentMethod')}</label>
-              <select
-                value={formData.paymentMethod}
-                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="">{t('none')}</option>
-                <option value="cash">{t('cash')}</option>
-                <option value="bank_transfer">{t('bankTransfer')}</option>
-                <option value="card">{t('card')}</option>
-                <option value="check">{t('check')}</option>
-              </select>
-            </div>
-            <Input
-              label={t('referenceNumber')}
-              value={formData.referenceNumber}
-              onChange={(e) => setFormData({ ...formData, referenceNumber: e.target.value })}
-            />
-            <div>
-              <label className="block text-sm font-medium mb-1">{t('status')}</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full px-3 py-2 border rounded"
-              >
-                <option value="pending">{t('pending')}</option>
-                <option value="completed">{t('completed')}</option>
-                <option value="cancelled">{t('cancelled')}</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label={t('description')}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+        formErrors={formErrors}
+      />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* Delete Confirmation Dialog */}
+      <DeleteDonationDialog
         isOpen={!!deleteConfirm}
+        donationId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete')}
-        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this donation?'}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+        onConfirm={handleDelete}
         isLoading={loading}
       />
     </div>

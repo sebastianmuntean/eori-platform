@@ -60,7 +60,11 @@ function buildInvoiceConditions(
     conditions.push(eq(invoices.type, invoiceType));
   }
   if (invoiceStatus) {
-    conditions.push(eq(invoices.status, invoiceStatus));
+    // Validate invoice status is one of the valid enum values
+    const validStatuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled'] as const;
+    if (validStatuses.includes(invoiceStatus as any)) {
+      conditions.push(eq(invoices.status, invoiceStatus as 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'));
+    }
   }
   
   return conditions.length > 0 
@@ -241,11 +245,10 @@ export async function GET(
       invoiceStatus
     );
     
-    let invoiceQuery = db.select().from(invoices);
-    if (invoiceWhereClause) {
-      invoiceQuery = invoiceQuery.where(invoiceWhereClause);
-    }
-    const allInvoices = await invoiceQuery.orderBy(invoices.date);
+    const allInvoices = await (invoiceWhereClause
+      ? db.select().from(invoices).where(invoiceWhereClause).orderBy(invoices.date)
+      : db.select().from(invoices).orderBy(invoices.date)
+    );
 
     // Build and execute payment query
     const paymentWhereClause = buildPaymentConditions(
@@ -255,11 +258,10 @@ export async function GET(
       paymentType
     );
     
-    let paymentQuery = db.select().from(payments);
-    if (paymentWhereClause) {
-      paymentQuery = paymentQuery.where(paymentWhereClause);
-    }
-    const allPayments = await paymentQuery.orderBy(payments.date);
+    const allPayments = await (paymentWhereClause
+      ? db.select().from(payments).where(paymentWhereClause).orderBy(payments.date)
+      : db.select().from(payments).orderBy(payments.date)
+    );
 
     // Calculate summary
     const summary = calculateStatementSummary(allInvoices, allPayments);
@@ -267,7 +269,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
-        partner: client, // Keep 'partner' key for backward compatibility with frontend
+        client,
         summary,
         invoices: allInvoices,
         payments: allPayments,

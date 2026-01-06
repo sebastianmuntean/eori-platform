@@ -41,3 +41,7 @@ export const pilgrimageAccommodation = pgTable('pilgrimage_accommodation', {
 
 
 
+
+
+
+

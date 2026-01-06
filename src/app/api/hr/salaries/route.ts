@@ -65,11 +65,39 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = salaries[sortBy as keyof typeof salaries];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = desc(salaries.salaryPeriod);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(salaries.id) : desc(salaries.id);
+        break;
+      case 'employeeId':
+        orderBy = sortOrder === 'asc' ? asc(salaries.employeeId) : desc(salaries.employeeId);
+        break;
+      case 'contractId':
+        orderBy = sortOrder === 'asc' ? asc(salaries.contractId) : desc(salaries.contractId);
+        break;
+      case 'salaryPeriod':
+        orderBy = sortOrder === 'asc' ? asc(salaries.salaryPeriod) : desc(salaries.salaryPeriod);
+        break;
+      case 'baseSalary':
+        orderBy = sortOrder === 'asc' ? asc(salaries.baseSalary) : desc(salaries.baseSalary);
+        break;
+      case 'grossSalary':
+        orderBy = sortOrder === 'asc' ? asc(salaries.grossSalary) : desc(salaries.grossSalary);
+        break;
+      case 'netSalary':
+        orderBy = sortOrder === 'asc' ? asc(salaries.netSalary) : desc(salaries.netSalary);
+        break;
+      case 'status':
+        orderBy = sortOrder === 'asc' ? asc(salaries.status) : desc(salaries.status);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(salaries.createdAt) : desc(salaries.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(salaries.updatedAt) : desc(salaries.updatedAt);
+        break;
+      default:
+        orderBy = desc(salaries.salaryPeriod);
     }
 
     const offset = (page - 1) * pageSize;

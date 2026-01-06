@@ -53,14 +53,17 @@ export function usePilgrimageParticipants(): UsePilgrimageParticipantsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchParticipants = useCallback(async (pilgrimageId: string, params = {}) => {
+  const fetchParticipants = useCallback(async (pilgrimageId: string, params?: {
+    status?: ParticipantStatus;
+    search?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.status) queryParams.append('status', params.status);
-      if (params.search) queryParams.append('search', params.search);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.search) queryParams.append('search', params.search);
 
       const response = await fetch(`/api/pilgrimages/${pilgrimageId}/participants?${queryParams.toString()}`);
       const result = await response.json();
@@ -259,6 +262,10 @@ export function usePilgrimageParticipants(): UsePilgrimageParticipantsReturn {
     exportParticipants,
   };
 }
+
+
+
+
 
 
 

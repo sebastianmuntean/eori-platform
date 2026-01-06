@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
 
 export default function HRDashboardPage() {
   const params = useParams();
@@ -16,6 +17,8 @@ export default function HRDashboardPage() {
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('hr'));
+  
+  const breadcrumbs = useHRBreadcrumbs(locale, tMenu('hr') || 'Resurse Umane');
 
   // Check permission to access HR module
   const { loading } = useRequirePermission(HR_PERMISSIONS.EMPLOYEES_VIEW);
@@ -24,11 +27,6 @@ export default function HRDashboardPage() {
   if (loading) {
     return null;
   }
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tMenu('hr') || 'Resurse Umane' },
-  ];
 
   const hrMenuItems = [
     {
@@ -84,12 +82,12 @@ export default function HRDashboardPage() {
   ];
 
   return (
-    <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{tMenu('hr') || 'Resurse Umane'}</h1>
-        <p className="text-text-muted mt-2">Gestionare resurse umane și personal</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tMenu('hr') || 'Resurse Umane'}
+        description="Gestionare resurse umane și personal"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {hrMenuItems.map((item) => (

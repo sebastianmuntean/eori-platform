@@ -152,7 +152,9 @@ export async function POST(request: Request) {
     
     // Log audit event for successful login
     if (result.userId) {
-      logLogin(result.userId, extractIpAddress(request), extractUserAgent(request)).catch((err) => {
+      const userAgent = extractUserAgent(request);
+      const ipAddress = extractIpAddress(request);
+      logLogin(result.userId, ipAddress === null ? undefined : ipAddress, userAgent === null ? undefined : userAgent).catch((err) => {
         console.error('Failed to log login audit event:', err);
       });
     }

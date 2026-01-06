@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useCatechesisClasses } from '@/hooks/useCatechesisClasses';
 import { useCatechesisStudents } from '@/hooks/useCatechesisStudents';
@@ -43,19 +43,16 @@ export default function CatechesisPage() {
   const activeStudents = students.filter((s) => s.isActive).length;
   const publishedLessons = lessons.filter((l) => l.isPublished).length;
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title') },
-  ];
-
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
-
-      <div>
-        <h1 className="text-3xl font-bold">{tCatechesis('title')}</h1>
-        <p className="text-text-secondary mt-1">{tCatechesis('description')}</p>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title') },
+        ]}
+        title={tCatechesis('title')}
+        description={tCatechesis('description')}
+      />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -2,8 +2,8 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
+import { TablePagination } from '@/components/ui/TablePagination';
 
 export default function ParishesPage() {
   const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.PARISHES_VIEW);
@@ -171,12 +172,12 @@ export default function ParishesPage() {
   };
 
   const columns = [
-    { key: 'code', label: 'Code', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'city', label: 'City', sortable: true },
-    { key: 'county', label: 'County', sortable: true },
+    { key: 'code' as keyof Parish, label: 'Code', sortable: true },
+    { key: 'name' as keyof Parish, label: 'Name', sortable: true },
+    { key: 'city' as keyof Parish, label: 'City', sortable: true },
+    { key: 'county' as keyof Parish, label: 'County', sortable: true },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof Parish,
       label: 'Status',
       sortable: false,
       render: (value: boolean) => (
@@ -186,7 +187,7 @@ export default function ParishesPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Parish,
       label: 'Actions',
       sortable: false,
       render: (_: any, row: Parish) => (
@@ -216,21 +217,17 @@ export default function ParishesPage() {
     );
   }
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('administration'), href: `/${locale}/dashboard/administration` },
-    { label: 'Parishes' },
-  ];
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('parohii')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('parohii')}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('administration'), href: `/${locale}/dashboard/administration` },
+          { label: t('parohii') || 'Parishes' },
+        ]}
+        title={t('parohii') || 'Parishes'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('parohii')}</Button>}
+      />
 
       <Card>
         <CardHeader>
@@ -279,36 +276,22 @@ export default function ParishesPage() {
         <CardBody>
           {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading ? (
-            <div>{t('loading')}</div>
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <>
               <Table
                 data={parishes}
                 columns={columns}
-                loading={loading}
+                emptyMessage={t('noData') || 'No parishes available'}
               />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages} ({pagination.total} {t('total')})
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
               )}
             </>
           )}

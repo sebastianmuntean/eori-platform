@@ -186,7 +186,7 @@ export async function POST(
         updatedBy: userId,
         updatedAt: new Date(),
         ...(data.action === 'resolved' && !document.resolvedDate
-          ? { resolvedDate: new Date() }
+          ? { resolvedDate: new Date().toISOString().split('T')[0] }
           : {}),
       })
       .where(eq(documentRegistry.id, id));
@@ -207,6 +207,7 @@ export async function POST(
     });
   }
 }
+
 
 
 

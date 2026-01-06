@@ -95,10 +95,8 @@ export async function GET(request: Request) {
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(products);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(products);
+    const query = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     const allProducts = await query.orderBy(orderBy).limit(pageSize).offset(offset);
 

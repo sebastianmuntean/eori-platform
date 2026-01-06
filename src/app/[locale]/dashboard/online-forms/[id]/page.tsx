@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -55,7 +55,7 @@ export default function EditOnlineFormPage() {
     isActive: true,
     emailValidationMode: 'end' as 'start' | 'end',
     submissionFlow: 'review' as 'direct' | 'review',
-    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'partners',
+    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'clients',
     successMessage: '',
     errorMessage: '',
   });
@@ -217,12 +217,13 @@ export default function EditOnlineFormPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tForms('onlineForms'), href: `/${locale}/dashboard/online-forms` },
           { label: form.name },
         ]}
+        title={form.name}
       />
 
       {/* Tabs */}

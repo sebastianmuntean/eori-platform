@@ -56,7 +56,7 @@ export function useHRReports(): UseHRReportsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEmployeeReport = useCallback(async (params = {}) => {
+  const fetchEmployeeReport = useCallback(async (params: { parishId?: string; employmentStatus?: string } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -81,7 +81,7 @@ export function useHRReports(): UseHRReportsReturn {
     }
   }, []);
 
-  const fetchSalaryReport = useCallback(async (params = {}) => {
+  const fetchSalaryReport = useCallback(async (params: { parishId?: string; periodFrom?: string; periodTo?: string; status?: string } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -108,7 +108,7 @@ export function useHRReports(): UseHRReportsReturn {
     }
   }, []);
 
-  const fetchAttendanceReport = useCallback(async (params = {}) => {
+  const fetchAttendanceReport = useCallback(async (params: { parishId?: string; dateFrom?: string; dateTo?: string } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -134,7 +134,7 @@ export function useHRReports(): UseHRReportsReturn {
     }
   }, []);
 
-  const fetchLeaveBalanceReport = useCallback(async (params = {}) => {
+  const fetchLeaveBalanceReport = useCallback(async (params: { employeeId?: string; parishId?: string; year?: string } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -160,7 +160,7 @@ export function useHRReports(): UseHRReportsReturn {
     }
   }, []);
 
-  const exportReport = useCallback(async (reportType: string, format: 'excel' | 'pdf', params = {}) => {
+  const exportReport = useCallback(async (reportType: string, format: 'excel' | 'pdf', params: Record<string, string> = {}) => {
     try {
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
@@ -204,5 +204,8 @@ export function useHRReports(): UseHRReportsReturn {
     exportReport,
   };
 }
+
+
+
 
 

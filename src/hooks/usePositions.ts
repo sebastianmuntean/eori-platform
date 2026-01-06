@@ -47,7 +47,16 @@ export function usePositions(): UsePositionsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UsePositionsReturn['pagination']>(null);
 
-  const fetchPositions = useCallback(async (params = {}) => {
+  const fetchPositions = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    departmentId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -172,6 +181,9 @@ export function usePositions(): UsePositionsReturn {
     deletePosition,
   };
 }
+
+
+
 
 
 

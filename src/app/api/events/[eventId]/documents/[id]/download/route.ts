@@ -56,8 +56,8 @@ export async function GET(
     }
 
     // Check if file exists
-    if (!existsSync(document.storagePath)) {
-      console.log(`❌ File not found at path: ${document.storagePath}`);
+    if (!existsSync(document.filePath)) {
+      console.log(`❌ File not found at path: ${document.filePath}`);
       return NextResponse.json(
         { success: false, error: 'File not found' },
         { status: 404 }
@@ -65,14 +65,17 @@ export async function GET(
     }
 
     // Read file
-    const fileBuffer = await readFile(document.storagePath);
+    const fileBuffer = await readFile(document.filePath);
+
+    // Determine content type from file type or file extension
+    const contentType = document.fileType || 'application/octet-stream';
 
     // Return file with appropriate headers
     return new NextResponse(fileBuffer, {
       headers: {
-        'Content-Type': document.mimeType,
-        'Content-Disposition': `attachment; filename="${document.originalName}"`,
-        'Content-Length': document.fileSize,
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${document.fileName}"`,
+        ...(document.fileSize && { 'Content-Length': document.fileSize }),
       },
     });
   } catch (error) {

@@ -60,11 +60,36 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = leaveTypes[sortBy as keyof typeof leaveTypes];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = asc(leaveTypes.name);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.id) : desc(leaveTypes.id);
+        break;
+      case 'code':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.code) : desc(leaveTypes.code);
+        break;
+      case 'name':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.name) : desc(leaveTypes.name);
+        break;
+      case 'maxDaysPerYear':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.maxDaysPerYear) : desc(leaveTypes.maxDaysPerYear);
+        break;
+      case 'isPaid':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.isPaid) : desc(leaveTypes.isPaid);
+        break;
+      case 'requiresApproval':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.requiresApproval) : desc(leaveTypes.requiresApproval);
+        break;
+      case 'isActive':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.isActive) : desc(leaveTypes.isActive);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.createdAt) : desc(leaveTypes.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(leaveTypes.updatedAt) : desc(leaveTypes.updatedAt);
+        break;
+      default:
+        orderBy = asc(leaveTypes.name);
     }
 
     const offset = (page - 1) * pageSize;
@@ -161,6 +186,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

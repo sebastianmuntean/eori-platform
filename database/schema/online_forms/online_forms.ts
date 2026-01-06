@@ -13,7 +13,7 @@ export const formTargetModuleEnum = pgEnum('form_target_module', [
   'registratura',
   'general_register',
   'events',
-  'clients', // Changed from 'partners'
+  'clients',
 ]);
 
 export const onlineForms = pgTable('online_forms', {

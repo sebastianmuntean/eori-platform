@@ -81,10 +81,8 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessionPayments);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessionPayments);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
@@ -107,6 +105,7 @@ export async function GET(request: Request) {
     }).from(cemeteryConcessionPayments);
 
     // Handle cemeteryId filter with join
+    let queryWithJoin;
     if (cemeteryId) {
       const uuidValidation = validateUuid(cemeteryId);
       if (!uuidValidation.valid) {
@@ -115,36 +114,39 @@ export async function GET(request: Request) {
           { status: 400 }
         );
       }
-      query = query
+      const queryWithJoinOnly = query
         .innerJoin(cemeteryConcessions, eq(cemeteryConcessionPayments.concessionId, cemeteryConcessions.id));
       
       const joinConditions = [eq(cemeteryConcessions.cemeteryId, cemeteryId)];
       if (whereClause) {
         joinConditions.push(whereClause);
       }
-      query = query.where(and(...joinConditions));
+      queryWithJoin = queryWithJoinOnly.where(and(...joinConditions));
     } else if (whereClause) {
-      query = query.where(whereClause);
+      queryWithJoin = query.where(whereClause);
+    } else {
+      queryWithJoin = query;
     }
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'paymentDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.paymentDate))
-        : query.orderBy(asc(cemeteryConcessionPayments.paymentDate));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithJoin.orderBy(desc(cemeteryConcessionPayments.paymentDate))
+        : queryWithJoin.orderBy(asc(cemeteryConcessionPayments.paymentDate));
     } else if (sortBy === 'amount') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.amount))
-        : query.orderBy(asc(cemeteryConcessionPayments.amount));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithJoin.orderBy(desc(cemeteryConcessionPayments.amount))
+        : queryWithJoin.orderBy(asc(cemeteryConcessionPayments.amount));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.createdAt))
-        : query.orderBy(asc(cemeteryConcessionPayments.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithJoin.orderBy(desc(cemeteryConcessionPayments.createdAt))
+        : queryWithJoin.orderBy(asc(cemeteryConcessionPayments.createdAt));
     } else {
-      query = query.orderBy(desc(cemeteryConcessionPayments.paymentDate));
+      finalQuery = queryWithJoin.orderBy(desc(cemeteryConcessionPayments.paymentDate));
     }
 
-    const allPayments = await query.limit(pageSize).offset(offset);
+    const allPayments = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

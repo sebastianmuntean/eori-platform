@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { CreateDonationData, UpdateDonationData } from '@/lib/types/payments';
 
 export interface Donation {
   id: string;
@@ -43,8 +44,8 @@ interface UseDonationsReturn {
     sortBy?: string;
     sortOrder?: string;
   }) => Promise<void>;
-  createDonation: (data: Partial<Donation>) => Promise<Donation | null>;
-  updateDonation: (id: string, data: Partial<Donation>) => Promise<Donation | null>;
+  createDonation: (data: CreateDonationData) => Promise<Donation | null>;
+  updateDonation: (id: string, data: UpdateDonationData) => Promise<Donation | null>;
   deleteDonation: (id: string) => Promise<boolean>;
 }
 
@@ -54,21 +55,31 @@ export function useDonations(): UseDonationsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseDonationsReturn['pagination']>(null);
 
-  const fetchDonations = useCallback(async (params = {}) => {
+  const fetchDonations = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    status?: 'pending' | 'completed' | 'cancelled';
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
-      if (params.dateTo) queryParams.append('dateTo', params.dateTo);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+      if (params?.dateTo) queryParams.append('dateTo', params.dateTo);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/accounting/donations?${queryParams.toString()}`);
       const result = await response.json();
@@ -87,7 +98,7 @@ export function useDonations(): UseDonationsReturn {
     }
   }, []);
 
-  const createDonation = useCallback(async (data: Partial<Donation>): Promise<Donation | null> => {
+  const createDonation = useCallback(async (data: CreateDonationData): Promise<Donation | null> => {
     setLoading(true);
     setError(null);
 
@@ -116,7 +127,7 @@ export function useDonations(): UseDonationsReturn {
     }
   }, [fetchDonations]);
 
-  const updateDonation = useCallback(async (id: string, data: Partial<Donation>): Promise<Donation | null> => {
+  const updateDonation = useCallback(async (id: string, data: UpdateDonationData): Promise<Donation | null> => {
     setLoading(true);
     setError(null);
 

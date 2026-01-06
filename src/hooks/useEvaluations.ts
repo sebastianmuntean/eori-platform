@@ -51,19 +51,27 @@ export function useEvaluations(): UseEvaluationsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseEvaluationsReturn['pagination']>(null);
 
-  const fetchEvaluations = useCallback(async (params = {}) => {
+  const fetchEvaluations = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    evaluatorId?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.employeeId) queryParams.append('employeeId', params.employeeId);
-      if (params.evaluatorId) queryParams.append('evaluatorId', params.evaluatorId);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.employeeId) queryParams.append('employeeId', params.employeeId);
+      if (params?.evaluatorId) queryParams.append('evaluatorId', params.evaluatorId);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/hr/evaluations?${queryParams.toString()}`);
       const result = await response.json();
@@ -202,6 +210,9 @@ export function useEvaluations(): UseEvaluationsReturn {
     acknowledgeEvaluation,
   };
 }
+
+
+
 
 
 

@@ -48,18 +48,25 @@ export function useDioceses(): UseDiocesesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseDiocesesReturn['pagination']>(null);
 
-  const fetchDioceses = useCallback(async (params = {}) => {
+  const fetchDioceses = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    all?: boolean;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-      if (params.all) queryParams.append('all', 'true');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.all) queryParams.append('all', 'true');
 
       const response = await fetch(`/api/dioceses?${queryParams.toString()}`);
       const result = await response.json();

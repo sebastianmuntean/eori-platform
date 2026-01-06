@@ -1,6 +1,3 @@
-// Re-export database types from Drizzle schema
-export type { Database } from "@/lib/db";
-
 // Additional type helpers can be added here
 export type TableNames = 
   | "users"

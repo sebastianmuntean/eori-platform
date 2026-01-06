@@ -157,7 +157,7 @@ export async function POST(request: Request) {
         parishId: data.parishId,
         firstName: data.firstName,
         lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+        dateOfBirth: data.dateOfBirth || null,
         parentName: data.parentName || null,
         parentEmail: data.parentEmail || null,
         parentPhone: data.parentPhone || null,

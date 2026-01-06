@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PositionForm } from '@/components/hr/PositionForm';
@@ -13,12 +13,13 @@ import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
+import { showErrorToast } from '@/lib/utils/hr';
 
 export default function PositionsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tMenu = useTranslations('menu');
   usePageTitle(t('positions'));
   const { showToast } = useToast();
 
@@ -32,15 +33,6 @@ export default function PositionsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: tMenu('hr') || 'Resurse Umane', href: `/${locale}/dashboard/hr` },
-      { label: t('positions') },
-    ],
-    [t, tMenu, locale]
-  );
 
   // Handlers for form actions
   const handleAdd = useCallback(() => {
@@ -70,14 +62,7 @@ export default function PositionsPage() {
     setPositionToDelete(null);
   }, []);
 
-  // Helper function to show error toast
-  const showErrorToast = useCallback(
-    (error: unknown, fallbackMessage: string) => {
-      const message = error instanceof Error ? error.message : fallbackMessage;
-      showToast(message, 'error');
-    },
-    [showToast]
-  );
+  const breadcrumbs = useHRBreadcrumbs(locale, t('positions'));
 
   // Handler for form submission (create or update)
   const handleFormSubmit = useCallback(
@@ -93,12 +78,12 @@ export default function PositionsPage() {
         }
         handleFormClose();
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [selectedPosition, updatePosition, createPosition, showToast, t, handleFormClose, showErrorToast]
+    [selectedPosition, updatePosition, createPosition, showToast, t, handleFormClose]
   );
 
   // Handler for delete confirmation
@@ -115,11 +100,11 @@ export default function PositionsPage() {
         showToast(t('errorDeletingPosition') || 'Error deleting position', 'error');
       }
     } catch (error) {
-      showErrorToast(error, t('errorOccurred') || 'An error occurred');
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
-  }, [positionToDelete, deletePosition, showToast, t, handleDeleteDialogClose, showErrorToast]);
+  }, [positionToDelete, deletePosition, showToast, t, handleDeleteDialogClose]);
 
   // Delete confirmation message
   const deleteMessage = useMemo(() => {
@@ -135,14 +120,12 @@ export default function PositionsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('positions')}</h1>
-        </div>
-        <Button onClick={handleAdd}>{t('addPosition') || 'Add Position'}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('positions')}
+        action={<Button onClick={handleAdd}>{t('addPosition') || 'Add Position'}</Button>}
+      />
 
       <PositionsTable onEdit={handleEdit} onDelete={handleDelete} />
 

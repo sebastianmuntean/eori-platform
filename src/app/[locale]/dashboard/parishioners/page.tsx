@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
@@ -18,11 +18,6 @@ export default function ParishionersPage() {
   if (permissionLoading) {
     return null;
   }
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners' },
-  ];
 
   const menuItems = [
     {
@@ -64,14 +59,15 @@ export default function ParishionersPage() {
   ];
 
   return (
-    <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{t('parishioners') || 'Parishioners'}</h1>
-        <p className="text-text-secondary mt-2">
-          {t('parishionersDescription') || 'Manage parishioners, receipts, contracts, and related information'}
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners' },
+        ]}
+        title={t('parishioners') || 'Parishioners'}
+        description={t('parishionersDescription') || 'Manage parishioners, receipts, contracts, and related information'}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {menuItems.map((item) => (

@@ -2,10 +2,10 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
+import { Table, Column } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Select } from '@/components/ui/Select';
 import { ToastContainer } from '@/components/ui/Toast';
@@ -191,9 +191,9 @@ export default function NotificationsPage() {
     }
   };
 
-  const columns = [
+  const columns: Column<Notification>[] = [
     {
-      key: 'type',
+      key: 'type' as keyof Notification,
       label: t('notificationType') || t('type') || 'Type',
       sortable: false,
       render: (value: string) => (
@@ -203,12 +203,12 @@ export default function NotificationsPage() {
       ),
     },
     {
-      key: 'title',
+      key: 'title' as keyof Notification,
       label: t('title') || 'Title',
       sortable: true,
     },
     {
-      key: 'message',
+      key: 'message' as keyof Notification,
       label: t('message') || 'Message',
       sortable: false,
       render: (value: string) => (
@@ -218,13 +218,13 @@ export default function NotificationsPage() {
       ),
     },
     {
-      key: 'createdAt',
+      key: 'createdAt' as keyof Notification,
       label: t('date') || 'Date',
       sortable: true,
       render: (value: string) => formatDateTime(value, locale === 'ro' ? 'ro-RO' : locale === 'it' ? 'it-IT' : 'en-US'),
     },
     {
-      key: 'isRead',
+      key: 'isRead' as keyof Notification,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
@@ -234,7 +234,7 @@ export default function NotificationsPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Notification,
       label: t('actions'),
       sortable: false,
       render: (_: unknown, row: Notification) => (
@@ -264,12 +264,6 @@ export default function NotificationsPage() {
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
-    { label: t('notifications') || 'Notifications' },
-  ];
-
   const hasUnreadNotifications = notifications.some((n) => !n.isRead);
 
   const handleReadFilterChange = useCallback((value: string) => {
@@ -291,23 +285,27 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('notifications') || 'Notifications'}</h1>
-        </div>
-        {hasUnreadNotifications && (
-          <Button 
-            onClick={handleMarkAllAsRead} 
-            variant="outline"
-            disabled={markingAllAsRead}
-            isLoading={markingAllAsRead}
-          >
-            {t('markAllAsRead') || 'Mark all as read'}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
+          { label: t('notifications') || 'Notifications' },
+        ]}
+        title={t('notifications') || 'Notifications'}
+        action={
+          hasUnreadNotifications ? (
+            <Button 
+              onClick={handleMarkAllAsRead} 
+              variant="outline"
+              disabled={markingAllAsRead}
+              isLoading={markingAllAsRead}
+            >
+              {t('markAllAsRead') || 'Mark all as read'}
+            </Button>
+          ) : undefined
+        }
+      />
 
       <Card>
         <CardHeader>

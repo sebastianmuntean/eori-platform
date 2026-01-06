@@ -78,7 +78,7 @@ export async function GET(
       data: report,
     });
   } catch (error) {
-    logError('Failed to fetch saved report', error);
+    logError(error, { message: 'Failed to fetch saved report' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {
@@ -121,7 +121,12 @@ export async function PUT(
       );
     }
 
-    const report = await updateSavedReport(id, userId, validation.data);
+    const updateData = {
+      ...validation.data,
+      dioceseId: validation.data.dioceseId === null ? undefined : validation.data.dioceseId,
+      parishId: validation.data.parishId === null ? undefined : validation.data.parishId,
+    };
+    const report = await updateSavedReport(id, userId, updateData);
 
     return NextResponse.json({
       success: true,
@@ -134,7 +139,7 @@ export async function PUT(
         { status: 404 }
       );
     }
-    logError('Failed to update saved report', error);
+    logError(error, { message: 'Failed to update saved report' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {
@@ -176,7 +181,7 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    logError('Failed to delete saved report', error);
+    logError(error, { message: 'Failed to delete saved report' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

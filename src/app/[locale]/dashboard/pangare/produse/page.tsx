@@ -1,23 +1,22 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { Modal } from '@/components/ui/Modal';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
+import { ProductAddModal, ProductFormData } from '@/components/pangare/ProductAddModal';
+import { createEmptyProductFormData } from '@/components/pangare/ProductFormData';
+import { ProductEditModal } from '@/components/pangare/ProductEditModal';
+import { DeleteProductDialog } from '@/components/pangare/DeleteProductDialog';
+import { ProductsFiltersCard } from '@/components/pangare/ProductsFiltersCard';
+import { ProductsTableCard } from '@/components/pangare/ProductsTableCard';
 
 export default function ProdusePangarPage() {
   const { loading: permissionLoading } = useRequirePermission(PANGARE_PERMISSIONS.VIEW);
@@ -48,21 +47,7 @@ export default function ProdusePangarPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    parishId: '',
-    code: '',
-    name: '',
-    description: '',
-    category: '',
-    unit: 'buc',
-    purchasePrice: '',
-    salePrice: '',
-    vatRate: '19',
-    barcode: '',
-    trackStock: true,
-    minStock: '',
-    isActive: true,
-  });
+  const [formData, setFormData] = useState<ProductFormData>(createEmptyProductFormData());
 
   // Don't render content while checking permissions
   if (permissionLoading) {
@@ -73,7 +58,7 @@ export default function ProdusePangarPage() {
     fetchParishes({ all: true });
   }, [fetchParishes]);
 
-  useEffect(() => {
+  const refreshProducts = useCallback(() => {
     const params: any = {
       page: currentPage,
       pageSize: 10,
@@ -85,12 +70,16 @@ export default function ProdusePangarPage() {
     fetchProducts(params);
   }, [currentPage, searchTerm, parishFilter, categoryFilter, isActiveFilter, fetchProducts]);
 
-  const handleAdd = () => {
+  useEffect(() => {
+    refreshProducts();
+  }, [refreshProducts]);
+
+  const handleAdd = useCallback(() => {
     resetForm();
     setShowAddModal(true);
-  };
+  }, []);
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = useCallback((product: Product) => {
     setSelectedProduct(product);
     setFormData({
       parishId: product.parishId,
@@ -108,66 +97,53 @@ export default function ProdusePangarPage() {
       isActive: product.isActive,
     });
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleSave = async () => {
-    if (selectedProduct) {
-      const result = await updateProduct(selectedProduct.id, formData);
-      if (result) {
-        setShowEditModal(false);
-        setSelectedProduct(null);
-        fetchProducts({ page: currentPage, pageSize: 10 });
-      }
-    } else {
-      const result = await createProduct(formData);
-      if (result) {
-        setShowAddModal(false);
-        resetForm();
-        fetchProducts({ page: currentPage, pageSize: 10 });
-      }
+  const handleCreate = useCallback(async () => {
+    const result = await createProduct(formData);
+    if (result) {
+      setShowAddModal(false);
+      resetForm();
+      refreshProducts();
     }
-  };
+  }, [formData, createProduct, refreshProducts]);
 
-  const handleDelete = async (id: string) => {
+  const handleUpdate = useCallback(async () => {
+    if (!selectedProduct) return;
+    const result = await updateProduct(selectedProduct.id, formData);
+    if (result) {
+      setShowEditModal(false);
+      setSelectedProduct(null);
+      refreshProducts();
+    }
+  }, [selectedProduct, formData, updateProduct, refreshProducts]);
+
+  const handleDelete = useCallback(async (id: string) => {
     const success = await deleteProduct(id);
     if (success) {
       setDeleteConfirm(null);
-      fetchProducts({ page: currentPage, pageSize: 10 });
+      refreshProducts();
     }
-  };
+  }, [deleteProduct, refreshProducts]);
 
-  const resetForm = () => {
-    setFormData({
-      parishId: '',
-      code: '',
-      name: '',
-      description: '',
-      category: '',
-      unit: 'buc',
-      purchasePrice: '',
-      salePrice: '',
-      vatRate: '19',
-      barcode: '',
-      trackStock: true,
-      minStock: '',
-      isActive: true,
-    });
+  const resetForm = useCallback(() => {
+    setFormData(createEmptyProductFormData());
     setSelectedProduct(null);
-  };
+  }, []);
 
-  const columns: any[] = [
-    { key: 'code', label: t('code') || 'Code', sortable: true },
-    { key: 'name', label: t('name') || 'Name', sortable: true },
-    { key: 'category', label: t('category') || 'Category', sortable: true },
-    { key: 'unit', label: t('unit') || 'Unit', sortable: false },
+  const columns = useMemo(() => [
+    { key: 'code' as keyof Product, label: t('code') || 'Code', sortable: true },
+    { key: 'name' as keyof Product, label: t('name') || 'Name', sortable: true },
+    { key: 'category' as keyof Product, label: t('category') || 'Category', sortable: true },
+    { key: 'unit' as keyof Product, label: t('unit') || 'Unit', sortable: false },
     {
-      key: 'salePrice',
+      key: 'salePrice' as keyof Product,
       label: t('salePrice') || 'Sale Price',
       sortable: true,
       render: (value: string) => value ? `${parseFloat(value).toFixed(2)} RON` : '-',
     },
     {
-      key: 'trackStock',
+      key: 'trackStock' as keyof Product,
       label: t('trackStock') || 'Track Stock',
       sortable: false,
       render: (value: boolean) => (
@@ -177,7 +153,7 @@ export default function ProdusePangarPage() {
       ),
     },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof Product,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
@@ -187,7 +163,7 @@ export default function ProdusePangarPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Product,
       label: t('actions') || 'Actions',
       sortable: false,
       render: (_: any, row: Product) => (
@@ -206,228 +182,110 @@ export default function ProdusePangarPage() {
         />
       ),
     },
-  ];
+  ], [t, handleEdit]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setParishFilter('');
+    setCategoryFilter('');
+    setIsActiveFilter('');
+    setCurrentPage(1);
+  }, []);
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tMenu('pangare') || 'Pangare', href: `/${locale}/dashboard/pangare` },
-          { label: t('products') || 'Produse', href: `/${locale}/dashboard/pangare/produse` },
+          { label: t('products') || 'Produse' },
         ]}
+        title={t('products') || 'Produse'}
+        action={<Button onClick={handleAdd}>{t('add') || 'Adaugă'}</Button>}
       />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t('products') || 'Produse'}</h1>
-            <Button onClick={handleAdd}>{t('add') || 'Adaugă'}</Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <SearchInput
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('search') || 'Căutare...'}
-              />
-            </div>
+      {/* Filters */}
+      <ProductsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        categoryFilter={categoryFilter}
+        isActiveFilter={isActiveFilter}
+        parishes={parishes}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onCategoryFilterChange={(value) => {
+          setCategoryFilter(value);
+          setCurrentPage(1);
+        }}
+        onIsActiveFilterChange={(value) => {
+          setIsActiveFilter(value);
+          setCurrentPage(1);
+        }}
+        onClearFilters={handleClearFilters}
+      />
 
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                  setCurrentPage(1);
-                }}
-                parishes={parishes}
-              />
-              <Input
-                label={t('category') || 'Categorie'}
-                value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('filterByCategory') || 'Filtrează după categorie...'}
-              />
-              <FilterSelect
-                label={t('status') || 'Status'}
-                value={isActiveFilter}
-                onChange={(value) => {
-                  setIsActiveFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'Toate' },
-                  { value: 'true', label: t('active') || 'Active' },
-                  { value: 'false', label: t('inactive') || 'Inactive' },
-                ]}
-              />
-              <FilterClear
-                onClear={() => {
-                  setSearchTerm('');
-                  setParishFilter('');
-                  setCategoryFilter('');
-                  setIsActiveFilter('');
-                  setCurrentPage(1);
-                }}
-              />
-            </FilterGrid>
+      {/* Products Table */}
+      <ProductsTableCard
+        data={products}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No products available'}
+      />
 
-            {error && (
-              <div className="p-4 bg-danger/10 text-danger rounded">
-                {error}
-              </div>
-            )}
-
-            <Table
-              data={products}
-              columns={columns}
-              loading={loading}
-              pagination={pagination}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={showAddModal || showEditModal}
+      {/* Add Modal */}
+      <ProductAddModal
+        isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
-          setShowEditModal(false);
           resetForm();
         }}
-        title={selectedProduct ? (t('editProduct') || 'Editează Produs') : (t('addProduct') || 'Adaugă Produs')}
-        size="lg"
-      >
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-          <Select
-            label={t('parish') || 'Parohie'}
-            value={formData.parishId}
-            onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Input
-            label={t('code') || 'Cod'}
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label={t('name') || 'Nume'}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('description') || 'Descriere'}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={t('category') || 'Categorie'}
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          />
-          <Input
-            label={t('unit') || 'Unitate'}
-            value={formData.unit}
-            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-            required
-          />
-          <Input
-            label={t('purchasePrice') || 'Preț de cumpărare'}
-            type="number"
-            step="0.01"
-            value={formData.purchasePrice}
-            onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-          />
-          <Input
-            label={t('salePrice') || 'Preț de vânzare'}
-            type="number"
-            step="0.01"
-            value={formData.salePrice}
-            onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-          />
-          <Input
-            label={t('vatRate') || 'Cota TVA (%)'}
-            type="number"
-            step="0.01"
-            value={formData.vatRate}
-            onChange={(e) => setFormData({ ...formData, vatRate: e.target.value })}
-          />
-          <Input
-            label={t('barcode') || 'Cod de bare'}
-            value={formData.barcode}
-            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-          />
-          <Input
-            label={t('minStock') || 'Stoc minim'}
-            type="number"
-            step="0.001"
-            value={formData.minStock}
-            onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="trackStock"
-              checked={formData.trackStock}
-              onChange={(e) => setFormData({ ...formData, trackStock: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="trackStock" className="text-sm">{t('trackStock') || 'Urmărire stoc'}</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm">{t('active') || 'Activ'}</label>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => {
-              setShowAddModal(false);
-              setShowEditModal(false);
-              resetForm();
-            }}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button onClick={handleSave}>{t('save') || 'Salvează'}</Button>
-          </div>
-        </div>
-      </Modal>
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        onSubmit={handleCreate}
+        isSubmitting={loading}
+      />
 
-      {/* Delete Confirmation Modal */}
-      <Modal
+      {/* Edit Modal */}
+      <ProductEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedProduct(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedProduct(null);
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        onSubmit={handleUpdate}
+        isSubmitting={loading}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteProductDialog
         isOpen={!!deleteConfirm}
+        productId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        title={t('confirmDelete') || 'Confirmă ștergerea'}
-      >
-        <div className="space-y-4">
-          <p>{t('confirmDeleteMessage') || 'Sigur doriți să ștergeți acest produs?'}</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-              {t('cancel') || 'Anulează'}
-            </Button>
-            <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              {t('delete') || 'Șterge'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onConfirm={handleDelete}
+        isLoading={loading}
+      />
     </div>
   );
 }

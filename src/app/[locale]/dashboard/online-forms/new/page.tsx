@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -34,7 +34,7 @@ export default function CreateOnlineFormPage() {
     isActive: true,
     emailValidationMode: 'end' as 'start' | 'end',
     submissionFlow: 'review' as 'direct' | 'review',
-    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'partners',
+    targetModule: 'registratura' as 'registratura' | 'general_register' | 'events' | 'clients',
     successMessage: '',
     errorMessage: '',
   });
@@ -92,23 +92,21 @@ export default function CreateOnlineFormPage() {
     { value: 'registratura', label: tForms('targetModuleRegistratura') },
     { value: 'general_register', label: tForms('targetModuleGeneralRegister') },
     { value: 'events', label: tForms('targetModuleEvents') },
-    { value: 'partners', label: tForms('targetModulePartners') },
+    { value: 'clients', label: tForms('targetModuleClients') },
   ];
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tForms('onlineForms'), href: `/${locale}/dashboard/online-forms` },
           { label: tForms('createForm') },
         ]}
+        title={tForms('createForm') || 'Create Form'}
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{tForms('createForm')}</h1>
-        </CardHeader>
         <CardBody>
           <div className="space-y-4">
             <Select

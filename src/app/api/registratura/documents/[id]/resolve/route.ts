@@ -76,11 +76,12 @@ export async function POST(
       .returning();
 
     // Update document status
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
     const [updatedDocument] = await db
       .update(documentRegistry)
       .set({
         status: 'resolved',
-        resolvedDate: new Date(),
+        resolvedDate: today,
         updatedBy: userId,
         updatedAt: new Date(),
       })

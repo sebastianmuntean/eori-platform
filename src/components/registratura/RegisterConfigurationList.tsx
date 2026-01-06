@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRegisterConfigurations, RegisterConfiguration } from '@/hooks/useRegisterConfigurations';
-import { Table } from '@/components/ui/Table';
+import { Table, Column } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -95,7 +95,16 @@ export function RegisterConfigurationList({ onConfigurationClick }: RegisterConf
     }
   };
 
-  const columns = [
+  type RowData = {
+    id: string;
+    name: string;
+    parish: string;
+    resetsAnnually: boolean;
+    startingNumber: number;
+    actions: string;
+  };
+
+  const columns: Column<RowData>[] = [
     { key: 'name', label: tReg('registerConfigurations.name') },
     { key: 'parish', label: tReg('registerConfigurations.parish') },
     { 
@@ -111,7 +120,7 @@ export function RegisterConfigurationList({ onConfigurationClick }: RegisterConf
     { 
       key: 'actions', 
       label: tReg('registerConfigurations.actions'),
-      render: (_value: any, row: any) => {
+      render: (_value: any, row: RowData) => {
         const config = registerConfigurations.find(c => c.id === row.id);
         if (!config) return null;
         return (
@@ -153,7 +162,7 @@ export function RegisterConfigurationList({ onConfigurationClick }: RegisterConf
     },
   ];
 
-  const rows = (registerConfigurations ?? []).map((config) => ({
+  const rows: RowData[] = (registerConfigurations ?? []).map((config) => ({
     id: config.id,
     name: config.name,
     parish: config.parish ? `${config.parish.name} (${config.parish.code})` : tReg('registerConfigurations.none'),

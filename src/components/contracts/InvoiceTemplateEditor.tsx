@@ -14,7 +14,7 @@ const AVAILABLE_TAGS = [
   { tag: '{contractNumber}', labelKey: 'contractNumber' },
   { tag: '{title}', labelKey: 'title' },
   { tag: '{assetReference}', labelKey: 'assetReference' },
-  { tag: '{partnerName}', labelKey: 'partnerName' },
+  { tag: '{clientName}', labelKey: 'clientName' },
   { tag: '{startDate}', labelKey: 'startDate' },
   { tag: '{endDate}', labelKey: 'endDate' },
   { tag: '{periodMonth}', labelKey: 'periodMonth' },

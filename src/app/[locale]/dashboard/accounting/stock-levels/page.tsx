@@ -1,18 +1,19 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table } from '@/components/ui/Table';
-import { Badge } from '@/components/ui/Badge';
-import { useStockLevels, StockLevel } from '@/hooks/useStockLevels';
+import { useStockLevels } from '@/hooks/useStockLevels';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { StockLevelFilters } from '@/components/accounting/stock-levels/StockLevelFilters';
+import { getStockLevelColumns } from '@/components/accounting/stock-levels/StockLevelColumns';
+import { useStockLevelFilters } from '@/hooks/useStockLevelFilters';
 
 export default function StockLevelsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.STOCK_LEVELS_VIEW);
@@ -21,10 +22,6 @@ export default function StockLevelsPage() {
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('stockLevels'));
-
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
 
   const {
     stockLevels,
@@ -35,116 +32,61 @@ export default function StockLevelsPage() {
   } = useStockLevels();
 
   const { parishes, fetchParishes } = useParishes();
+  const { filters, updateFilters, clearFilters } = useStockLevelFilters();
 
-  const [parishFilter, setParishFilter] = useState('');
-  const [warehouseFilter, setWarehouseFilter] = useState('');
-  const [showLowStock, setShowLowStock] = useState(false);
+  // Memoize columns to avoid recreating on every render
+  const columns = useMemo(() => getStockLevelColumns(t), [t]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
-  }, [fetchParishes]);
+  }, [permissionLoading, fetchParishes]);
 
   useEffect(() => {
-    if (showLowStock) {
-      fetchLowStock(parishFilter || undefined);
+    if (permissionLoading) return;
+
+    if (filters.showLowStock) {
+      fetchLowStock(filters.parishFilter || undefined);
     } else {
       fetchStockLevels({
-        parishId: parishFilter || undefined,
-        warehouseId: warehouseFilter || undefined,
+        parishId: filters.parishFilter || undefined,
+        warehouseId: filters.warehouseFilter || undefined,
       });
     }
-  }, [parishFilter, warehouseFilter, showLowStock, fetchStockLevels, fetchLowStock]);
+  }, [permissionLoading, filters.parishFilter, filters.warehouseFilter, filters.showLowStock, fetchStockLevels, fetchLowStock]);
 
-  const columns: any[] = [
-    {
-      key: 'warehouse',
-      label: t('warehouse') || 'Warehouse',
-      sortable: false,
-      render: (value: StockLevel['warehouse']) => value ? value.name : '-',
-    },
-    {
-      key: 'product',
-      label: t('product') || 'Product',
-      sortable: false,
-      render: (value: StockLevel['product']) => value ? value.name : '-',
-    },
-    {
-      key: 'quantity',
-      label: t('quantity') || 'Quantity',
-      sortable: true,
-      render: (value: number, row: StockLevel) => {
-        const unit = row.product?.unit || '';
-        const isLow = row.product?.minStock && value < row.product.minStock;
-        return (
-          <div className="flex items-center gap-2">
-            <span>{value.toFixed(3)} {unit}</span>
-            {isLow && (
-              <Badge variant="warning" size="sm">
-                {t('lowStock') || 'Low Stock'}
-              </Badge>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      key: 'totalValue',
-      label: t('totalValue') || 'Total Value',
-      sortable: true,
-      render: (value: number) => `${value.toFixed(2)} RON`,
-    },
-    {
-      key: 'lastMovementDate',
-      label: t('lastMovement') || 'Last Movement',
-      sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString(),
-    },
-  ];
+  const handleFilterClear = useCallback(() => {
+    clearFilters();
+  }, [clearFilters]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
-          { label: t('stockLevels') || 'Stock Levels', href: `/${locale}/dashboard/accounting/stock-levels` },
+          { label: t('stockLevels') || 'Stock Levels' },
         ]}
+        title={t('stockLevels') || 'Stock Levels'}
       />
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t('stockLevels') || 'Stock Levels'}</h1>
-          </div>
-        </CardHeader>
         <CardBody>
           <div className="space-y-4">
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                }}
-                parishes={parishes}
-              />
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="showLowStock"
-                  checked={showLowStock}
-                  onChange={(e) => setShowLowStock(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="showLowStock" className="text-sm">{t('showLowStock') || 'Show Low Stock Only'}</label>
-              </div>
-              <FilterClear
-                onClear={() => {
-                  setParishFilter('');
-                  setWarehouseFilter('');
-                  setShowLowStock(false);
-                }}
-              />
-            </FilterGrid>
+            <StockLevelFilters
+              parishFilter={filters.parishFilter}
+              onParishFilterChange={(value) => updateFilters({ parishFilter: value })}
+              showLowStock={filters.showLowStock}
+              onShowLowStockChange={(value) => updateFilters({ showLowStock: value })}
+              onClear={handleFilterClear}
+              parishes={parishes}
+              t={t}
+            />
 
             {error && (
               <div className="p-4 bg-danger/10 text-danger rounded">
@@ -152,11 +94,15 @@ export default function StockLevelsPage() {
               </div>
             )}
 
-            <Table
-              data={stockLevels}
-              columns={columns}
-              loading={loading}
-            />
+            {loading ? (
+              <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+            ) : (
+              <Table
+                data={stockLevels}
+                columns={columns}
+                emptyMessage={t('noData') || 'No stock levels available'}
+              />
+            )}
           </div>
         </CardBody>
       </Card>

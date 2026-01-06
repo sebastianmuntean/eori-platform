@@ -2,8 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardBody } from '@/components/ui/Card';
 import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
 import { createGeneralRegisterDocument, getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 import { useToast } from '@/hooks/useToast';
@@ -110,22 +110,19 @@ export default function CreateDocumentPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
           { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/general-register` },
-          { label: tReg('newDocument'), href: '#' },
+          { label: tReg('newDocument') },
         ]}
+        title={initialData ? tReg('copyDocument') : tReg('newDocument')}
+        description={initialData ? tReg('copyDocumentDescription') : tReg('newDocumentDescription')}
+        className="mb-6"
       />
 
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">{initialData ? tReg('copyDocument') : tReg('newDocument')}</h1>
-          <p className="text-gray-600">
-            {initialData ? tReg('copyDocumentDescription') : tReg('newDocumentDescription')}
-          </p>
-        </CardHeader>
         <CardBody>
           {loadingCopy ? (
             <div className="flex justify-center items-center py-12">

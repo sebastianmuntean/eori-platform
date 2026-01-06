@@ -51,18 +51,19 @@ export async function GET(request: Request) {
       .where(whereClause);
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
-    let query = db.select().from(dioceses).where(whereClause);
+    const baseQuery = db.select().from(dioceses).where(whereClause);
 
+    let query;
     if (sortBy === 'name') {
       query = sortOrder === 'desc' 
-        ? query.orderBy(desc(dioceses.name))
-        : query.orderBy(asc(dioceses.name));
+        ? baseQuery.orderBy(desc(dioceses.name))
+        : baseQuery.orderBy(asc(dioceses.name));
     } else if (sortBy === 'code') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(dioceses.code))
-        : query.orderBy(asc(dioceses.code));
+        ? baseQuery.orderBy(desc(dioceses.code))
+        : baseQuery.orderBy(asc(dioceses.code));
     } else {
-      query = query.orderBy(desc(dioceses.createdAt));
+      query = baseQuery.orderBy(desc(dioceses.createdAt));
     }
 
     // If all=true, don't apply LIMIT and OFFSET

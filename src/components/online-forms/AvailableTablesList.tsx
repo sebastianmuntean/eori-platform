@@ -9,7 +9,7 @@ interface TableInfo {
 }
 
 interface AvailableTablesListProps {
-  targetModule: 'registratura' | 'general_register' | 'events' | 'partners';
+  targetModule: 'registratura' | 'general_register' | 'events' | 'clients';
   onSelectColumn?: (table: string, column: string) => void;
   selectedTable?: string;
   selectedColumn?: string;

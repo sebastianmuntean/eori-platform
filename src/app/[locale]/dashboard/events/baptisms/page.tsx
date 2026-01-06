@@ -1,22 +1,23 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useEvents, ChurchEvent, EventStatus } from '@/hooks/useEvents';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { EVENTS_PERMISSIONS } from '@/lib/permissions/events';
+import { BaptismAddModal } from '@/components/events/BaptismAddModal';
+import { BaptismFormData } from '@/components/events/types';
+import { BaptismEditModal } from '@/components/events/BaptismEditModal';
+import { DeleteEventDialog } from '@/components/events/DeleteEventDialog';
+import { BaptismsFiltersCard } from '@/components/events/BaptismsFiltersCard';
+import { BaptismsTableCard } from '@/components/events/BaptismsTableCard';
 
 export default function BaptismsPage() {
   const params = useParams();
@@ -58,7 +59,7 @@ export default function BaptismsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ChurchEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BaptismFormData>({
     parishId: '',
     status: 'pending' as EventStatus,
     eventDate: '',
@@ -89,7 +90,7 @@ export default function BaptismsPage() {
 
   const handleCreate = async () => {
     if (!formData.parishId) {
-      alert(t('fillRequiredFields'));
+      // Validation error is handled by required field in modal
       return;
     }
 
@@ -106,6 +107,7 @@ export default function BaptismsPage() {
       setShowAddModal(false);
       resetForm();
     }
+    // Error handling is done by the hook - error state is displayed in table card
   };
 
   const handleUpdate = async () => {
@@ -123,6 +125,7 @@ export default function BaptismsPage() {
       setShowEditModal(false);
       setSelectedEvent(null);
     }
+    // Error handling is done by the hook - error state is displayed in table card
   };
 
   const handleDelete = async (id: string) => {
@@ -130,6 +133,8 @@ export default function BaptismsPage() {
     if (result) {
       setDeleteConfirm(null);
     }
+    // Error handling is done by the hook - error state is displayed in table card
+    // Dialog remains open if deletion fails so user can see the error
   };
 
   const handleEdit = (event: ChurchEvent) => {
@@ -146,11 +151,19 @@ export default function BaptismsPage() {
   };
 
   const handleConfirm = async (id: string) => {
-    await confirmEvent(id);
+    const result = await confirmEvent(id);
+    if (!result) {
+      // Error is handled by the hook and displayed via error state
+      console.error('Failed to confirm baptism event');
+    }
   };
 
   const handleCancel = async (id: string) => {
-    await cancelEvent(id);
+    const result = await cancelEvent(id);
+    if (!result) {
+      // Error is handled by the hook and displayed via error state
+      console.error('Failed to cancel baptism event');
+    }
   };
 
   const resetForm = () => {
@@ -164,22 +177,22 @@ export default function BaptismsPage() {
     });
   };
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
-  };
+  }, [locale]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
-      key: 'eventDate',
+      key: 'eventDate' as keyof ChurchEvent,
       label: t('date') || 'Data',
       sortable: true,
       render: (value: string | null) => formatDate(value),
     },
-    { key: 'location', label: t('location') || 'Locație', sortable: false, render: (value: string | null) => value || '-' },
-    { key: 'priestName', label: t('priest') || 'Preot', sortable: false, render: (value: string | null) => value || '-' },
+    { key: 'location' as keyof ChurchEvent, label: t('location') || 'Locație', sortable: false, render: (value: string | null) => value || '-' },
+    { key: 'priestName' as keyof ChurchEvent, label: t('priest') || 'Preot', sortable: false, render: (value: string | null) => value || '-' },
     {
-      key: 'status',
+      key: 'status' as keyof ChurchEvent,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: EventStatus) => {
@@ -197,7 +210,7 @@ export default function BaptismsPage() {
       },
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof ChurchEvent,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: ChurchEvent) => (
@@ -219,98 +232,46 @@ export default function BaptismsPage() {
         />
       ),
     },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('events'), href: `/${locale}/dashboard/events` },
-    { label: t('baptisms') || 'Botezuri' },
-  ];
+  ], [t, formatDate]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('baptisms') || 'Botezuri'}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add') || 'Adaugă'} {t('baptism') || 'Botez'}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('events'), href: `/${locale}/dashboard/events` },
+          { label: t('baptisms') || 'Botezuri' },
+        ]}
+        title={t('baptisms') || 'Botezuri'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add') || 'Adaugă'} {t('baptism') || 'Botez'}</Button>}
+      />
 
-      {/* Filters */}
-      <Card variant="outlined" className="mb-6">
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Input
-              placeholder={t('search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select
-              className="px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              value={parishFilter}
-              onChange={(e) => setParishFilter(e.target.value)}
-            >
-              <option value="">{t('allParishes')}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as EventStatus | '')}
-            >
-              <option value="">{t('allStatuses')}</option>
-              <option value="pending">{t('pending') || 'În așteptare'}</option>
-              <option value="confirmed">{t('confirmed') || 'Confirmat'}</option>
-              <option value="completed">{t('completed') || 'Finalizat'}</option>
-              <option value="cancelled">{t('cancelled') || 'Anulat'}</option>
-            </select>
-            <div></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <Input
-              type="date"
-              placeholder={t('dateFrom')}
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-            <Input
-              type="date"
-              placeholder={t('dateTo')}
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
-        </CardBody>
-      </Card>
+      <BaptismsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        statusFilter={statusFilter}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        parishes={parishes}
+        onSearchChange={setSearchTerm}
+        onParishFilterChange={setParishFilter}
+        onStatusFilterChange={setStatusFilter}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+      />
 
-      {/* Events Table */}
-      <Card variant="outlined">
-        <CardBody>
-          {error && (
-            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
-              {error}
-            </div>
-          )}
-          <Table
-            data={events}
-            columns={columns}
-            loading={loading}
-            pagination={pagination ? {
-              currentPage: pagination.page,
-              totalPages: pagination.totalPages,
-              onPageChange: setCurrentPage,
-            } : undefined}
-          />
-        </CardBody>
-      </Card>
+      <BaptismsTableCard
+        data={events}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No baptisms available'}
+      />
 
-      {/* Add/Edit Modals - same structure as weddings page */}
-      <FormModal
+      <BaptismAddModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
@@ -320,64 +281,15 @@ export default function BaptismsPage() {
           setShowAddModal(false);
           resetForm();
         }}
-        title={`${t('add') || 'Adaugă'} ${t('baptism') || 'Botez'}`}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
         onSubmit={handleCreate}
-        isSubmitting={false}
-        submitLabel={t('create')}
-        cancelLabel={t('cancel') || 'Anulează'}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('parish') || 'Parohie'} *</label>
-            <select
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              value={formData.parishId}
-              onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-              required
-            >
-              <option value="">{t('selectParish') || 'Selectează parohia'}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('date') || 'Data'}</label>
-            <Input
-              type="date"
-              value={formData.eventDate}
-              onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('location') || 'Locație'}</label>
-            <Input
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('priest') || 'Preot'}</label>
-            <Input
-              value={formData.priestName}
-              onChange={(e) => setFormData({ ...formData, priestName: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('notes') || 'Observații'}</label>
-            <textarea
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              rows={3}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={loading}
+        error={error}
+      />
 
-      <FormModal
+      <BaptismEditModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
@@ -387,85 +299,19 @@ export default function BaptismsPage() {
           setShowEditModal(false);
           setSelectedEvent(null);
         }}
-        title={`${t('edit') || 'Editează'} ${t('baptism') || 'Botez'}`}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
         onSubmit={handleUpdate}
-        isSubmitting={false}
-        submitLabel={t('save')}
-        cancelLabel={t('cancel') || 'Anulează'}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('parish') || 'Parohie'} *</label>
-            <select
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              value={formData.parishId}
-              onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-              required
-            >
-              <option value="">{t('selectParish') || 'Selectează parohia'}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('status') || 'Status'}</label>
-            <select
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as EventStatus })}
-            >
-              <option value="pending">{t('pending') || 'În așteptare'}</option>
-              <option value="confirmed">{t('confirmed') || 'Confirmat'}</option>
-              <option value="completed">{t('completed') || 'Finalizat'}</option>
-              <option value="cancelled">{t('cancelled') || 'Anulat'}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('date') || 'Data'}</label>
-            <Input
-              type="date"
-              value={formData.eventDate}
-              onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('location') || 'Locație'}</label>
-            <Input
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('priest') || 'Preot'}</label>
-            <Input
-              value={formData.priestName}
-              onChange={(e) => setFormData({ ...formData, priestName: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('notes') || 'Observații'}</label>
-            <textarea
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-text-primary"
-              rows={3}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={loading}
+        error={error}
+      />
 
-      <ConfirmDialog
+      <DeleteEventDialog
         isOpen={!!deleteConfirm}
+        eventId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete')}
-        message={t('confirmDeleteEvent')}
-        confirmLabel={t('delete') || 'Șterge'}
-        cancelLabel={t('cancel') || 'Anulează'}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

@@ -58,7 +58,17 @@ export function useSalaries(): UseSalariesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseSalariesReturn['pagination']>(null);
 
-  const fetchSalaries = useCallback(async (params = {}) => {
+  const fetchSalaries = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    contractId?: string;
+    status?: string;
+    periodFrom?: string;
+    periodTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -240,6 +250,9 @@ export function useSalaries(): UseSalariesReturn {
     paySalary,
   };
 }
+
+
+
 
 
 

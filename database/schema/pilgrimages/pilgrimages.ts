@@ -37,3 +37,7 @@ export const pilgrimages = pgTable('pilgrimages', {
 
 
 
+
+
+
+

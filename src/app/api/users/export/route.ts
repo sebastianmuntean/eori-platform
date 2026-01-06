@@ -50,13 +50,9 @@ export async function GET(request: Request) {
     }
 
     console.log('Step 3: Fetching users from database');
-    let query = db.select().from(users);
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)!);
-    }
-
-    query = query.orderBy(desc(users.createdAt));
+    const query = db.select().from(users)
+      .where(conditions.length > 0 ? and(...conditions)! : undefined)
+      .orderBy(desc(users.createdAt));
 
     const allUsers = await query;
 
@@ -124,7 +120,10 @@ export async function GET(request: Request) {
     // Convert to buffer
     const excelBuffer = await workbook.xlsx.writeBuffer();
 
-    console.log(`✓ Excel file generated: ${excelBuffer.length} bytes`);
+    const bufferSize = (excelBuffer as unknown as Buffer | ArrayBuffer) instanceof Buffer 
+      ? (excelBuffer as unknown as Buffer).length 
+      : (excelBuffer as unknown as ArrayBuffer).byteLength;
+    console.log(`✓ Excel file generated: ${bufferSize} bytes`);
 
     // Return file as download
     return new NextResponse(excelBuffer, {

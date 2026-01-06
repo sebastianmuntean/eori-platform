@@ -3,13 +3,14 @@
 import { useParams } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Table } from '@/components/ui/Table';
+import { Table, Column } from '@/components/ui/Table';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterGrid, FilterClear, ParishFilter } from '@/components/ui/FilterGrid';
 import { useTranslations } from 'next-intl';
 import { FixedAssetCategory, CATEGORY_TRANSLATION_KEYS } from '@/lib/fixed-assets/constants';
 import { getCategoryRoute } from '@/lib/fixed-assets/routes';
 import { useFixedAssetsFilters } from '@/hooks/useFixedAssetsFilters';
+import { FixedAsset } from '@/hooks/useFixedAssets';
 import { useFixedAssetsTableColumns } from './FixedAssetsTableColumns';
 import { FixedAssetsPagination } from './FixedAssetsPagination';
 import { useFixedAssetsBreadcrumbs } from '@/lib/fixed-assets/breadcrumbs';
@@ -74,7 +75,7 @@ export function RegisterPage({ category }: RegisterPageProps) {
             <div className="flex gap-4">
               <SearchInput
                 value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(value) => handleSearchChange(value)}
                 placeholder={t('search') || 'Search...'}
               />
             </div>
@@ -96,8 +97,7 @@ export function RegisterPage({ category }: RegisterPageProps) {
 
             <Table
               data={fixedAssets}
-              columns={columns}
-              loading={loading}
+              columns={columns as Column<FixedAsset>[]}
             />
 
             {pagination && (

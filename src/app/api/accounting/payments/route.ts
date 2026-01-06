@@ -84,38 +84,35 @@ export async function GET(request: Request) {
       : undefined;
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(payments);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(payments);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery as typeof baseQuery & { orderBy: (orderBy: any) => any };
 
     // Apply sorting
+    let finalQuery: any;
     if (sortBy === 'date') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(payments.date))
-        : query.orderBy(asc(payments.date));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(payments.date))
+        : queryWithWhere.orderBy(asc(payments.date));
     } else if (sortBy === 'paymentNumber') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(payments.paymentNumber))
-        : query.orderBy(asc(payments.paymentNumber));
+      finalQuery = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(payments.paymentNumber))
+        : queryWithWhere.orderBy(asc(payments.paymentNumber));
     } else if (sortBy === 'amount') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(payments.amount))
-        : query.orderBy(asc(payments.amount));
+      finalQuery = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(desc(payments.amount))
+        : queryWithWhere.orderBy(asc(payments.amount));
     } else {
-      query = query.orderBy(desc(payments.createdAt));
+      finalQuery = queryWithWhere.orderBy(desc(payments.createdAt));
     }
 
-    const allPayments = await query.limit(pageSize).offset(offset);
+    const allPayments = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,
@@ -180,7 +177,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if partner exists (if provided)
+    // Check if client exists (if provided)
     if (data.clientId) {
       console.log(`Step 3: Checking if client ${data.clientId} exists`);
       const [existingClient] = await db
@@ -192,7 +189,7 @@ export async function POST(request: Request) {
       if (!existingClient) {
         console.log(`❌ Client ${data.clientId} not found`);
         return NextResponse.json(
-          { success: false, error: 'Partner not found' },
+          { success: false, error: 'Client not found' },
           { status: 400 }
         );
       }

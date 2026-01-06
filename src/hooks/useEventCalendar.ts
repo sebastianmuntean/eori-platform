@@ -31,17 +31,23 @@ export function useEventCalendar(): UseEventCalendarReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCalendarEvents = useCallback(async (params = {}) => {
+  const fetchCalendarEvents = useCallback(async (params?: {
+    startDate?: string;
+    endDate?: string;
+    parishId?: string;
+    type?: EventType;
+    status?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.status) queryParams.append('status', params.status);
+      if (params?.startDate) queryParams.append('startDate', params.startDate);
+      if (params?.endDate) queryParams.append('endDate', params.endDate);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.type) queryParams.append('type', params.type);
+      if (params?.status) queryParams.append('status', params.status);
 
       const response = await fetch(`/api/events/calendar?${queryParams.toString()}`);
       const result = await response.json();

@@ -64,9 +64,17 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = employmentContracts[sortBy as keyof typeof employmentContracts];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+    // Map sortBy to actual column, with validation
+    if (sortBy === 'startDate') {
+      orderBy = sortOrder === 'asc' ? asc(employmentContracts.startDate) : desc(employmentContracts.startDate);
+    } else if (sortBy === 'endDate') {
+      orderBy = sortOrder === 'asc' ? asc(employmentContracts.endDate) : desc(employmentContracts.endDate);
+    } else if (sortBy === 'contractNumber') {
+      orderBy = sortOrder === 'asc' ? asc(employmentContracts.contractNumber) : desc(employmentContracts.contractNumber);
+    } else if (sortBy === 'status') {
+      orderBy = sortOrder === 'asc' ? asc(employmentContracts.status) : desc(employmentContracts.status);
+    } else if (sortBy === 'createdAt') {
+      orderBy = sortOrder === 'asc' ? asc(employmentContracts.createdAt) : desc(employmentContracts.createdAt);
     } else {
       orderBy = desc(employmentContracts.startDate);
     }

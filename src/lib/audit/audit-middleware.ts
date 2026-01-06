@@ -119,7 +119,7 @@ export function withAuditLogging<T = any>(
     const resourceId = extractResourceId(endpoint);
     
     // Execute handler and capture response
-    let response: NextResponse<T>;
+    let response: NextResponse<T> | undefined;
     let error: Error | null = null;
     
     try {
@@ -130,7 +130,7 @@ export function withAuditLogging<T = any>(
     } finally {
       // Log audit event asynchronously (don't await to avoid blocking)
       // Only log successful operations (2xx status codes)
-      if (!error && response.status >= 200 && response.status < 300) {
+      if (!error && response && response.status >= 200 && response.status < 300) {
         logAuditEvent({
           userId,
           action,
@@ -193,6 +193,10 @@ export async function createAuditContext(
     endpoint,
   };
 }
+
+
+
+
 
 
 

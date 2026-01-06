@@ -43,22 +43,21 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    let query = db.select().from(parishionerTypes);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(parishionerTypes);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
+    let queryWithOrder;
     if (sortBy === 'name') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(parishionerTypes.name))
-        : query.orderBy(asc(parishionerTypes.name));
+      queryWithOrder = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(parishionerTypes.name))
+        : queryWithWhere.orderBy(asc(parishionerTypes.name));
     } else {
-      query = query.orderBy(desc(parishionerTypes.createdAt));
+      queryWithOrder = queryWithWhere.orderBy(desc(parishionerTypes.createdAt));
     }
 
     const allTypes = all 
-      ? await query 
-      : await query.limit(pageSize).offset((page - 1) * pageSize);
+      ? await queryWithOrder 
+      : await queryWithOrder.limit(pageSize).offset((page - 1) * pageSize);
 
     const totalCountResult = await db
       .select()
@@ -130,6 +129,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

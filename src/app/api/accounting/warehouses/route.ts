@@ -79,22 +79,19 @@ export async function GET(request: Request) {
     }
 
     // Get total count
-    const countQuery = db
+    const baseCountQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(warehouses)
-      .where(whereClause);
+      .from(warehouses);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(warehouses);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
-    const allWarehouses = await query.orderBy(orderBy).limit(pageSize).offset(offset);
+    const baseQuery = db.select().from(warehouses);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
+    const allWarehouses = await queryWithWhere.orderBy(orderBy).limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

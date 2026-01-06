@@ -160,19 +160,20 @@ export async function POST(request: Request) {
     await requireParishAccess(data.parishId, true);
 
     // Create class
+    const insertValues = {
+      parishId: data.parishId as string,
+      name: data.name,
+      description: data.description || null,
+      grade: data.grade || null,
+      teacherId: data.teacherId || null,
+      startDate: data.startDate || null,
+      endDate: data.endDate || null,
+      maxStudents: data.maxStudents || null,
+      isActive: data.isActive ?? true,
+    };
     const [newClass] = await db
       .insert(catechesisClasses)
-      .values({
-        parishId: data.parishId,
-        name: data.name,
-        description: data.description || null,
-        grade: data.grade || null,
-        teacherId: data.teacherId || null,
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        maxStudents: data.maxStudents || null,
-        isActive: data.isActive ?? true,
-      })
+      .values(insertValues)
       .returning();
 
     logger.info('Created class', { classId: newClass.id, userId });

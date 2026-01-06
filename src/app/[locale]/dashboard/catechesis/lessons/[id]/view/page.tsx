@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { LessonViewer } from '@/components/catechesis/LessonViewer';
 import { useLesson } from '@/hooks/useLesson';
 import { useTranslations } from 'next-intl';
@@ -29,14 +29,6 @@ export default function CatechesisLessonViewPage() {
     return null;
   }
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
-    { label: lesson?.title || id, href: `/${locale}/dashboard/catechesis/lessons/${id}` },
-    { label: tCatechesis('lessons.view') },
-  ];
-
   const handleClose = () => {
     router.push(`/${locale}/dashboard/catechesis/lessons/${id}`);
   };
@@ -52,7 +44,16 @@ export default function CatechesisLessonViewPage() {
   if (error || !lesson) {
     return (
       <div className="space-y-6">
-        <Breadcrumbs items={breadcrumbs} />
+        <PageHeader
+          breadcrumbs={[
+            { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+            { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+            { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
+            { label: lesson?.title || id, href: `/${locale}/dashboard/catechesis/lessons/${id}` },
+            { label: tCatechesis('lessons.view') },
+          ]}
+          title={tCatechesis('lessons.view')}
+        />
         <div className="p-4 bg-danger/10 text-danger rounded-md">
           {error || tCatechesis('errors.lessonNotFound')}
         </div>
@@ -62,7 +63,16 @@ export default function CatechesisLessonViewPage() {
 
   return (
     <div className="space-y-6 h-[calc(100vh-200px)]">
-      <Breadcrumbs items={breadcrumbs} />
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
+          { label: lesson?.title || id, href: `/${locale}/dashboard/catechesis/lessons/${id}` },
+          { label: tCatechesis('lessons.view') },
+        ]}
+        title={tCatechesis('lessons.view')}
+      />
       <LessonViewer
         lessonId={id}
         onClose={handleClose}

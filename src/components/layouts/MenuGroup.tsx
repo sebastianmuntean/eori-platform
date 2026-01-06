@@ -69,8 +69,9 @@ export function MenuGroup({
             const hasSubItems = item.subItems && item.subItems.length > 0;
             const isSubItemExpanded = expandedSubItems.has(item.label);
             const active = isItemActive(item.href);
-            const hasActiveSubItem =
-              hasSubItems && item.subItems?.some((subItem) => isItemActive(subItem.href));
+            const hasActiveSubItem = Boolean(
+              hasSubItems && item.subItems?.some((subItem) => isItemActive(subItem.href))
+            );
 
             return (
               <li key={itemIndex}>
@@ -80,7 +81,7 @@ export function MenuGroup({
                     href={item.href}
                     icon={item.icon}
                     badge={item.badge}
-                    subItems={item.subItems}
+                    subItems={item.subItems ?? []}
                     isActive={active}
                     hasActiveSubItem={hasActiveSubItem}
                     isExpanded={isSubItemExpanded}
@@ -110,5 +111,6 @@ export function MenuGroup({
     </div>
   );
 }
+
 
 

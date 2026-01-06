@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -79,7 +79,7 @@ export default function MappingDatasetsPage() {
       registratura: tForms('targetModuleRegistratura'),
       general_register: tForms('targetModuleGeneralRegister'),
       events: tForms('targetModuleEvents'),
-      partners: tForms('targetModulePartners'),
+      clients: tForms('targetModuleClients'),
     };
     return labels[module] || module;
   };
@@ -93,25 +93,25 @@ export default function MappingDatasetsPage() {
   };
 
   const tableColumns = [
-    { key: 'name', label: tForms('datasetName') },
-    { key: 'targetModule', label: tForms('targetModule') },
-    { key: 'parishName', label: t('parish') },
+    { key: 'name' as keyof MappingDataset, label: tForms('datasetName') },
+    { key: 'targetModule' as keyof MappingDataset, label: tForms('targetModule') },
+    { key: 'parishName' as keyof MappingDataset, label: t('parish') },
     {
-      key: 'isDefault',
+      key: 'isDefault' as keyof MappingDataset,
       label: tForms('isDefault'),
       render: (value: any, dataset: MappingDataset) => getStatusBadge(dataset.isDefault),
     },
     {
-      key: 'mappingsCount',
+      key: 'mappingsCount' as keyof MappingDataset,
       label: tForms('mappingsCount'),
       render: (value: any, dataset: MappingDataset) => {
         const mappings = dataset.mappings || [];
         return <span>{Array.isArray(mappings) ? mappings.length : 0}</span>;
       },
     },
-    { key: 'createdAt', label: t('createdAt') },
+    { key: 'createdAt' as keyof MappingDataset, label: t('createdAt') },
     {
-      key: 'actions',
+      key: 'actions' as keyof MappingDataset,
       label: t('actions'),
       render: (value: any, dataset: MappingDataset) => (
         <div className="flex gap-2">
@@ -131,33 +131,27 @@ export default function MappingDatasetsPage() {
   ];
 
   const tableData = datasets.map((dataset) => ({
-    id: dataset.id,
-    name: dataset.name,
+    ...dataset,
     targetModule: getTargetModuleLabel(dataset.targetModule),
     parishName: dataset.parishName || tForms('globalTemplate'),
-    isDefault: dataset.isDefault,
     mappingsCount: Array.isArray(dataset.mappings) ? dataset.mappings.length : 0,
     createdAt: new Date(dataset.createdAt).toLocaleDateString(locale),
     actions: null, // Rendered by render function
-  }));
+  })) as MappingDataset[];
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: t('dashboard'), href: `/${locale}/dashboard` },
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tForms('onlineForms'), href: `/${locale}/dashboard/online-forms` },
           { label: tForms('mappingDatasets') },
         ]}
+        title={tForms('mappingDatasets') || 'Mapping Datasets'}
+        action={<Button onClick={handleCreate}>{tForms('createDataset')}</Button>}
       />
 
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{tForms('mappingDatasets')}</h1>
-            <Button onClick={handleCreate}>{tForms('createDataset')}</Button>
-          </div>
-        </CardHeader>
         <CardBody>
           {/* Filters */}
           <div className="flex gap-4 mb-6">
@@ -182,7 +176,7 @@ export default function MappingDatasetsPage() {
                 { value: 'registratura', label: tForms('targetModuleRegistratura') },
                 { value: 'general_register', label: tForms('targetModuleGeneralRegister') },
                 { value: 'events', label: tForms('targetModuleEvents') },
-                { value: 'partners', label: tForms('targetModulePartners') },
+                { value: 'clients', label: tForms('targetModuleClients') },
               ]}
             />
           </div>

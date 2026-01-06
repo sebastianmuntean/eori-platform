@@ -33,7 +33,7 @@ export async function GET(
         { status: 404 }
       );
     }
-    logError('Failed to generate report data', error);
+    logError(error, { message: 'Failed to generate report data' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

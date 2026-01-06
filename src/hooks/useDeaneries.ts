@@ -48,19 +48,27 @@ export function useDeaneries(): UseDeaneriesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseDeaneriesReturn['pagination']>(null);
 
-  const fetchDeaneries = useCallback(async (params = {}) => {
+  const fetchDeaneries = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    dioceseId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    all?: boolean;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.dioceseId) queryParams.append('dioceseId', params.dioceseId);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-      if (params.all) queryParams.append('all', 'true');
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.dioceseId) queryParams.append('dioceseId', params.dioceseId);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.all) queryParams.append('all', 'true');
 
       const response = await fetch(`/api/deaneries?${queryParams.toString()}`);
       const result = await response.json();

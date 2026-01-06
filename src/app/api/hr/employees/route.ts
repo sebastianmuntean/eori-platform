@@ -108,9 +108,17 @@ export async function GET(request: Request) {
 
     // Build order by clause
     let orderBy;
-    const sortColumn = employees[sortBy as keyof typeof employees];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+    // Map sortBy to actual column, with validation
+    if (sortBy === 'lastName') {
+      orderBy = sortOrder === 'asc' ? asc(employees.lastName) : desc(employees.lastName);
+    } else if (sortBy === 'firstName') {
+      orderBy = sortOrder === 'asc' ? asc(employees.firstName) : desc(employees.firstName);
+    } else if (sortBy === 'employeeNumber') {
+      orderBy = sortOrder === 'asc' ? asc(employees.employeeNumber) : desc(employees.employeeNumber);
+    } else if (sortBy === 'email') {
+      orderBy = sortOrder === 'asc' ? asc(employees.email) : desc(employees.email);
+    } else if (sortBy === 'createdAt') {
+      orderBy = sortOrder === 'asc' ? asc(employees.createdAt) : desc(employees.createdAt);
     } else {
       orderBy = asc(employees.lastName);
     }

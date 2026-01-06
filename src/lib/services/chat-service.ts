@@ -437,6 +437,28 @@ export async function getConversationMessages(
   const total = Number(totalCountResult[0]?.count || 0);
 
   // Build query
+  // Build where condition
+  let whereCondition = eq(messages.conversationId, conversationId);
+  
+  // Add beforeMessageId filter if provided
+  if (options.beforeMessageId) {
+    const [beforeMessage] = await db
+      .select({ createdAt: messages.createdAt })
+      .from(messages)
+      .where(eq(messages.id, options.beforeMessageId!))
+      .limit(1);
+
+    if (beforeMessage) {
+      const combinedCondition = and(
+        eq(messages.conversationId, conversationId),
+        lt(messages.createdAt, beforeMessage.createdAt)
+      );
+      if (combinedCondition) {
+        whereCondition = combinedCondition;
+      }
+    }
+  }
+
   let query = db
     .select({
       id: messages.id,
@@ -450,25 +472,7 @@ export async function getConversationMessages(
     })
     .from(messages)
     .innerJoin(users, eq(messages.senderId, users.id))
-    .where(eq(messages.conversationId, conversationId));
-
-  // Add beforeMessageId filter if provided
-  if (options.beforeMessageId) {
-    const [beforeMessage] = await db
-      .select({ createdAt: messages.createdAt })
-      .from(messages)
-      .where(eq(messages.id, options.beforeMessageId!))
-      .limit(1);
-
-    if (beforeMessage) {
-      query = query.where(
-        and(
-          eq(messages.conversationId, conversationId),
-          lt(messages.createdAt, beforeMessage.createdAt)
-        )
-      );
-    }
-  }
+    .where(whereCondition);
 
   const messagesData = await query
     .orderBy(desc(messages.createdAt))

@@ -166,9 +166,24 @@ export function ChartContainer({
         );
 
       default:
-        return null;
+        return <div>Unknown chart type</div>;
     }
   };
+
+  const chartElement = renderChart();
+  
+  if (!chartElement) {
+    return (
+      <div className="w-full">
+        {title && (
+          <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
+        )}
+        <div className="flex items-center justify-center h-[300px] text-text-secondary">
+          Unknown chart type
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -176,11 +191,12 @@ export function ChartContainer({
         <h3 className="text-lg font-semibold text-text-primary mb-4">{title}</h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
-        {renderChart()}
+        {chartElement}
       </ResponsiveContainer>
     </div>
   );
 }
+
 
 
 

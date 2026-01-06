@@ -25,7 +25,7 @@ interface MappingEditorModalProps {
   onClose: () => void;
   onSave: (mapping: Mapping) => void;
   mapping: Mapping | null;
-  targetModule: 'registratura' | 'general_register' | 'events' | 'partners';
+  targetModule: 'registratura' | 'general_register' | 'events' | 'clients';
 }
 
 export function MappingEditorModal({

@@ -1,18 +1,29 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Table } from '@/components/ui/Table';
-import { useCatechesisStudents } from '@/hooks/useCatechesisStudents';
+import { useCatechesisStudents, CatechesisStudent } from '@/hooks/useCatechesisStudents';
+import { CatechesisEnrollment, EnrollmentStatus } from '@/hooks/useCatechesisEnrollments';
+import { CatechesisProgress, ProgressStatus } from '@/hooks/useCatechesisProgress';
 import { ProgressChart } from '@/components/catechesis/ProgressChart';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { CATECHESIS_PERMISSIONS } from '@/lib/permissions/catechesis';
+
+interface EnrollmentWithClass extends CatechesisEnrollment {
+  className: string;
+  classGrade: string | null;
+}
+
+interface ProgressWithLesson extends CatechesisProgress {
+  lessonTitle: string;
+}
 
 export default function CatechesisStudentDetailsPage() {
   const params = useParams();
@@ -27,11 +38,12 @@ export default function CatechesisStudentDetailsPage() {
 
   // All hooks must be called before any conditional returns
   const { students, fetchStudents, fetchStudentEnrollments, fetchStudentProgress } = useCatechesisStudents();
-  const [student, setStudent] = useState<any>(null);
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [progress, setProgress] = useState<any[]>([]);
+  const [student, setStudent] = useState<CatechesisStudent | null>(null);
+  const [enrollments, setEnrollments] = useState<EnrollmentWithClass[]>([]);
+  const [progress, setProgress] = useState<ProgressWithLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'enrollments' | 'progress'>('overview');
+  const hasLoadedRef = useRef(false);
 
   usePageTitle(student ? `${student.firstName} ${student.lastName} - ${tCatechesis('students.title')}` : tCatechesis('students.title'));
 
@@ -43,8 +55,8 @@ export default function CatechesisStudentDetailsPage() {
         fetchStudentEnrollments(studentId),
         fetchStudentProgress(studentId),
       ]);
-      setEnrollments(enrollmentsData);
-      setProgress(progressData);
+      setEnrollments(enrollmentsData as EnrollmentWithClass[]);
+      setProgress(progressData as ProgressWithLesson[]);
     } catch (err) {
       console.error('Failed to load student data:', err);
     } finally {
@@ -52,18 +64,28 @@ export default function CatechesisStudentDetailsPage() {
     }
   }, [fetchStudentEnrollments, fetchStudentProgress]);
 
+  // Load students when component mounts or id changes
   useEffect(() => {
-    if (permissionLoading) return;
-    if (id) {
-      fetchStudents({ pageSize: 1000 }).then(() => {
-        const found = students.find((s) => s.id === id);
-        if (found) {
-          setStudent(found);
-          loadStudentData(id);
-        }
-      });
+    if (permissionLoading || !id || hasLoadedRef.current) return;
+    
+    const loadStudents = async () => {
+      await fetchStudents({ pageSize: 1000 });
+    };
+    
+    loadStudents();
+  }, [permissionLoading, id, fetchStudents]);
+
+  // Find and set student after students are fetched
+  useEffect(() => {
+    if (!id || student || !students.length || hasLoadedRef.current) return;
+    
+    const found = students.find((s) => s.id === id);
+    if (found) {
+      setStudent(found);
+      hasLoadedRef.current = true;
+      loadStudentData(id);
     }
-  }, [permissionLoading, id, fetchStudents, students, loadStudentData]);
+  }, [students, id, student, loadStudentData]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -75,13 +97,6 @@ export default function CatechesisStudentDetailsPage() {
     return new Date(date).toLocaleDateString(locale);
   };
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('students.title'), href: `/${locale}/dashboard/catechesis/students` },
-    { label: student ? `${student.firstName} ${student.lastName}` : id },
-  ];
-
   if (loading && !student) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -92,17 +107,28 @@ export default function CatechesisStudentDetailsPage() {
 
   if (!student) {
     return (
-      <div className="p-4 bg-danger/10 text-danger rounded-md">
-        {tCatechesis('errors.studentNotFound')}
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumbs={[
+            { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+            { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+            { label: tCatechesis('students.title'), href: `/${locale}/dashboard/catechesis/students` },
+            { label: id },
+          ]}
+          title={id}
+        />
+        <div className="p-4 bg-danger/10 text-danger rounded-md">
+          {tCatechesis('errors.studentNotFound')}
+        </div>
       </div>
     );
   }
 
   const enrollmentColumns = [
-    { key: 'className', label: tCatechesis('enrollments.class'), sortable: true },
-    { key: 'classGrade', label: tCatechesis('classes.grade'), sortable: false },
+    { key: 'className' as keyof EnrollmentWithClass, label: tCatechesis('enrollments.class'), sortable: true },
+    { key: 'classGrade' as keyof EnrollmentWithClass, label: tCatechesis('classes.grade'), sortable: false },
     {
-      key: 'status',
+      key: 'status' as keyof EnrollmentWithClass,
       label: t('status'),
       sortable: false,
       render: (value: string) => (
@@ -112,7 +138,7 @@ export default function CatechesisStudentDetailsPage() {
       ),
     },
     {
-      key: 'enrolledAt',
+      key: 'enrolledAt' as keyof EnrollmentWithClass,
       label: tCatechesis('enrollments.enrolledAt'),
       sortable: false,
       render: (value: string | null) => formatDate(value),
@@ -120,9 +146,9 @@ export default function CatechesisStudentDetailsPage() {
   ];
 
   const progressColumns = [
-    { key: 'lessonTitle', label: tCatechesis('progress.lesson'), sortable: true },
+    { key: 'lessonTitle' as keyof ProgressWithLesson, label: tCatechesis('progress.lesson'), sortable: true },
     {
-      key: 'status',
+      key: 'status' as keyof ProgressWithLesson,
       label: t('status'),
       sortable: false,
       render: (value: string) => (
@@ -132,19 +158,19 @@ export default function CatechesisStudentDetailsPage() {
       ),
     },
     {
-      key: 'timeSpentMinutes',
+      key: 'timeSpentMinutes' as keyof ProgressWithLesson,
       label: tCatechesis('progress.timeSpentMinutes'),
       sortable: false,
       render: (value: number | null) => value ? `${value} min` : '-',
     },
     {
-      key: 'score',
+      key: 'score' as keyof ProgressWithLesson,
       label: tCatechesis('progress.score'),
       sortable: false,
       render: (value: string | null) => value ? `${value}%` : '-',
     },
     {
-      key: 'completedAt',
+      key: 'completedAt' as keyof ProgressWithLesson,
       label: tCatechesis('progress.completedAt'),
       sortable: false,
       render: (value: string | null) => formatDate(value),
@@ -153,19 +179,24 @@ export default function CatechesisStudentDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('students.title'), href: `/${locale}/dashboard/catechesis/students` },
+          { label: student ? `${student.firstName} ${student.lastName}` : id },
+        ]}
+        title={student ? `${student.firstName} ${student.lastName}` : id}
+      />
 
       {/* Student Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">
-                {student.firstName} {student.lastName}
-              </h1>
               {student.dateOfBirth && (
-                <p className="text-text-secondary mt-1">
-                  Born: {formatDate(student.dateOfBirth)}
+                <p className="text-text-secondary">
+                  {tCatechesis('students.born') || 'Born'}: {formatDate(student.dateOfBirth)}
                 </p>
               )}
             </div>
@@ -232,7 +263,7 @@ export default function CatechesisStudentDetailsPage() {
             </CardHeader>
             <CardBody>
               <div className="text-3xl font-bold text-primary">{enrollments.length}</div>
-              <div className="text-sm text-text-secondary mt-1">Class enrollments</div>
+              <div className="text-sm text-text-secondary mt-1">{tCatechesis('students.classEnrollments') || 'Class enrollments'}</div>
             </CardBody>
           </Card>
           <Card>
@@ -243,7 +274,7 @@ export default function CatechesisStudentDetailsPage() {
               <div className="text-3xl font-bold text-primary">
                 {progress.filter((p) => p.status === 'completed').length}
               </div>
-              <div className="text-sm text-text-secondary mt-1">Completed lessons</div>
+              <div className="text-sm text-text-secondary mt-1">{tCatechesis('students.completedLessons') || 'Completed lessons'}</div>
             </CardBody>
           </Card>
         </div>
@@ -266,7 +297,10 @@ export default function CatechesisStudentDetailsPage() {
 
       {activeTab === 'progress' && (
         <div className="space-y-6">
-          <ProgressChart progress={progress} />
+          <ProgressChart progress={progress.map(p => ({
+            ...p,
+            completedAt: p.completedAt instanceof Date ? p.completedAt.toISOString() : p.completedAt
+          }))} />
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold">{tCatechesis('progress.title')}</h3>

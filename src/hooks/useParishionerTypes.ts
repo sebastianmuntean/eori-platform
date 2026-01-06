@@ -41,7 +41,15 @@ export function useParishionerTypes(): UseParishionerTypesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseParishionerTypesReturn['pagination']>(null);
 
-  const fetchTypes = useCallback(async (params = {}) => {
+  const fetchTypes = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    isActive?: boolean;
+    all?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -162,6 +170,9 @@ export function useParishionerTypes(): UseParishionerTypesReturn {
     deleteType,
   };
 }
+
+
+
 
 
 

@@ -16,3 +16,7 @@ export const catechesisEnrollments = pgTable('catechesis_enrollments', {
 
 
 
+
+
+
+

@@ -61,9 +61,9 @@ export async function processSubmission(
     } else if (form.targetModule === 'events') {
       // TODO: Implement events processing
       throw new Error('Events processing not yet implemented');
-    } else if (form.targetModule === 'partners') {
-      // TODO: Implement partners processing
-      throw new Error('Partners processing not yet implemented');
+    } else if (form.targetModule === 'clients') {
+      // TODO: Implement clients processing
+      throw new Error('Clients processing not yet implemented');
     } else {
       throw new Error(`Unknown target module: ${form.targetModule}`);
     }

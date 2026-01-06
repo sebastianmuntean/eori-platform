@@ -106,35 +106,34 @@ export async function GET(request: Request) {
       : undefined;
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(churchEvents);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const countQuery = whereClause
+      ? db.select({ count: sql<number>`count(*)`.as('count') }).from(churchEvents).where(whereClause)
+      : db.select({ count: sql<number>`count(*)`.as('count') }).from(churchEvents);
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(churchEvents);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = whereClause
+      ? db.select().from(churchEvents).where(whereClause)
+      : db.select().from(churchEvents);
 
     // Apply sorting
+    let query;
     if (sortBy === 'eventDate') {
       query = sortOrder === 'desc' 
-        ? query.orderBy(desc(churchEvents.eventDate))
-        : query.orderBy(asc(churchEvents.eventDate));
+        ? baseQuery.orderBy(desc(churchEvents.eventDate))
+        : baseQuery.orderBy(asc(churchEvents.eventDate));
     } else if (sortBy === 'createdAt') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(churchEvents.createdAt))
-        : query.orderBy(asc(churchEvents.createdAt));
+        ? baseQuery.orderBy(desc(churchEvents.createdAt))
+        : baseQuery.orderBy(asc(churchEvents.createdAt));
     } else if (sortBy === 'type') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(churchEvents.type))
-        : query.orderBy(asc(churchEvents.type));
+        ? baseQuery.orderBy(desc(churchEvents.type))
+        : baseQuery.orderBy(asc(churchEvents.type));
     } else {
-      query = query.orderBy(desc(churchEvents.createdAt));
+      query = baseQuery.orderBy(desc(churchEvents.createdAt));
     }
 
     const allEvents = await query.limit(pageSize).offset(offset);

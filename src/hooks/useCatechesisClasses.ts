@@ -53,21 +53,31 @@ export function useCatechesisClasses(): UseCatechesisClassesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseCatechesisClassesReturn['pagination']>(null);
 
-  const fetchClasses = useCallback(async (params = {}) => {
+  const fetchClasses = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    grade?: string;
+    teacherId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.grade) queryParams.append('grade', params.grade);
-      if (params.teacherId) queryParams.append('teacherId', params.teacherId);
-      if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.grade) queryParams.append('grade', params.grade);
+      if (params?.teacherId) queryParams.append('teacherId', params.teacherId);
+      if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/catechesis/classes?${queryParams.toString()}`);
       const result = await response.json();
@@ -228,6 +238,9 @@ export function useCatechesisClasses(): UseCatechesisClassesReturn {
     fetchClassLessons,
   };
 }
+
+
+
 
 
 

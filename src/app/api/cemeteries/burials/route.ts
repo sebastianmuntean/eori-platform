@@ -121,37 +121,34 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(burials);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(burials);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db.select().from(burials);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(burials);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'burialDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(burials.burialDate))
-        : query.orderBy(asc(burials.burialDate));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(burials.burialDate))
+        : queryWithWhere.orderBy(asc(burials.burialDate));
     } else if (sortBy === 'deceasedName') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(burials.deceasedName))
-        : query.orderBy(asc(burials.deceasedName));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(burials.deceasedName))
+        : queryWithWhere.orderBy(asc(burials.deceasedName));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(burials.createdAt))
-        : query.orderBy(asc(burials.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(burials.createdAt))
+        : queryWithWhere.orderBy(asc(burials.createdAt));
     } else {
-      query = query.orderBy(desc(burials.burialDate));
+      finalQuery = queryWithWhere.orderBy(desc(burials.burialDate));
     }
 
-    const allBurials = await query.limit(pageSize).offset(offset);
+    const allBurials = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

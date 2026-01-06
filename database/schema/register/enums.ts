@@ -35,3 +35,7 @@ export const generalRegisterResolutionStatusEnum = pgEnum('general_register_reso
 
 
 
+
+
+
+

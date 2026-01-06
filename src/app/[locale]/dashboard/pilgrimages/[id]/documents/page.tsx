@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -123,12 +123,12 @@ export default function PilgrimageDocumentsPage() {
 
   const columns = [
     {
-      key: 'title',
+      key: 'title' as keyof PilgrimageDocument,
       label: tPilgrimages('titleField'),
       sortable: true,
     },
     {
-      key: 'documentType',
+      key: 'documentType' as keyof PilgrimageDocument,
       label: tPilgrimages('documentType'),
       sortable: false,
       render: (value: DocumentType) => (
@@ -138,7 +138,7 @@ export default function PilgrimageDocumentsPage() {
       ),
     },
     {
-      key: 'fileName',
+      key: 'fileName' as keyof PilgrimageDocument,
       label: tPilgrimages('document'),
       sortable: false,
       render: (value: string) => (
@@ -151,13 +151,13 @@ export default function PilgrimageDocumentsPage() {
       ),
     },
     {
-      key: 'fileSize',
+      key: 'fileSize' as keyof PilgrimageDocument,
       label: t('size'),
       sortable: false,
       render: (value: number | null) => formatFileSize(value),
     },
     {
-      key: 'isPublic',
+      key: 'isPublic' as keyof PilgrimageDocument,
       label: tPilgrimages('isPublic'),
       sortable: false,
       render: (value: boolean) => (
@@ -167,13 +167,13 @@ export default function PilgrimageDocumentsPage() {
       ),
     },
     {
-      key: 'createdAt',
+      key: 'createdAt' as keyof PilgrimageDocument,
       label: t('createdAt'),
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof PilgrimageDocument,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: PilgrimageDocument) => (
@@ -204,14 +204,15 @@ export default function PilgrimageDocumentsPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('documents')}</h1>
-        <Button onClick={() => setShowUploadModal(true)}>
-          {tPilgrimages('uploadDocument')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('documents') || 'Documents'}
+        action={
+          <Button onClick={() => setShowUploadModal(true)}>
+            {tPilgrimages('uploadDocument')}
+          </Button>
+        }
+      />
 
       {/* Documents Table */}
       <Card variant="outlined">

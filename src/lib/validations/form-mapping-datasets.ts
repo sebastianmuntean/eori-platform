@@ -17,7 +17,7 @@ export const mappingSchema = z.object({
 export const createDatasetSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional().nullable(),
-  targetModule: z.enum(['registratura', 'general_register', 'events', 'partners']),
+  targetModule: z.enum(['registratura', 'general_register', 'events', 'clients']),
   parishId: z.string().uuid().optional().nullable(),
   isDefault: z.boolean().default(false),
   mappings: z.array(mappingSchema).default([]),

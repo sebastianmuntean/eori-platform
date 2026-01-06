@@ -13,9 +13,9 @@ const AVAILABLE_TABLES: Record<string, { name: string; columns: string[] }[]> = 
         'sender_name',
         'sender_doc_number',
         'sender_doc_date',
-        'sender_partner_id',
+        'sender_client_id',
         'recipient_name',
-        'recipient_partner_id',
+        'recipient_client_id',
         'external_number',
         'external_date',
         'priority',
@@ -76,9 +76,9 @@ const AVAILABLE_TABLES: Record<string, { name: string; columns: string[] }[]> = 
       ],
     },
   ],
-  partners: [
+  clients: [
     {
-      name: 'partners',
+      name: 'clients',
       columns: [
         'first_name',
         'last_name',
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const targetModule = searchParams.get('targetModule') as 'registratura' | 'general_register' | 'events' | 'partners' | null;
+    const targetModule = searchParams.get('targetModule') as 'registratura' | 'general_register' | 'events' | 'clients' | null;
 
     if (!targetModule) {
       return NextResponse.json(
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
       data: { tables },
     });
   } catch (error) {
-    logError('Error fetching available tables', error);
+    logError(error, { endpoint: '/api/online-forms/mapping-datasets/available-tables', method: 'GET' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

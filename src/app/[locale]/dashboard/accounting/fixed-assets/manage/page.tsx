@@ -1,26 +1,30 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useFixedAssets, FixedAsset } from '@/hooks/useFixedAssets';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
-import { FIXED_ASSET_STATUS } from '@/lib/fixed-assets/constants';
-import { getCategoryOptions, getStatusBadgeVariant } from '@/lib/fixed-assets/helpers';
+import { getStatusBadgeVariant } from '@/lib/fixed-assets/helpers';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import {
+  formDataToCreateData,
+  formDataToUpdateData,
+  assetToFormData,
+  createInitialFormData,
+} from '@/lib/fixed-assets/formHelpers';
+import { FixedAssetAddModal } from '@/components/accounting/FixedAssetAddModal';
+import { FixedAssetEditModal } from '@/components/accounting/FixedAssetEditModal';
+import { DeleteFixedAssetDialog } from '@/components/accounting/DeleteFixedAssetDialog';
+import { FixedAssetsFiltersCard } from '@/components/accounting/FixedAssetsFiltersCard';
+import { FixedAssetsTableCard } from '@/components/accounting/FixedAssetsTableCard';
+import { FixedAssetFormData } from '@/components/fixed-assets/FixedAssetForm';
 
 export default function FixedAssetsManagePage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.FIXED_ASSETS_MANAGE);
@@ -46,132 +50,128 @@ export default function FixedAssetsManagePage() {
 
   const { parishes, fetchParishes } = useParishes();
 
+  // Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'disposed' | 'damaged' | ''>('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<FixedAsset | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    parishId: '',
-    inventoryNumber: '',
-    name: '',
-    description: '',
-    category: '',
-    type: '',
-    location: '',
-    acquisitionDate: '',
-    acquisitionValue: '',
-    currentValue: '',
-    depreciationMethod: '',
-    usefulLifeYears: '',
-    status: 'active' as 'active' | 'inactive' | 'disposed' | 'damaged',
-    disposalDate: '',
-    disposalValue: '',
-    disposalReason: '',
-    notes: '',
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState<FixedAssetFormData>(createInitialFormData());
 
   useEffect(() => {
     fetchParishes({ all: true });
   }, [fetchParishes]);
 
-  useEffect(() => {
-    const params: any = {
-      page: currentPage,
+  // Build filter params helper
+  const buildFilterParams = useCallback(
+    (page: number = currentPage) => ({
+      page,
       pageSize: 10,
       search: searchTerm || undefined,
       parishId: parishFilter || undefined,
       category: categoryFilter || undefined,
-      type: typeFilter || undefined,
-      status: statusFilter || undefined,
-    };
-    fetchFixedAssets(params);
-  }, [currentPage, searchTerm, parishFilter, categoryFilter, typeFilter, statusFilter, fetchFixedAssets]);
+      status: (statusFilter || undefined) as 'active' | 'inactive' | 'disposed' | 'damaged' | undefined,
+    }),
+    [currentPage, searchTerm, parishFilter, categoryFilter, statusFilter]
+  );
 
-  const handleAdd = () => {
+  useEffect(() => {
+    fetchFixedAssets(buildFilterParams());
+  }, [currentPage, searchTerm, parishFilter, categoryFilter, statusFilter, fetchFixedAssets, buildFilterParams]);
+
+  const resetForm = useCallback(() => {
+    setFormData(createInitialFormData());
+    setSelectedAsset(null);
+  }, []);
+
+  // Handlers
+  const handleAdd = useCallback(() => {
     resetForm();
     setShowAddModal(true);
-  };
+  }, [resetForm]);
 
-  const handleEdit = (asset: FixedAsset) => {
+  const handleEdit = useCallback((asset: FixedAsset) => {
     setSelectedAsset(asset);
-    setFormData({
-      parishId: asset.parishId,
-      inventoryNumber: asset.inventoryNumber,
-      name: asset.name,
-      description: asset.description || '',
-      category: asset.category || '',
-      type: asset.type || '',
-      location: asset.location || '',
-      acquisitionDate: asset.acquisitionDate || '',
-      acquisitionValue: asset.acquisitionValue || '',
-      currentValue: asset.currentValue || '',
-      depreciationMethod: asset.depreciationMethod || '',
-      usefulLifeYears: asset.usefulLifeYears?.toString() || '',
-      status: asset.status,
-      disposalDate: asset.disposalDate || '',
-      disposalValue: asset.disposalValue || '',
-      disposalReason: asset.disposalReason || '',
-      notes: asset.notes || '',
-    });
+    setFormData(assetToFormData(asset));
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleSave = async () => {
-    if (selectedAsset) {
-      const result = await updateFixedAsset(selectedAsset.id, formData);
-      if (result) {
-        setShowEditModal(false);
-        setSelectedAsset(null);
-        fetchFixedAssets({ page: currentPage, pageSize: 10 });
-      }
-    } else {
-      const result = await createFixedAsset(formData);
+  const handleCreate = useCallback(async () => {
+    setIsSubmitting(true);
+    try {
+      const result = await createFixedAsset(formDataToCreateData(formData));
       if (result) {
         setShowAddModal(false);
         resetForm();
-        fetchFixedAssets({ page: currentPage, pageSize: 10 });
+        setCurrentPage(1);
+        fetchFixedAssets(buildFilterParams(1));
       }
+    } catch (error) {
+      console.error('Error creating fixed asset:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [formData, createFixedAsset, buildFilterParams, fetchFixedAssets]);
 
-  const handleDelete = async (id: string) => {
-    const success = await deleteFixedAsset(id);
-    if (success) {
-      setDeleteConfirm(null);
-      fetchFixedAssets({ page: currentPage, pageSize: 10 });
+  const handleUpdate = useCallback(async () => {
+    if (!selectedAsset) return;
+    setIsSubmitting(true);
+    try {
+      const result = await updateFixedAsset(selectedAsset.id, formDataToUpdateData(formData));
+      if (result) {
+        setShowEditModal(false);
+        setSelectedAsset(null);
+        fetchFixedAssets(buildFilterParams());
+      }
+    } catch (error) {
+      console.error('Error updating fixed asset:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [selectedAsset, formData, updateFixedAsset, buildFilterParams, fetchFixedAssets]);
 
-  const resetForm = () => {
-    setFormData({
-      parishId: '',
-      inventoryNumber: '',
-      name: '',
-      description: '',
-      category: '',
-      type: '',
-      location: '',
-      acquisitionDate: '',
-      acquisitionValue: '',
-      currentValue: '',
-      depreciationMethod: '',
-      usefulLifeYears: '',
-      status: 'active',
-      disposalDate: '',
-      disposalValue: '',
-      disposalReason: '',
-      notes: '',
-    });
-    setSelectedAsset(null);
-  };
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        const success = await deleteFixedAsset(id);
+        if (success) {
+          setDeleteConfirm(null);
+          fetchFixedAssets(buildFilterParams());
+        }
+      } catch (error) {
+        console.error('Error deleting fixed asset:', error);
+      }
+    },
+    [deleteFixedAsset, buildFilterParams, fetchFixedAssets]
+  );
 
-  const columns: any[] = [
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setParishFilter('');
+    setCategoryFilter('');
+    setStatusFilter('');
+    setCurrentPage(1);
+  }, []);
+
+  // Filter change handler factory to reduce duplication
+  const createFilterChangeHandler = useCallback(
+    <T extends string>(setter: (value: T) => void) => (value: T) => {
+      setter(value);
+      setCurrentPage(1);
+    },
+    []
+  );
+
+  const columns = useMemo(() => [
     { key: 'inventoryNumber', label: t('inventoryNumber') || 'Număr Inventar', sortable: true },
     { key: 'name', label: t('name') || 'Name', sortable: true },
     {
@@ -218,287 +218,94 @@ export default function FixedAssetsManagePage() {
         />
       ),
     },
-  ];
+  ], [t, handleEdit]);
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
           { label: tMenu('fixedAssets') || 'Mijloace fixe', href: `/${locale}/dashboard/accounting/fixed-assets` },
-          { label: tMenu('fixedAssetsManagement') || 'Gestionare', href: `/${locale}/dashboard/accounting/fixed-assets/manage` },
+          { label: tMenu('fixedAssetsManagement') || 'Gestionare' },
         ]}
+        title={tMenu('fixedAssetsManagement') || 'Mijloace fixe si obiecte de inventar'}
+        action={<Button onClick={handleAdd}>{t('add') || 'Add'}</Button>}
       />
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{tMenu('fixedAssetsManagement') || 'Mijloace fixe si obiecte de inventar'}</h1>
-            <Button onClick={handleAdd}>{t('add') || 'Add'}</Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <SearchInput
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('search') || 'Search...'}
-              />
-            </div>
+        {/* Filters */}
+        <FixedAssetsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        categoryFilter={categoryFilter}
+        statusFilter={statusFilter}
+        parishes={parishes}
+        onSearchChange={createFilterChangeHandler(setSearchTerm)}
+        onParishFilterChange={createFilterChangeHandler(setParishFilter)}
+        onCategoryFilterChange={createFilterChangeHandler(setCategoryFilter)}
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value as 'active' | 'inactive' | 'disposed' | 'damaged' | '');
+          setCurrentPage(1);
+        }}
+        onClearFilters={handleClearFilters}
+      />
 
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                  setCurrentPage(1);
-                }}
-                parishes={parishes}
-              />
-              <FilterSelect
-                label={t('category') || 'Category'}
-                value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                options={getCategoryOptions(tMenu)}
-              />
-              <FilterSelect
-                label={t('status') || 'Status'}
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  { value: FIXED_ASSET_STATUS.ACTIVE, label: t('active') || 'Active' },
-                  { value: FIXED_ASSET_STATUS.INACTIVE, label: t('inactive') || 'Inactive' },
-                  { value: FIXED_ASSET_STATUS.DISPOSED, label: t('disposed') || 'Disposed' },
-                  { value: FIXED_ASSET_STATUS.DAMAGED, label: t('damaged') || 'Damaged' },
-                ]}
-              />
-              <FilterClear
-                onClear={() => {
-                  setSearchTerm('');
-                  setParishFilter('');
-                  setCategoryFilter('');
-                  setTypeFilter('');
-                  setStatusFilter('');
-                  setCurrentPage(1);
-                }}
-              />
-            </FilterGrid>
-
-            {error && (
-              <div className="p-4 bg-danger/10 text-danger rounded">
-                {error}
-              </div>
-            )}
-
-            <Table
-              data={fixedAssets}
-              columns={columns}
-              loading={loading}
-            />
-
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                <div className="text-sm text-text-secondary">
-                  {t('showing')} {(pagination.page - 1) * pagination.pageSize + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} {t('of')} {pagination.total}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                  >
-                    {t('previous')}
-                  </Button>
-                  <span className="text-sm text-text-secondary">
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === pagination.totalPages || loading}
-                  >
-                    {t('next')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardBody>
+      {/* Table */}
+      <FixedAssetsTableCard
+        data={fixedAssets}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No fixed assets available'}
+      />
       </Card>
 
-      {/* Add/Edit Modal */}
-      <FormModal
-        isOpen={showAddModal || showEditModal}
+      {/* Add Modal */}
+      <FixedAssetAddModal
+        isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
-          setShowEditModal(false);
           resetForm();
         }}
         onCancel={() => {
           setShowAddModal(false);
-          setShowEditModal(false);
           resetForm();
         }}
-        title={selectedAsset ? (t('editFixedAsset') || 'Edit Fixed Asset') : (t('addFixedAsset') || 'Add Fixed Asset')}
-        onSubmit={handleSave}
-        isSubmitting={false}
-        submitLabel={t('save') || 'Save'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        size="lg"
-      >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          <Select
-            label={t('parish') || 'Parish'}
-            value={formData.parishId}
-            onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Input
-            label={t('inventoryNumber') || 'Număr Inventar'}
-            value={formData.inventoryNumber}
-            onChange={(e) => setFormData({ ...formData, inventoryNumber: e.target.value })}
-            required
-          />
-          <Input
-            label={t('name') || 'Name'}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('description') || 'Description'}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            type="textarea"
-          />
-          <Select
-            label={t('category') || 'Category'}
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            options={[
-              { value: '', label: t('select') || 'Select...' },
-              { value: 'cladiri', label: tMenu('buildings') || 'Cladiri' },
-              { value: 'terenuri', label: tMenu('land') || 'Terenuri' },
-              { value: 'transport', label: tMenu('transport') || 'Transport' },
-              { value: 'materiale_pretioase', label: tMenu('preciousObjects') || 'Materiale Prețioase' },
-              { value: 'obiecte_cult', label: tMenu('religiousObjects') || 'Obiecte Cult' },
-              { value: 'mobilier', label: tMenu('furniture') || 'Mobilier' },
-              { value: 'carti_cult', label: tMenu('religiousBooks') || 'Cărți Cult' },
-              { value: 'carti_biblioteca', label: tMenu('libraryBooks') || 'Cărți Biblioteca' },
-              { value: 'bunuri_culturale', label: tMenu('culturalGoods') || 'Bunuri Culturale' },
-              { value: 'modernizari', label: tMenu('modernizations') || 'Modernizari' },
-            ]}
-          />
-          <Input
-            label={t('type') || 'Type'}
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-          />
-          <Input
-            label={t('location') || 'Location'}
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          />
-          <Input
-            label={t('acquisitionDate') || 'Acquisition Date'}
-            type="date"
-            value={formData.acquisitionDate}
-            onChange={(e) => setFormData({ ...formData, acquisitionDate: e.target.value })}
-          />
-          <Input
-            label={t('acquisitionValue') || 'Acquisition Value'}
-            type="number"
-            step="0.01"
-            value={formData.acquisitionValue}
-            onChange={(e) => setFormData({ ...formData, acquisitionValue: e.target.value })}
-          />
-          <Input
-            label={t('currentValue') || 'Current Value'}
-            type="number"
-            step="0.01"
-            value={formData.currentValue}
-            onChange={(e) => setFormData({ ...formData, currentValue: e.target.value })}
-          />
-          <Input
-            label={t('depreciationMethod') || 'Depreciation Method'}
-            value={formData.depreciationMethod}
-            onChange={(e) => setFormData({ ...formData, depreciationMethod: e.target.value })}
-          />
-          <Input
-            label={t('usefulLifeYears') || 'Useful Life (Years)'}
-            type="number"
-            value={formData.usefulLifeYears}
-            onChange={(e) => setFormData({ ...formData, usefulLifeYears: e.target.value })}
-          />
-          <Select
-            label={t('status') || 'Status'}
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-            options={[
-              { value: 'active', label: t('active') || 'Active' },
-              { value: 'inactive', label: t('inactive') || 'Inactive' },
-              { value: 'disposed', label: t('disposed') || 'Disposed' },
-              { value: 'damaged', label: t('damaged') || 'Damaged' },
-            ]}
-          />
-          {formData.status === 'disposed' && (
-            <>
-              <Input
-                label={t('disposalDate') || 'Disposal Date'}
-                type="date"
-                value={formData.disposalDate}
-                onChange={(e) => setFormData({ ...formData, disposalDate: e.target.value })}
-              />
-              <Input
-                label={t('disposalValue') || 'Disposal Value'}
-                type="number"
-                step="0.01"
-                value={formData.disposalValue}
-                onChange={(e) => setFormData({ ...formData, disposalValue: e.target.value })}
-              />
-              <Input
-                label={t('disposalReason') || 'Disposal Reason'}
-                value={formData.disposalReason}
-                onChange={(e) => setFormData({ ...formData, disposalReason: e.target.value })}
-                type="textarea"
-              />
-            </>
-          )}
-          <Input
-            label={t('notes') || 'Notes'}
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            type="textarea"
-          />
-        </div>
-      </FormModal>
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        onSubmit={handleCreate}
+        isSubmitting={isSubmitting}
+      />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* Edit Modal */}
+      <FixedAssetEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedAsset(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedAsset(null);
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        onSubmit={handleUpdate}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteFixedAssetDialog
         isOpen={!!deleteConfirm}
+        assetId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete') || 'Confirm Delete'}
-        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this fixed asset?'}
-        confirmLabel={t('delete') || 'Delete'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

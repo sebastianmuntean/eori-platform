@@ -77,29 +77,30 @@ export async function GET(
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db
+    const baseQuery = db
       .select()
       .from(cemeteryConcessionPayments)
       .where(eq(cemeteryConcessionPayments.concessionId, id));
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'paymentDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.paymentDate))
-        : query.orderBy(asc(cemeteryConcessionPayments.paymentDate));
+      finalQuery = sortOrder === 'desc' 
+        ? baseQuery.orderBy(desc(cemeteryConcessionPayments.paymentDate))
+        : baseQuery.orderBy(asc(cemeteryConcessionPayments.paymentDate));
     } else if (sortBy === 'amount') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.amount))
-        : query.orderBy(asc(cemeteryConcessionPayments.amount));
+      finalQuery = sortOrder === 'desc' 
+        ? baseQuery.orderBy(desc(cemeteryConcessionPayments.amount))
+        : baseQuery.orderBy(asc(cemeteryConcessionPayments.amount));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessionPayments.createdAt))
-        : query.orderBy(asc(cemeteryConcessionPayments.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? baseQuery.orderBy(desc(cemeteryConcessionPayments.createdAt))
+        : baseQuery.orderBy(asc(cemeteryConcessionPayments.createdAt));
     } else {
-      query = query.orderBy(desc(cemeteryConcessionPayments.paymentDate));
+      finalQuery = baseQuery.orderBy(desc(cemeteryConcessionPayments.paymentDate));
     }
 
-    const allPayments = await query.limit(pageSize).offset(offset);
+    const allPayments = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,
@@ -231,7 +232,6 @@ export async function POST(
           description: `Plată concesiune ${concession.contractNumber} - Perioada ${data.periodStart} - ${data.periodEnd}`,
           status: 'completed',
           createdBy: userId,
-          transactionId: newPayment.id,
         });
       }
 

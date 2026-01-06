@@ -20,3 +20,7 @@ export const catechesisLessons = pgTable('catechesis_lessons', {
 
 
 
+
+
+
+

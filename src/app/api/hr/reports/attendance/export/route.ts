@@ -23,7 +23,13 @@ export async function GET(request: Request) {
       conditions.push(lte(timeEntries.entryDate, dateTo));
     }
 
-    let query = db
+    if (parishId) {
+      conditions.push(eq(employees.parishId, parishId));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const baseQuery = db
       .select({
         timeEntry: timeEntries,
         employee: employees,
@@ -31,16 +37,7 @@ export async function GET(request: Request) {
       .from(timeEntries)
       .innerJoin(employees, eq(timeEntries.employeeId, employees.id));
 
-    if (parishId) {
-      conditions.push(eq(employees.parishId, parishId));
-    }
-
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
-    const results = await query;
+    const results = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
     if (format === 'excel') {
       // Prepare data for Excel
@@ -117,5 +114,6 @@ export async function GET(request: Request) {
     });
   }
 }
+
 
 

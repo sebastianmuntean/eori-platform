@@ -1,0 +1,64 @@
+import { Card, CardBody } from '@/components/ui/Card';
+import { formatCurrency } from '@/lib/utils/invoiceUtils';
+
+interface InvoiceSummary {
+  totalIssued: number;
+  totalReceived: number;
+  unpaidCount: number;
+  overdueCount: number;
+}
+
+interface InvoiceSummaryCardsProps {
+  summary: InvoiceSummary | null;
+  t: (key: string) => string;
+}
+
+export function InvoiceSummaryCards({ summary, t }: InvoiceSummaryCardsProps) {
+  if (!summary) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <Card variant="elevated">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">{t('totalIssued')}</p>
+              <p className="text-2xl font-bold text-primary">{formatCurrency(summary.totalIssued)}</p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+      <Card variant="elevated">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">{t('totalReceived')}</p>
+              <p className="text-2xl font-bold text-info">{formatCurrency(summary.totalReceived)}</p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+      <Card variant="elevated">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">{t('unpaid')}</p>
+              <p className="text-2xl font-bold text-warning">{summary.unpaidCount}</p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+      <Card variant="elevated">
+        <CardBody>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">{t('overdue')}</p>
+              <p className="text-2xl font-bold text-danger">{summary.overdueCount}</p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}
+

@@ -59,7 +59,16 @@ export function useParishes(): UseParishesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseParishesReturn['pagination']>(null);
 
-  const fetchParishes = useCallback(async (params = {}) => {
+  const fetchParishes = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    dioceseId?: string;
+    deaneryId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    all?: boolean;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

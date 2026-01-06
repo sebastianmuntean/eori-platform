@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { DocumentDetail } from '@/components/registratura/DocumentDetail';
 import { DocumentWorkflow } from '@/components/registratura/DocumentWorkflow';
 import { DocumentAttachments } from '@/components/registratura/DocumentAttachments';
@@ -106,13 +106,15 @@ export default function DocumentDetailPage() {
   if (!document) {
     return (
       <div className="space-y-6">
-        <Breadcrumbs
-          items={[
+        <PageHeader
+          breadcrumbs={[
             { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
             { label: tReg('registratura'), href: `/${locale}/dashboard/registry/registratura` },
             { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/registratura/registrul-general` },
-            { label: tReg('document'), href: '#' },
+            { label: tReg('document') },
           ]}
+          title={tReg('document') || 'Document'}
+          className="mb-6"
         />
         <div className="text-center py-12">
           <p className="text-text-secondary">{tReg('documentNotFound')}</p>
@@ -123,13 +125,15 @@ export default function DocumentDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: tReg('registratura'), href: `/${locale}/dashboard/registry/registratura` },
           { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/registratura/registrul-general` },
-          { label: document.formattedNumber || document.subject, href: '#' },
+          { label: document.formattedNumber || document.subject },
         ]}
+        title={document.formattedNumber || document.subject || tReg('document') || 'Document'}
+        className="mb-6"
       />
 
       <DocumentDetail

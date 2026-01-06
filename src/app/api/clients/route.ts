@@ -259,29 +259,29 @@ function buildTableWhereClause(search: string): SQL | undefined {
 
 /**
  * Apply sorting to table query
- * @param query - Drizzle query builder
+ * @param baseQuery - Drizzle query builder after from()
  * @param sortBy - Sort field
  * @param sortOrder - Sort direction
  * @returns Query with sorting applied
  */
 function applyTableSorting(
-  query: ReturnType<typeof db.select>,
+  baseQuery: any,
   sortBy: AllowedSortField,
   sortOrder: SortOrder
 ) {
   if (sortBy === 'code') {
     return sortOrder === 'desc' 
-      ? query.orderBy(desc(clients.code))
-      : query.orderBy(asc(clients.code));
+      ? baseQuery.orderBy(desc(clients.code))
+      : baseQuery.orderBy(asc(clients.code));
   }
   
   if (sortBy === 'createdAt') {
     return sortOrder === 'desc' 
-      ? query.orderBy(desc(clients.createdAt))
-      : query.orderBy(asc(clients.createdAt));
+      ? baseQuery.orderBy(desc(clients.createdAt))
+      : baseQuery.orderBy(asc(clients.createdAt));
   }
   
-  return query;
+  return baseQuery;
 }
 
 /**
@@ -301,13 +301,13 @@ async function fetchClientsFromTable(
   pageSize: number
 ): Promise<ClientResponse[]> {
   const whereClause = buildTableWhereClause(search);
-  let query = db.select().from(clients);
+  const baseQuery = db.select().from(clients);
   
-  if (whereClause) {
-    query = query.where(whereClause);
-  }
+  const queryWithWhere = whereClause 
+    ? baseQuery.where(whereClause)
+    : baseQuery;
   
-  query = applyTableSorting(query, sortBy, sortOrder);
+  const query = applyTableSorting(queryWithWhere, sortBy, sortOrder);
   const offset = (page - 1) * pageSize;
   
   const results = await query.limit(pageSize).offset(offset);
@@ -353,7 +353,7 @@ async function fetchClientsFromView(
     WHERE ${viewWhereSQL}
     ORDER BY name ${orderDirection}
     LIMIT ${pageSize} OFFSET ${offset}
-  `);
+  `) as any;
   
   const rows = Array.isArray(result) ? result : (result.rows || []);
   return rows.map((row: ClientViewRow) => mapClientViewRowToResponse(row));
@@ -368,10 +368,10 @@ async function getCountFromView(search: string): Promise<number> {
   const viewWhereSQL = buildViewWhereSQL(search);
   
   const countResult = await db.execute(sql`
-    SELECT COUNT(*) as count 
+    SELECT COUNT(*) as count
     FROM clients_view 
     WHERE ${viewWhereSQL}
-  `);
+  `) as any;
   
   const countRows = Array.isArray(countResult) ? countResult : (countResult.rows || []);
   return Number((countRows[0] as { count: string | number })?.count || 0);

@@ -16,7 +16,7 @@ import { logger } from '@/lib/utils/logger';
 const ALLOWED_SORT_FIELDS = ['createdAt', 'updatedAt', 'name', 'isActive'] as const;
 
 // Allowed target modules
-const ALLOWED_TARGET_MODULES = ['registratura', 'general_register', 'events', 'partners'] as const;
+const ALLOWED_TARGET_MODULES = ['registratura', 'general_register', 'events', 'clients'] as const;
 
 /**
  * GET /api/online-forms - List online forms with filtering and pagination

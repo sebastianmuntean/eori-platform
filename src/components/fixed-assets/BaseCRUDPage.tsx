@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useMemo, useCallback } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Table } from '@/components/ui/Table';
+import { Table, Column } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -15,11 +15,12 @@ import { useFixedAssetsFilters } from '@/hooks/useFixedAssetsFilters';
 import { useTranslations } from 'next-intl';
 import { FixedAssetForm, FixedAssetFormData } from './FixedAssetForm';
 import { validateFixedAssetForm } from '@/lib/fixed-assets/validation';
+import { FixedAssetCategory } from '@/lib/fixed-assets/constants';
 import { useFixedAssetsTableColumns, TableColumn } from './FixedAssetsTableColumns';
 import { FixedAssetsPagination } from './FixedAssetsPagination';
 import { useFixedAssetsBreadcrumbs } from '@/lib/fixed-assets/breadcrumbs';
 import { ModalFooter } from './ModalFooter';
-import { createInitialFormData, assetToFormData } from '@/lib/fixed-assets/formHelpers';
+import { createInitialFormData, assetToFormData, formDataToCreateData, formDataToUpdateData } from '@/lib/fixed-assets/formHelpers';
 import { usePageLocale } from '@/hooks/usePageLocale';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
@@ -128,7 +129,7 @@ export function BaseCRUDPage({
 
     try {
       if (selectedAsset) {
-        const result = await updateFixedAsset(selectedAsset.id, formData);
+        const result = await updateFixedAsset(selectedAsset.id, formDataToUpdateData(formData));
         if (result) {
           setShowEditModal(false);
           setSelectedAsset(null);
@@ -136,7 +137,7 @@ export function BaseCRUDPage({
           refreshData();
         }
       } else {
-        const result = await createFixedAsset(formData);
+        const result = await createFixedAsset(formDataToCreateData(formData));
         if (result) {
           setShowAddModal(false);
           resetForm();
@@ -221,7 +222,7 @@ export function BaseCRUDPage({
             <div className="flex gap-4">
               <SearchInput
                 value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(value) => handleSearchChange(value)}
                 placeholder={t('search') || 'Search...'}
               />
             </div>
@@ -243,8 +244,7 @@ export function BaseCRUDPage({
 
             <Table
               data={fixedAssets}
-              columns={columns}
-              loading={loading}
+              columns={columns as Column<FixedAsset>[]}
             />
 
             {pagination && (
@@ -274,7 +274,7 @@ export function BaseCRUDPage({
               formData={formData}
               onChange={handleFormChange}
               parishes={parishes}
-              defaultCategory={defaultCategory}
+              defaultCategory={defaultCategory as FixedAssetCategory | undefined}
               showCategory={showCategory}
               errors={formErrors}
             />
@@ -307,7 +307,7 @@ export function BaseCRUDPage({
               formData={formData}
               onChange={handleFormChange}
               parishes={parishes}
-              defaultCategory={defaultCategory}
+              defaultCategory={defaultCategory as FixedAssetCategory | undefined}
               showCategory={showCategory}
               errors={formErrors}
             />

@@ -16,11 +16,11 @@ export interface Document {
   registrationDate: string | null;
   externalNumber: string | null;
   externalDate: string | null;
-  senderPartnerId: string | null;
+  senderClientId: string | null;
   senderName: string | null;
   senderDocNumber: string | null;
   senderDocDate: string | null;
-  recipientPartnerId: string | null;
+  recipientClientId: string | null;
   recipientName: string | null;
   subject: string;
   content: string | null;
@@ -142,21 +142,31 @@ export function useDocuments(): UseDocumentsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseDocumentsReturn['pagination']>(null);
 
-  const fetchDocuments = useCallback(async (params = {}) => {
+  const fetchDocuments = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    documentType?: DocumentType;
+    status?: DocumentStatus;
+    year?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('limit', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.documentType) queryParams.append('documentType', params.documentType);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.year) queryParams.append('year', params.year.toString());
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('limit', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.documentType) queryParams.append('documentType', params.documentType);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.year) queryParams.append('year', params.year.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/registratura/documents?${queryParams.toString()}`);
       const result = await response.json();

@@ -68,22 +68,33 @@ export function useEmployees(): UseEmployeesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseEmployeesReturn['pagination']>(null);
 
-  const fetchEmployees = useCallback(async (params = {}) => {
+  const fetchEmployees = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    departmentId?: string;
+    positionId?: string;
+    employmentStatus?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.departmentId) queryParams.append('departmentId', params.departmentId);
-      if (params.positionId) queryParams.append('positionId', params.positionId);
-      if (params.employmentStatus) queryParams.append('employmentStatus', params.employmentStatus);
-      if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.departmentId) queryParams.append('departmentId', params.departmentId);
+      if (params?.positionId) queryParams.append('positionId', params.positionId);
+      if (params?.employmentStatus) queryParams.append('employmentStatus', params.employmentStatus);
+      if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/hr/employees?${queryParams.toString()}`);
       const result = await response.json();
@@ -218,6 +229,9 @@ export function useEmployees(): UseEmployeesReturn {
     getEmployee,
   };
 }
+
+
+
 
 
 

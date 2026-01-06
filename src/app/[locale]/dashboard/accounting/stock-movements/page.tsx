@@ -1,21 +1,22 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
-import { FormModal } from '@/components/accounting/FormModal';
+import { Dropdown } from '@/components/ui/Dropdown';
+import { StockMovementAddModal, StockMovementFormData } from '@/components/accounting/StockMovementAddModal';
+import { StockMovementEditModal } from '@/components/accounting/StockMovementEditModal';
+import { DeleteStockMovementDialog } from '@/components/accounting/DeleteStockMovementDialog';
+import { StockMovementsFiltersCard } from '@/components/accounting/StockMovementsFiltersCard';
+import { StockMovementsTableCard } from '@/components/accounting/StockMovementsTableCard';
 import { useStockMovements, StockMovement } from '@/hooks/useStockMovements';
 import { useWarehouses } from '@/hooks/useWarehouses';
 import { useProducts } from '@/hooks/useProducts';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect, FilterDate } from '@/components/ui/FilterGrid';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
@@ -36,6 +37,8 @@ export default function StockMovementsPage() {
     pagination,
     fetchStockMovements,
     createStockMovement,
+    updateStockMovement,
+    deleteStockMovement,
   } = useStockMovements();
 
   const { warehouses, fetchWarehouses } = useWarehouses();
@@ -50,11 +53,14 @@ export default function StockMovementsPage() {
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedStockMovement, setSelectedStockMovement] = useState<StockMovement | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [formData, setFormData] = useState<StockMovementFormData>({
     warehouseId: '',
     productId: '',
     parishId: '',
-    type: 'in' as 'in' | 'out' | 'transfer' | 'adjustment' | 'return',
+    type: 'in',
     movementDate: new Date().toISOString().split('T')[0],
     quantity: '',
     unitCost: '',
@@ -84,13 +90,92 @@ export default function StockMovementsPage() {
     fetchStockMovements(params);
   }, [permissionLoading, currentPage, parishFilter, warehouseFilter, productFilter, typeFilter, dateFrom, dateTo, fetchStockMovements]);
 
-  const handleSave = async () => {
+  const handleCreate = async () => {
+    // Validate transfer type requires destination warehouse
+    if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
+      alert(t('destinationWarehouseRequired') || 'Destination warehouse is required for transfer type');
+      return;
+    }
+
     const result = await createStockMovement(formData);
     if (result) {
       setShowAddModal(false);
       resetForm();
-      fetchStockMovements({ page: currentPage, pageSize: 10 });
+      const params: any = {
+        page: currentPage,
+        pageSize: 10,
+        parishId: parishFilter || undefined,
+        warehouseId: warehouseFilter || undefined,
+        productId: productFilter || undefined,
+        type: typeFilter || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      };
+      fetchStockMovements(params);
     }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedStockMovement) return;
+
+    // Validate transfer type requires destination warehouse
+    if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
+      alert(t('destinationWarehouseRequired') || 'Destination warehouse is required for transfer type');
+      return;
+    }
+
+    const result = await updateStockMovement(selectedStockMovement.id, formData);
+    if (result) {
+      setShowEditModal(false);
+      setSelectedStockMovement(null);
+      const params: any = {
+        page: currentPage,
+        pageSize: 10,
+        parishId: parishFilter || undefined,
+        warehouseId: warehouseFilter || undefined,
+        productId: productFilter || undefined,
+        type: typeFilter || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      };
+      fetchStockMovements(params);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const result = await deleteStockMovement(id);
+    if (result) {
+      setDeleteConfirm(null);
+      const params: any = {
+        page: currentPage,
+        pageSize: 10,
+        parishId: parishFilter || undefined,
+        warehouseId: warehouseFilter || undefined,
+        productId: productFilter || undefined,
+        type: typeFilter || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      };
+      fetchStockMovements(params);
+    }
+  };
+
+  const handleEdit = (stockMovement: StockMovement) => {
+    setSelectedStockMovement(stockMovement);
+    setFormData({
+      warehouseId: stockMovement.warehouseId,
+      productId: stockMovement.productId,
+      parishId: stockMovement.parishId,
+      type: stockMovement.type,
+      movementDate: stockMovement.movementDate 
+        ? stockMovement.movementDate.split('T')[0] 
+        : new Date().toISOString().split('T')[0],
+      quantity: stockMovement.quantity,
+      unitCost: stockMovement.unitCost || '',
+      notes: stockMovement.notes || '',
+      destinationWarehouseId: stockMovement.destinationWarehouseId || '',
+    });
+    setShowEditModal(true);
   };
 
   const resetForm = () => {
@@ -107,17 +192,17 @@ export default function StockMovementsPage() {
     });
   };
 
-  const getWarehouseName = (id: string) => {
+  const getWarehouseName = useCallback((id: string) => {
     const warehouse = warehouses.find(w => w.id === id);
     return warehouse ? warehouse.name : id;
-  };
+  }, [warehouses]);
 
-  const getProductName = (id: string) => {
+  const getProductName = useCallback((id: string) => {
     const product = products.find(p => p.id === id);
     return product ? product.name : id;
-  };
+  }, [products]);
 
-  const columns: any[] = [
+  const columns = useMemo(() => [
     {
       key: 'type',
       label: t('type') || 'Type',
@@ -162,7 +247,28 @@ export default function StockMovementsPage() {
       sortable: true,
       render: (value: string | null) => value ? parseFloat(value).toFixed(2) : '-',
     },
-  ];
+    {
+      key: 'actions',
+      label: t('actions'),
+      sortable: false,
+      render: (_: any, row: StockMovement) => (
+        <Dropdown
+          trigger={
+            <Button variant="ghost" size="sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </Button>
+          }
+          items={[
+            { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+            { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
+          ]}
+          align="right"
+        />
+      ),
+    },
+  ], [t, getWarehouseName, getProductName]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -171,120 +277,76 @@ export default function StockMovementsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
-          { label: t('stockMovements') || 'Stock Movements', href: `/${locale}/dashboard/accounting/stock-movements` },
+          { label: t('stockMovements') || 'Stock Movements' },
         ]}
+        title={t('stockMovements') || 'Stock Movements'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add') || 'Add'}</Button>}
       />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t('stockMovements') || 'Stock Movements'}</h1>
-            <Button onClick={() => setShowAddModal(true)}>{t('add') || 'Add'}</Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          <div className="space-y-4">
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                  setCurrentPage(1);
-                }}
-                parishes={parishes}
-              />
-              <FilterSelect
-                label={t('warehouse') || 'Warehouse'}
-                value={warehouseFilter}
-                onChange={(value) => {
-                  setWarehouseFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  ...warehouses.map(w => ({ value: w.id, label: w.name })),
-                ]}
-              />
-              <FilterSelect
-                label={t('product') || 'Product'}
-                value={productFilter}
-                onChange={(value) => {
-                  setProductFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  ...products.map(p => ({ value: p.id, label: p.name })),
-                ]}
-              />
-              <FilterSelect
-                label={t('type') || 'Type'}
-                value={typeFilter}
-                onChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  { value: 'in', label: 'IN' },
-                  { value: 'out', label: 'OUT' },
-                  { value: 'transfer', label: 'TRANSFER' },
-                  { value: 'adjustment', label: 'ADJUSTMENT' },
-                  { value: 'return', label: 'RETURN' },
-                ]}
-              />
-              <FilterDate
-                label={t('dateFrom') || 'Date From'}
-                value={dateFrom}
-                onChange={(value) => {
-                  setDateFrom(value);
-                  setCurrentPage(1);
-                }}
-              />
-              <FilterDate
-                label={t('dateTo') || 'Date To'}
-                value={dateTo}
-                onChange={(value) => {
-                  setDateTo(value);
-                  setCurrentPage(1);
-                }}
-              />
-              <FilterClear
-                onClear={() => {
-                  setParishFilter('');
-                  setWarehouseFilter('');
-                  setProductFilter('');
-                  setTypeFilter('');
-                  setDateFrom('');
-                  setDateTo('');
-                  setCurrentPage(1);
-                }}
-              />
-            </FilterGrid>
+      {/* Filters */}
+      <StockMovementsFiltersCard
+        parishFilter={parishFilter}
+        warehouseFilter={warehouseFilter}
+        productFilter={productFilter}
+        typeFilter={typeFilter}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        parishes={parishes}
+        warehouses={warehouses}
+        products={products}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onWarehouseFilterChange={(value) => {
+          setWarehouseFilter(value);
+          setCurrentPage(1);
+        }}
+        onProductFilterChange={(value) => {
+          setProductFilter(value);
+          setCurrentPage(1);
+        }}
+        onTypeFilterChange={(value) => {
+          setTypeFilter(value);
+          setCurrentPage(1);
+        }}
+        onDateFromChange={(value) => {
+          setDateFrom(value);
+          setCurrentPage(1);
+        }}
+        onDateToChange={(value) => {
+          setDateTo(value);
+          setCurrentPage(1);
+        }}
+        onClear={() => {
+          setParishFilter('');
+          setWarehouseFilter('');
+          setProductFilter('');
+          setTypeFilter('');
+          setDateFrom('');
+          setDateTo('');
+          setCurrentPage(1);
+        }}
+      />
 
-            {error && (
-              <div className="p-4 bg-danger/10 text-danger rounded">
-                {error}
-              </div>
-            )}
-
-            <Table
-              data={stockMovements}
-              columns={columns}
-              loading={loading}
-              pagination={pagination}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </CardBody>
-      </Card>
+      {/* Table */}
+      <StockMovementsTableCard
+        data={stockMovements}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No stock movements available'}
+      />
 
       {/* Add Modal */}
-      <FormModal
+      <StockMovementAddModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
@@ -294,86 +356,42 @@ export default function StockMovementsPage() {
           setShowAddModal(false);
           resetForm();
         }}
-        title={t('addStockMovement') || 'Add Stock Movement'}
-        onSubmit={handleSave}
-        isSubmitting={false}
-        submitLabel={t('save') || 'Save'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        size="lg"
-      >
-        <div className="space-y-4">
-          <Select
-            label={t('parish') || 'Parish'}
-            value={formData.parishId}
-            onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Select
-            label={t('warehouse') || 'Warehouse'}
-            value={formData.warehouseId}
-            onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
-            options={warehouses.map(w => ({ value: w.id, label: w.name }))}
-            required
-          />
-          <Select
-            label={t('product') || 'Product'}
-            value={formData.productId}
-            onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-            options={products.filter(p => p.trackStock).map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Select
-            label={t('type') || 'Type'}
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-            options={[
-              { value: 'in', label: 'IN' },
-              { value: 'out', label: 'OUT' },
-              { value: 'transfer', label: 'TRANSFER' },
-              { value: 'adjustment', label: 'ADJUSTMENT' },
-              { value: 'return', label: 'RETURN' },
-            ]}
-            required
-          />
-          {formData.type === 'transfer' && (
-            <Select
-              label={t('destinationWarehouse') || 'Destination Warehouse'}
-              value={formData.destinationWarehouseId}
-              onChange={(e) => setFormData({ ...formData, destinationWarehouseId: e.target.value })}
-              options={warehouses.filter(w => w.id !== formData.warehouseId).map(w => ({ value: w.id, label: w.name }))}
-              required
-            />
-          )}
-          <Input
-            label={t('date') || 'Date'}
-            type="date"
-            value={formData.movementDate}
-            onChange={(e) => setFormData({ ...formData, movementDate: e.target.value })}
-            required
-          />
-          <Input
-            label={t('quantity') || 'Quantity'}
-            type="number"
-            step="0.001"
-            value={formData.quantity}
-            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-            required
-          />
-          <Input
-            label={t('unitCost') || 'Unit Cost'}
-            type="number"
-            step="0.0001"
-            value={formData.unitCost}
-            onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
-          />
-          <Input
-            label={t('notes') || 'Notes'}
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          />
-        </div>
-      </FormModal>
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        warehouses={warehouses}
+        products={products}
+        onSubmit={handleCreate}
+        isSubmitting={loading}
+      />
+
+      {/* Edit Modal */}
+      <StockMovementEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedStockMovement(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedStockMovement(null);
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
+        warehouses={warehouses}
+        products={products}
+        onSubmit={handleUpdate}
+        isSubmitting={loading}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteStockMovementDialog
+        isOpen={!!deleteConfirm}
+        stockMovementId={deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -141,14 +141,16 @@ export default function PilgrimageTransportPage() {
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('transport')}</h1>
-        <Button onClick={() => {/* TODO: Add transport modal */}}>
-          {tPilgrimages('addTransport')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('transport') || 'Transport'}
+        action={
+          <Button onClick={() => {/* TODO: Add transport modal */}}>
+            {tPilgrimages('addTransport')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Transport Table */}
       <Card variant="outlined">
@@ -158,13 +160,13 @@ export default function PilgrimageTransportPage() {
               {error}
             </div>
           )}
-          {transport.length === 0 && !loading ? (
-            <p className="text-text-secondary">{tPilgrimages('noTransport')}</p>
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
           ) : (
             <Table
               data={transport}
               columns={columns}
-              loading={loading}
+              emptyMessage={tPilgrimages('noTransport') || 'No transport available'}
             />
           )}
         </CardBody>

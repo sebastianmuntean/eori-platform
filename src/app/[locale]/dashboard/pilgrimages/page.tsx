@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -24,6 +24,7 @@ import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { useToast } from '@/hooks/useToast';
 import { usePermissionAwareFetch } from '@/hooks/usePermissionAwareFetch';
 import { PILGRIMAGES_PERMISSIONS } from '@/lib/permissions/pilgrimages';
+import { TablePagination } from '@/components/ui/TablePagination';
 import {
   transformFormDataToApi,
   transformPilgrimageToFormData,
@@ -217,21 +218,21 @@ export default function PilgrimagesPage() {
   // Memoized columns definition
   const columns = useMemo(
     () => [
-      { key: 'title', label: tPilgrimages('titleField'), sortable: true },
+      { key: 'title' as keyof Pilgrimage, label: tPilgrimages('titleField'), sortable: true },
       {
-        key: 'destination',
+        key: 'destination' as keyof Pilgrimage,
         label: tPilgrimages('destination'),
         sortable: false,
         render: (value: string | null) => value || '-',
       },
       {
-        key: 'startDate',
+        key: 'startDate' as keyof Pilgrimage,
         label: tPilgrimages('startDate'),
         sortable: true,
         render: (value: string | null) => formatDate(value),
       },
       {
-        key: 'status',
+        key: 'status' as keyof Pilgrimage,
         label: tPilgrimages('status'),
         sortable: false,
         render: (value: PilgrimageStatus) => (
@@ -241,7 +242,7 @@ export default function PilgrimagesPage() {
         ),
       },
       {
-        key: 'actions',
+        key: 'actions' as keyof Pilgrimage,
         label: t('actions'),
         sortable: false,
         render: (_: any, row: Pilgrimage) => {
@@ -306,13 +307,12 @@ export default function PilgrimagesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{tPilgrimages('pilgrimages')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {tPilgrimages('pilgrimage')}</Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={tPilgrimages('pilgrimages') || 'Pilgrimages'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {tPilgrimages('pilgrimage')}</Button>}
+        className="mb-6"
+      />
 
       {/* Statistics Cards */}
       {statistics && (
@@ -414,34 +414,13 @@ export default function PilgrimagesPage() {
               />
               {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                  <div className="text-sm text-text-secondary">
-                    {t('showing') || 'Showing'} {((pagination.page - 1) * pagination.pageSize) + 1} -{' '}
-                    {Math.min(pagination.page * pagination.pageSize, pagination.total)} {t('of') || 'of'}{' '}
-                    {pagination.total}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1 || loading}
-                    >
-                      {t('previous') || 'Previous'}
-                    </Button>
-                    <span className="text-sm text-text-secondary">
-                      {t('page') || 'Page'} {pagination.page} {t('of') || 'of'} {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage >= pagination.totalPages || loading}
-                    >
-                      {t('next') || 'Next'}
-                    </Button>
-                  </div>
-                </div>
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
               )}
             </>
           )}

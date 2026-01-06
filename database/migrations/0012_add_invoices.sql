@@ -92,3 +92,7 @@ CREATE INDEX IF NOT EXISTS "invoices_partner_id_idx" ON "invoices" ("partner_id"
 
 
 
+
+
+
+

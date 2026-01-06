@@ -607,3 +607,7 @@ The Inventory Numbers Register page is a **well-implemented, simple wrapper comp
 - [ ] No hardcoded text (minor issue with title fallback)
 
 
+
+
+
+

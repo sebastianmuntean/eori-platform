@@ -56,13 +56,6 @@ export interface TypeFilterProps {
   className?: string;
 }
 
-export interface PartnerFilterProps {
-  value: string;
-  onChange: (value: string) => void;
-  partners: Array<{ id: string; companyName?: string | null; firstName?: string | null; lastName?: string | null; code: string }>;
-  className?: string;
-}
-
 export interface ClientFilterProps {
   value: string;
   onChange: (value: string) => void;
@@ -172,27 +165,6 @@ export function TypeFilter({ value, onChange, types, className }: TypeFilterProp
       value={value}
       onChange={onChange}
       options={types}
-      placeholder={t('allTypes')}
-      className={className}
-    />
-  );
-}
-
-export function PartnerFilter({ value, onChange, partners, className }: PartnerFilterProps) {
-  const t = useTranslations('common');
-  
-  const getPartnerDisplayName = (partner: PartnerFilterProps['partners'][0]) => {
-    return partner.companyName || 
-           `${partner.firstName || ''} ${partner.lastName || ''}`.trim() || 
-           partner.code;
-  };
-  
-  return (
-    <FilterSelect
-      label={t('parteneri')}
-      value={value}
-      onChange={onChange}
-      options={partners.map(p => ({ value: p.id, label: getPartnerDisplayName(p) }))}
       placeholder={t('allTypes')}
       className={className}
     />

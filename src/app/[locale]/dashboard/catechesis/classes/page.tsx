@@ -1,31 +1,33 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useParams } from 'next/navigation';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Select } from '@/components/ui/Select';
-import { useCatechesisClasses } from '@/hooks/useCatechesisClasses';
+import { Dropdown } from '@/components/ui/Dropdown';
+import { ToastContainer } from '@/components/ui/Toast';
+import { ClassAddModal, ClassFormData } from '@/components/catechesis/ClassAddModal';
+import { ClassEditModal } from '@/components/catechesis/ClassEditModal';
+import { DeleteClassDialog } from '@/components/catechesis/DeleteClassDialog';
+import { ClassesFiltersCard } from '@/components/catechesis/ClassesFiltersCard';
+import { ClassesTableCard } from '@/components/catechesis/ClassesTableCard';
+import { useCatechesisClasses, CatechesisClass } from '@/hooks/useCatechesisClasses';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { useUser } from '@/hooks/useUser';
+import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { CATECHESIS_PERMISSIONS } from '@/lib/permissions/catechesis';
 
 export default function CatechesisClassesPage() {
   const params = useParams();
-  const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tCatechesis = useTranslations('catechesis');
   usePageTitle(tCatechesis('classes.title'));
+  const { toasts, success, error: showError, removeToast } = useToast();
 
   // Check permission to view classes
   const { loading: permissionLoading } = useRequirePermission(CATECHESIS_PERMISSIONS.CLASSES_VIEW);
@@ -42,9 +44,10 @@ export default function CatechesisClassesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [selectedClass, setSelectedClass] = useState<CatechesisClass | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<ClassFormData>({
     parishId: user?.parishId || '',
     name: '',
     description: '',
@@ -76,61 +79,157 @@ export default function CatechesisClassesPage() {
     fetchClasses(params);
   }, [permissionLoading, currentPage, searchTerm, parishFilter, gradeFilter, isActiveFilter, fetchClasses]);
 
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleParishFilterChange = useCallback((value: string) => {
+    setParishFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleGradeFilterChange = useCallback((value: string) => {
+    setGradeFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleIsActiveFilterChange = useCallback((value: boolean | '') => {
+    setIsActiveFilter(value);
+    setCurrentPage(1);
+  }, []);
+
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return null;
   }
 
-  const handleCreate = async () => {
-    if (!formData.parishId || !formData.name) {
-      alert(t('fillRequiredFields'));
+  const resetForm = useCallback(() => {
+    setFormData({
+      parishId: user?.parishId || '',
+      name: '',
+      description: '',
+      grade: '',
+      teacherId: '',
+      startDate: '',
+      endDate: '',
+      maxStudents: '',
+      isActive: true,
+    });
+  }, [user?.parishId]);
+
+  const handleCreate = useCallback(async () => {
+    if (!formData.parishId || !formData.name.trim()) {
+      showError(t('fillRequiredFields') || 'Please fill in all required fields');
       return;
     }
 
-    const result = await createClass({
-      ...formData,
-      description: formData.description || null,
-      grade: formData.grade || null,
-      teacherId: formData.teacherId || null,
-      startDate: formData.startDate || null,
-      endDate: formData.endDate || null,
-      maxStudents: formData.maxStudents ? parseInt(formData.maxStudents) : null,
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await createClass({
+        ...formData,
+        description: formData.description || null,
+        grade: formData.grade || null,
+        teacherId: formData.teacherId || null,
+        startDate: formData.startDate || null,
+        endDate: formData.endDate || null,
+        maxStudents: formData.maxStudents ? parseInt(formData.maxStudents) : null,
+      });
 
-    if (result) {
-      setShowAddModal(false);
-      resetForm();
+      if (result) {
+        success(tCatechesis('classes.created') || t('created') || 'Class created successfully');
+        setShowAddModal(false);
+        resetForm();
+        // Refresh the list
+        fetchClasses({
+          page: currentPage,
+          pageSize: 10,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          grade: gradeFilter || undefined,
+          isActive: isActiveFilter !== '' ? isActiveFilter : undefined,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        });
+      }
+    } catch (error) {
+      showError(error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [formData, createClass, success, showError, resetForm, fetchClasses, currentPage, searchTerm, parishFilter, gradeFilter, isActiveFilter, t, tCatechesis]);
 
-  const handleUpdate = async () => {
+  const handleUpdate = useCallback(async () => {
     if (!selectedClass) return;
 
-    const result = await updateClass(selectedClass.id, {
-      name: formData.name,
-      description: formData.description || null,
-      grade: formData.grade || null,
-      teacherId: formData.teacherId || null,
-      startDate: formData.startDate || null,
-      endDate: formData.endDate || null,
-      maxStudents: formData.maxStudents ? parseInt(formData.maxStudents) : null,
-      isActive: formData.isActive,
-    });
-
-    if (result) {
-      setShowEditModal(false);
-      setSelectedClass(null);
+    if (!formData.name.trim()) {
+      showError(t('fillRequiredFields') || 'Please fill in all required fields');
+      return;
     }
-  };
 
-  const handleDelete = async (id: string) => {
-    const result = await deleteClass(id);
-    if (result) {
-      setDeleteConfirm(null);
+    setIsSubmitting(true);
+    try {
+      const result = await updateClass(selectedClass.id, {
+        name: formData.name,
+        description: formData.description || null,
+        grade: formData.grade || null,
+        teacherId: formData.teacherId || null,
+        startDate: formData.startDate || null,
+        endDate: formData.endDate || null,
+        maxStudents: formData.maxStudents ? parseInt(formData.maxStudents) : null,
+        isActive: formData.isActive,
+      });
+
+      if (result) {
+        success(tCatechesis('classes.updated') || t('updated') || 'Class updated successfully');
+        setShowEditModal(false);
+        setSelectedClass(null);
+        // Refresh the list
+        fetchClasses({
+          page: currentPage,
+          pageSize: 10,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          grade: gradeFilter || undefined,
+          isActive: isActiveFilter !== '' ? isActiveFilter : undefined,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        });
+      }
+    } catch (error) {
+      showError(error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [selectedClass, formData, updateClass, success, showError, fetchClasses, currentPage, searchTerm, parishFilter, gradeFilter, isActiveFilter, t, tCatechesis]);
 
-  const handleEdit = (classItem: any) => {
+  const handleDelete = useCallback(async (id: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await deleteClass(id);
+      if (result) {
+        success(tCatechesis('classes.deleted') || t('deleted') || 'Class deleted successfully');
+        setDeleteConfirm(null);
+        // Refresh the list
+        fetchClasses({
+          page: currentPage,
+          pageSize: 10,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          grade: gradeFilter || undefined,
+          isActive: isActiveFilter !== '' ? isActiveFilter : undefined,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        });
+      }
+    } catch (error) {
+      showError(error instanceof Error ? error.message : t('errorOccurred') || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [deleteClass, success, showError, fetchClasses, currentPage, searchTerm, parishFilter, gradeFilter, isActiveFilter, t, tCatechesis]);
+
+  const handleEdit = useCallback((classItem: CatechesisClass) => {
     setSelectedClass(classItem);
     setFormData({
       parishId: classItem.parishId,
@@ -144,169 +243,108 @@ export default function CatechesisClassesPage() {
       isActive: classItem.isActive,
     });
     setShowEditModal(true);
-  };
+  }, []);
 
-  const resetForm = () => {
-    setFormData({
-      parishId: user?.parishId || '',
-      name: '',
-      description: '',
-      grade: '',
-      teacherId: '',
-      startDate: '',
-      endDate: '',
-      maxStudents: '',
-      isActive: true,
-    });
-  };
-
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
-  };
+  }, [locale]);
 
-  const columns = [
-    { key: 'name', label: tCatechesis('classes.name'), sortable: true },
-    { key: 'grade', label: tCatechesis('classes.grade'), sortable: false, render: (value: string | null) => value || '-' },
-    {
-      key: 'startDate',
-      label: tCatechesis('classes.startDate'),
-      sortable: false,
-      render: (value: string | null) => formatDate(value),
-    },
-    {
-      key: 'endDate',
-      label: tCatechesis('classes.endDate'),
-      sortable: false,
-      render: (value: string | null) => formatDate(value),
-    },
-    {
-      key: 'isActive',
-      label: t('status'),
-      sortable: false,
-      render: (value: boolean) => (
-        <Badge variant={value ? 'success' : 'secondary'}>
-          {value ? tCatechesis('status.active') : tCatechesis('status.inactive')}
-        </Badge>
-      ),
-    },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('classes.title') },
-  ];
+  const columns = useMemo(
+    () => [
+      { key: 'name', label: tCatechesis('classes.name'), sortable: true },
+      { key: 'grade', label: tCatechesis('classes.grade'), sortable: false, render: (value: string | null) => value || '-' },
+      {
+        key: 'startDate',
+        label: tCatechesis('classes.startDate'),
+        sortable: false,
+        render: (value: string | null) => formatDate(value),
+      },
+      {
+        key: 'endDate',
+        label: tCatechesis('classes.endDate'),
+        sortable: false,
+        render: (value: string | null) => formatDate(value),
+      },
+      {
+        key: 'isActive',
+        label: t('status'),
+        sortable: false,
+        render: (value: boolean) => (
+          <Badge variant={value ? 'success' : 'secondary'}>
+            {value ? tCatechesis('status.active') : tCatechesis('status.inactive')}
+          </Badge>
+        ),
+      },
+      {
+        key: 'actions',
+        label: t('actions'),
+        sortable: false,
+        render: (_: any, row: CatechesisClass) => (
+          <Dropdown
+            trigger={
+              <Button variant="ghost" size="sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </Button>
+            }
+            items={[
+              { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+              { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
+            ]}
+            align="right"
+          />
+        ),
+      },
+    ],
+    [tCatechesis, t, formatDate, handleEdit]
+  );
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{tCatechesis('classes.title')}</h1>
-          <p className="text-text-secondary mt-1">Manage catechesis classes</p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {tCatechesis('actions.create')} {tCatechesis('classes.title')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('classes.title') },
+        ]}
+        title={tCatechesis('classes.title')}
+        description={tCatechesis('classes.description') || tCatechesis('manageClasses') || 'Manage catechesis classes'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {tCatechesis('actions.create')} {tCatechesis('classes.title')}
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Card>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input
-              placeholder={t('search')}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-            <Select
-              value={parishFilter}
-              onChange={(e) => {
-                setParishFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              options={[
-                { value: '', label: 'All Parishes' },
-                ...parishes.map((p) => ({ value: p.id, label: p.name })),
-              ]}
-            />
-            <Select
-              value={isActiveFilter.toString()}
-              onChange={(e) => {
-                setIsActiveFilter(e.target.value === '' ? '' : e.target.value === 'true');
-                setCurrentPage(1);
-              }}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'true', label: tCatechesis('status.active') },
-                { value: 'false', label: tCatechesis('status.inactive') },
-              ]}
-            />
-            <Input
-              placeholder={tCatechesis('classes.grade')}
-              value={gradeFilter}
-              onChange={(e) => {
-                setGradeFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-        </CardBody>
-      </Card>
+      <ClassesFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        gradeFilter={gradeFilter}
+        isActiveFilter={isActiveFilter}
+        parishes={parishes}
+        onSearchChange={handleSearchChange}
+        onParishFilterChange={handleParishFilterChange}
+        onGradeFilterChange={handleGradeFilterChange}
+        onIsActiveFilterChange={handleIsActiveFilterChange}
+      />
 
       {/* Table */}
-      <Card>
-        <CardBody>
-          {loading && !classes.length ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-text-secondary">{t('loading')}</div>
-            </div>
-          ) : error ? (
-            <div className="p-4 bg-danger/10 text-danger rounded-md">{error}</div>
-          ) : (
-            <>
-              <Table
-                data={classes}
-                columns={columns}
-                emptyMessage={t('noData')}
-              />
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-text-secondary">
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      <ClassesTableCard
+        data={classes}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData')}
+      />
 
       {/* Add Modal */}
-      <FormModal
+      <ClassAddModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
@@ -316,65 +354,14 @@ export default function CatechesisClassesPage() {
           setShowAddModal(false);
           resetForm();
         }}
-        title={`${tCatechesis('actions.create')} ${tCatechesis('classes.title')}`}
+        formData={formData}
+        onFormDataChange={setFormData}
         onSubmit={handleCreate}
-        isSubmitting={false}
-        submitLabel={t('save')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-4">
-          <Input
-            label={tCatechesis('classes.name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('classes.description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.grade')}
-            value={formData.grade}
-            onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.startDate')}
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.endDate')}
-            type="date"
-            value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.maxStudents')}
-            type="number"
-            value={formData.maxStudents}
-            onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm text-text-primary">
-              {tCatechesis('classes.isActive')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+      />
 
       {/* Edit Modal */}
-      <FormModal
+      <ClassEditModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
@@ -384,74 +371,23 @@ export default function CatechesisClassesPage() {
           setShowEditModal(false);
           setSelectedClass(null);
         }}
-        title={`${tCatechesis('actions.edit')} ${tCatechesis('classes.title')}`}
+        formData={formData}
+        onFormDataChange={setFormData}
         onSubmit={handleUpdate}
-        isSubmitting={false}
-        submitLabel={t('save')}
-        cancelLabel={t('cancel')}
-        size="full"
-      >
-        <div className="space-y-4">
-          <Input
-            label={tCatechesis('classes.name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={tCatechesis('classes.description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.grade')}
-            value={formData.grade}
-            onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.startDate')}
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.endDate')}
-            type="date"
-            value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-          />
-          <Input
-            label={tCatechesis('classes.maxStudents')}
-            type="number"
-            value={formData.maxStudents}
-            onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActiveEdit"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActiveEdit" className="text-sm text-text-primary">
-              {tCatechesis('classes.isActive')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+        isSubmitting={isSubmitting}
+      />
 
       {/* Delete Confirmation */}
-      <ConfirmDialog
+      <DeleteClassDialog
         isOpen={!!deleteConfirm}
+        classId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirm')}
-        message="Are you sure you want to delete this class?"
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+        onConfirm={handleDelete}
+        isSubmitting={isSubmitting}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

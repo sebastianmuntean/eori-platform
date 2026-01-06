@@ -134,7 +134,7 @@ export async function PUT(
       }
     }
 
-    // Check if partner exists (if being updated)
+    // Check if client exists (if being updated)
     if (data.clientId) {
       console.log(`Step 3: Checking if client ${data.clientId} exists`);
       const [existingClient] = await db

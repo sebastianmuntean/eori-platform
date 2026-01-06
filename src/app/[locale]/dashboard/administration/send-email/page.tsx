@@ -2,8 +2,8 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -15,8 +15,6 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useTranslations } from 'next-intl';
 
 export default function SendEmailPage() {
-  console.log('Step 1: Rendering Send Email page');
-
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
@@ -47,7 +45,6 @@ export default function SendEmailPage() {
   // Fetch only active templates (all hooks must be called before any conditional returns)
   useEffect(() => {
     if (permissionLoading) return;
-    console.log('Step 2: Fetching active email templates');
     fetchTemplates({
       page: 1,
       pageSize: 100,
@@ -63,7 +60,6 @@ export default function SendEmailPage() {
   }
 
   const handleSelectTemplate = (template: EmailTemplate) => {
-    console.log(`Step 3: Selecting template ${template.id}`);
     setSelectedTemplate(template);
     setShowSendDialog(true);
     setSendResult(null);
@@ -75,20 +71,13 @@ export default function SendEmailPage() {
   ): Promise<{ total: number; successful: number; failed: number; errors: Array<{ email: string; error: string }> } | null> => {
     if (!selectedTemplate) return null;
 
-    console.log(`Step 4: Sending emails using template ${selectedTemplate.id}`);
-    console.log(`  Recipients: ${recipients.length}`);
-    console.log(`  Variables: ${JSON.stringify(variables)}`);
-
     const result = await sendBulkEmail(selectedTemplate.id, recipients, variables);
     
     if (result) {
-      console.log(`✓ Send completed: ${result.successful} successful, ${result.failed} failed`);
       setSendResult(result);
       return result;
-    } else {
-      console.log('❌ Failed to send emails');
-      return null;
     }
+    return null;
   };
 
   // Filter templates by search term
@@ -102,19 +91,16 @@ export default function SendEmailPage() {
     );
   });
 
-  console.log('✓ Rendering page');
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'Dashboard', href: `/${locale}/dashboard` },
-          { label: 'Trimite Email', href: `/${locale}/dashboard/send-email` },
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('administration') || 'Administration', href: `/${locale}/dashboard/administration` },
+          { label: tMenu('sendEmail') || 'Send Email' },
         ]}
+        title={tMenu('sendEmail') || 'Send Email'}
       />
-
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-text-primary">Trimite Email</h1>
-      </div>
 
       {/* Search */}
       <Card>
@@ -173,12 +159,12 @@ export default function SendEmailPage() {
                           <p className="text-xs text-text-secondary mb-1">Variabile:</p>
                           <div className="flex flex-wrap gap-1">
                             {template.variables.slice(0, 3).map((varName) => (
-                              <Badge key={varName} variant="outline" size="sm">
+                              <Badge key={varName} variant="secondary" size="sm">
                                 {varName}
                               </Badge>
                             ))}
                             {template.variables.length > 3 && (
-                              <Badge variant="outline" size="sm">
+                              <Badge variant="secondary" size="sm">
                                 +{template.variables.length - 3}
                               </Badge>
                             )}

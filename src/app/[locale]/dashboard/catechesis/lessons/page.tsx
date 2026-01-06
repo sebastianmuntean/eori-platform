@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -129,26 +129,26 @@ export default function CatechesisLessonsPage() {
   };
 
   const columns = [
-    { key: 'title', label: tCatechesis('lessons.name'), sortable: true },
+    { key: 'title' as keyof CatechesisLesson, label: tCatechesis('lessons.name'), sortable: true },
     {
-      key: 'className',
+      key: 'className' as keyof CatechesisLesson,
       label: tCatechesis('classes.title'),
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'orderIndex',
+      key: 'orderIndex' as keyof CatechesisLesson,
       label: tCatechesis('lessons.orderIndex'),
       sortable: true,
     },
     {
-      key: 'durationMinutes',
+      key: 'durationMinutes' as keyof CatechesisLesson,
       label: tCatechesis('lessons.durationMinutes'),
       sortable: false,
       render: (value: number | null) => (value ? `${value} min` : '-'),
     },
     {
-      key: 'isPublished',
+      key: 'isPublished' as keyof CatechesisLesson,
       label: t('status'),
       sortable: false,
       render: (value: boolean) => (
@@ -158,13 +158,13 @@ export default function CatechesisLessonsPage() {
       ),
     },
     {
-      key: 'createdAt',
+      key: 'createdAt' as keyof CatechesisLesson,
       label: t('createdAt'),
       sortable: false,
       render: (value: string | null) => formatDate(value),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof CatechesisLesson,
       label: t('actions'),
       sortable: false,
       render: (_value: unknown, row: CatechesisLesson) => (
@@ -195,25 +195,22 @@ export default function CatechesisLessonsPage() {
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('lessons.title') },
-  ];
-
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{tCatechesis('lessons.title')}</h1>
-          <p className="text-text-secondary mt-1">{tCatechesis('lessons.description') || tCatechesis('manageLessons') || 'Manage lessons'}</p>
-        </div>
-        <Button onClick={() => router.push(`/${locale}/dashboard/catechesis/lessons/new`)}>
-          {tCatechesis('actions.create')} {tCatechesis('lessons.title')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('lessons.title') },
+        ]}
+        title={tCatechesis('lessons.title')}
+        description={tCatechesis('lessons.description') || tCatechesis('manageLessons') || 'Manage lessons'}
+        action={
+          <Button onClick={() => router.push(`/${locale}/dashboard/catechesis/lessons/new`)}>
+            {tCatechesis('actions.create')} {tCatechesis('lessons.title')}
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <Card>

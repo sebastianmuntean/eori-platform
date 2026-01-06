@@ -57,19 +57,26 @@ export function useClients(): UseClientsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseClientsReturn['pagination']>(null);
 
-  const fetchClients = useCallback(async (params = {}) => {
+  const fetchClients = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    all?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     console.log('[useClients] fetchClients called with params:', params);
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.all) queryParams.append('pageSize', '10000'); // Large number to get all
-      if (params.search) queryParams.append('search', params.search);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.all) queryParams.append('pageSize', '10000'); // Large number to get all
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const url = `/api/clients?${queryParams.toString()}`;
       console.log('[useClients] Fetching from URL:', url);

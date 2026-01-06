@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -194,7 +194,7 @@ export default function SuperadminEmailTemplatesPage() {
 
   const columns = [
     {
-      key: 'name' as keyof TemplateRow,
+      key: 'name' as keyof EmailTemplate,
       label: t('name'),
       sortable: true,
       render: (value: any, row: TemplateRow) => (
@@ -209,7 +209,7 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'subject' as keyof TemplateRow,
+      key: 'subject' as keyof EmailTemplate,
       label: t('emailSubject'),
       sortable: false,
       render: (value: any) => (
@@ -217,7 +217,7 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'category' as keyof TemplateRow,
+      key: 'category' as keyof EmailTemplate,
       label: t('category'),
       sortable: false,
       render: (value: any) => (
@@ -227,7 +227,7 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'isActive' as keyof TemplateRow,
+      key: 'isActive' as keyof EmailTemplate,
       label: t('status'),
       sortable: false,
       render: (value: any) => (
@@ -237,14 +237,14 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'variables' as keyof TemplateRow,
+      key: 'variables' as keyof EmailTemplate,
       label: t('templateVariables'),
       sortable: false,
       render: (value: any) => (
         <div className="flex flex-wrap gap-1">
           {value && value.length > 0 ? (
             value.slice(0, 3).map((varName: string) => (
-              <Badge key={varName} variant="outline" size="sm">
+              <Badge key={varName} variant="secondary" size="sm">
                 {varName}
               </Badge>
             ))
@@ -252,7 +252,7 @@ export default function SuperadminEmailTemplatesPage() {
             <span className="text-text-secondary text-xs">Fără variabile</span>
           )}
           {value && value.length > 3 && (
-            <Badge variant="outline" size="sm">
+            <Badge variant="secondary" size="sm">
               +{value.length - 3}
             </Badge>
           )}
@@ -260,7 +260,7 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'updatedAt' as keyof TemplateRow,
+      key: 'updatedAt' as keyof EmailTemplate,
       label: 'Actualizat',
       sortable: true,
       render: (value: any) => (
@@ -268,7 +268,7 @@ export default function SuperadminEmailTemplatesPage() {
       ),
     },
     {
-      key: 'id' as keyof TemplateRow,
+      key: 'id' as keyof EmailTemplate,
       label: t('actions'),
       sortable: false,
       render: (value: any, row: TemplateRow) => (
@@ -340,15 +340,16 @@ export default function SuperadminEmailTemplatesPage() {
   console.log('✓ Rendering page');
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('manageEmailTemplates')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          + {t('addTemplate')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('manageEmailTemplates') || 'Manage Email Templates'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            + {t('addTemplate')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-4 p-4 bg-danger bg-opacity-10 border border-danger rounded-md text-danger">

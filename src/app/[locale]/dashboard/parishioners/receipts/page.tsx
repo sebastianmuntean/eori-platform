@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { PARISHIONERS_PERMISSIONS } from '@/lib/permissions/parishioners';
+import { TablePagination } from '@/components/ui/TablePagination';
 
 const PAGE_SIZE = 10;
 
@@ -28,10 +29,7 @@ export default function ReceiptsPage() {
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('receipts'));
 
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
+  // All hooks must be called before any conditional returns
   const {
     receipts,
     loading,
@@ -56,6 +54,8 @@ export default function ReceiptsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     receiptNumber: '',
     parishionerId: '',
@@ -70,11 +70,13 @@ export default function ReceiptsPage() {
   });
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchParishes({ all: true });
     fetchClients({ all: true });
-  }, [fetchParishes, fetchClients]);
+  }, [permissionLoading, fetchParishes, fetchClients]);
 
   useEffect(() => {
+    if (permissionLoading) return;
     fetchReceipts({
       page: currentPage,
       pageSize: PAGE_SIZE,
@@ -86,41 +88,87 @@ export default function ReceiptsPage() {
       sortBy: 'receiptDate',
       sortOrder: 'desc',
     });
-  }, [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchReceipts]);
+  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchReceipts]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const handleCreate = async () => {
     if (!formData.parishId || !formData.parishionerId || !formData.receiptNumber || !formData.receiptDate || !formData.amount) {
-      alert(t('fillRequiredFields') || 'Please fill all required fields');
+      setErrorMessage(t('fillRequiredFields') || 'Please fill all required fields');
       return;
     }
 
-    const result = await createReceipt({
-      ...formData,
-      amount: formData.amount,
-    });
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await createReceipt({
+        ...formData,
+        amount: formData.amount,
+      });
 
-    if (result) {
-      setShowAddModal(false);
-      resetForm();
+      if (result) {
+        setShowAddModal(false);
+        resetForm();
+        // Refetch receipts to show the new one
+        fetchReceipts({
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          status: statusFilter || undefined,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
+        });
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorCreatingReceipt') || 'Failed to create receipt');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdate = async () => {
     if (!selectedReceipt) return;
 
-    const result = await updateReceipt(selectedReceipt.id, {
-      ...formData,
-      amount: formData.amount,
-    });
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const result = await updateReceipt(selectedReceipt.id, {
+        ...formData,
+        amount: formData.amount,
+      });
 
-    if (result) {
-      setShowEditModal(false);
-      setSelectedReceipt(null);
+      if (result) {
+        setShowEditModal(false);
+        setSelectedReceipt(null);
+        // Refetch receipts to show updated data
+        fetchReceipts({
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          search: searchTerm || undefined,
+          parishId: parishFilter || undefined,
+          status: statusFilter || undefined,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
+        });
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorUpdatingReceipt') || 'Failed to update receipt');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirmDelete') || 'Are you sure you want to delete this receipt?')) {
+    if (!window.confirm(t('confirmDelete') || 'Are you sure you want to delete this receipt?')) {
+      return;
+    }
+
+    setErrorMessage(null);
+    try {
       const success = await deleteReceipt(id);
       if (success) {
         fetchReceipts({
@@ -132,7 +180,11 @@ export default function ReceiptsPage() {
           dateFrom: dateFrom || undefined,
           dateTo: dateTo || undefined,
         });
+      } else {
+        setErrorMessage(t('errorDeletingReceipt') || 'Failed to delete receipt');
       }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t('errorDeletingReceipt') || 'Failed to delete receipt');
     }
   };
 
@@ -166,6 +218,7 @@ export default function ReceiptsPage() {
       status: 'draft',
       notes: '',
     });
+    setErrorMessage(null);
   };
 
   const handleGenerateReceiptNumber = async () => {
@@ -175,58 +228,58 @@ export default function ReceiptsPage() {
     }
   };
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
-  };
+  }, [locale]);
 
-  const formatAmount = (amount: string, currency: string) => {
+  const formatAmount = useCallback((amount: string, currency: string) => {
     return `${amount} ${currency}`;
-  };
+  }, []);
 
-  const getParishionerName = (parishionerId: string) => {
+  const getParishionerName = useCallback((parishionerId: string) => {
     const client = clients.find((c) => c.id === parishionerId);
     if (!client) return parishionerId;
     return client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code;
-  };
+  }, [clients]);
 
-  const getParishName = (parishId: string) => {
+  const getParishName = useCallback((parishId: string) => {
     const parish = parishes.find((p) => p.id === parishId);
     return parish ? parish.name : parishId;
-  };
+  }, [parishes]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
-      key: 'receiptNumber',
+      key: 'receiptNumber' as keyof Receipt,
       label: t('receiptNumber') || 'Receipt Number',
       sortable: true,
     },
     {
-      key: 'receiptDate',
+      key: 'receiptDate' as keyof Receipt,
       label: t('date') || 'Date',
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'parishionerId',
+      key: 'parishionerId' as keyof Receipt,
       label: t('parishioner') || 'Parishioner',
       sortable: false,
       render: (_: any, row: Receipt) => getParishionerName(row.parishionerId),
     },
     {
-      key: 'parishId',
+      key: 'parishId' as keyof Receipt,
       label: t('parish') || 'Parish',
       sortable: false,
       render: (_: any, row: Receipt) => getParishName(row.parishId),
     },
     {
-      key: 'amount',
+      key: 'amount' as keyof Receipt,
       label: t('amount') || 'Amount',
       sortable: true,
       render: (_: any, row: Receipt) => formatAmount(row.amount, row.currency),
     },
     {
-      key: 'status',
+      key: 'status' as keyof Receipt,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: ReceiptStatus) => {
@@ -243,7 +296,7 @@ export default function ReceiptsPage() {
       },
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Receipt,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: Receipt) => (
@@ -263,28 +316,26 @@ export default function ReceiptsPage() {
         />
       ),
     },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('receipts') || 'Receipts' },
-  ];
+  ], [t, formatDate, formatAmount, getParishionerName, getParishName]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('receipts') || 'Receipts'}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {t('add')} {t('receipt') || 'Receipt'}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('receipts') || 'Receipts' },
+        ]}
+        title={t('receipts') || 'Receipts'}
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            {t('add')} {t('receipt') || 'Receipt'}
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input
@@ -356,16 +407,26 @@ export default function ReceiptsPage() {
               {error}
             </div>
           )}
-          <Table
-            data={receipts}
-            columns={columns}
-            loading={loading}
-            pagination={pagination ? {
-              currentPage: pagination.page,
-              totalPages: pagination.totalPages,
-              onPageChange: setCurrentPage,
-            } : undefined}
-          />
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+          ) : (
+            <>
+              <Table
+                data={receipts}
+                columns={columns}
+                emptyMessage={t('noData') || 'No receipts available'}
+              />
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
+              )}
+            </>
+          )}
         </CardBody>
       </Card>
 
@@ -379,6 +440,11 @@ export default function ReceiptsPage() {
         title={`${t('add')} ${t('receipt') || 'Receipt'}`}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">{t('receiptNumber') || 'Receipt Number'} *</label>
             <div className="flex gap-2">
@@ -417,7 +483,7 @@ export default function ReceiptsPage() {
               required
             >
               <option value="">{t('selectParishioner') || 'Select Parishioner'}</option>
-              {clients.filter((c) => c.isParishioner || c.id === formData.parishionerId).map((client) => (
+              {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
                 </option>
@@ -487,10 +553,12 @@ export default function ReceiptsPage() {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }}>
+            <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleCreate}>{t('create')}</Button>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
+              {isSubmitting ? t('creating') || 'Creating...' : t('create')}
+            </Button>
           </div>
         </div>
       </Modal>
@@ -501,10 +569,16 @@ export default function ReceiptsPage() {
         onClose={() => {
           setShowEditModal(false);
           setSelectedReceipt(null);
+          setErrorMessage(null);
         }}
         title={`${t('edit')} ${t('receipt') || 'Receipt'}`}
       >
         <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-danger/10 text-danger rounded-md">
+              {errorMessage}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">{t('receiptNumber') || 'Receipt Number'} *</label>
             <Input
@@ -538,7 +612,7 @@ export default function ReceiptsPage() {
               required
             >
               <option value="">{t('selectParishioner') || 'Select Parishioner'}</option>
-              {clients.filter((c) => c.isParishioner || c.id === formData.parishionerId).map((client) => (
+              {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.companyName || `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.code}
                 </option>
@@ -608,10 +682,12 @@ export default function ReceiptsPage() {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedReceipt(null); }}>
+            <Button variant="outline" onClick={() => { setShowEditModal(false); setSelectedReceipt(null); setErrorMessage(null); }} disabled={isSubmitting}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleUpdate}>{t('save')}</Button>
+            <Button onClick={handleUpdate} disabled={isSubmitting}>
+              {isSubmitting ? t('saving') || 'Saving...' : t('save')}
+            </Button>
           </div>
         </div>
       </Modal>

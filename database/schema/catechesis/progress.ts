@@ -19,3 +19,7 @@ export const catechesisProgress = pgTable('catechesis_progress', {
 
 
 
+
+
+
+

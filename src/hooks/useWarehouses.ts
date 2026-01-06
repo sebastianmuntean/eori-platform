@@ -51,7 +51,16 @@ export function useWarehouses(): UseWarehousesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseWarehousesReturn['pagination']>(null);
 
-  const fetchWarehouses = useCallback(async (params = {}) => {
+  const fetchWarehouses = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    type?: 'general' | 'retail' | 'storage' | 'temporary';
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

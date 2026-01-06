@@ -2,12 +2,14 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
+import { TablePagination } from '@/components/ui/TablePagination';
 import { useParishionerSearch } from '@/hooks/useParishionerSearch';
+import { Client } from '@/hooks/useClients';
 import { useParishes } from '@/hooks/useParishes';
 import { useParishionerTypes } from '@/hooks/useParishionerTypes';
 import { useTranslations } from 'next-intl';
@@ -72,33 +74,31 @@ export default function ParishionerSearchPage() {
   };
 
   const columns = [
-    { key: 'code', label: t('code'), sortable: true },
+    { key: 'code' as keyof Client, label: t('code'), sortable: true },
     {
-      key: 'name',
+      key: 'name' as keyof Client,
       label: t('name'),
       sortable: false,
       render: (_: any, row: any) => row.companyName || `${row.firstName || ''} ${row.lastName || ''}`.trim() || row.code,
     },
-    { key: 'cnp', label: 'CNP', sortable: false },
-    { key: 'phone', label: t('phone'), sortable: false },
-    { key: 'email', label: t('email'), sortable: false },
-    { key: 'city', label: t('city'), sortable: false },
-  ];
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('search') || 'Search' },
+    { key: 'cnp' as keyof Client, label: 'CNP', sortable: false },
+    { key: 'phone' as keyof Client, label: t('phone'), sortable: false },
+    { key: 'email' as keyof Client, label: t('email'), sortable: false },
+    { key: 'city' as keyof Client, label: t('city'), sortable: false },
   ];
 
   return (
-    <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{t('complexSearch') || 'Complex Search'}</h1>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('search') || 'Search' },
+        ]}
+        title={t('complexSearch') || 'Complex Search'}
+      />
 
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Input
@@ -190,15 +190,21 @@ export default function ParishionerSearchPage() {
           {loading ? (
             <div>{t('loading') || 'Loading...'}</div>
           ) : (
-            <Table
-              data={results}
-              columns={columns}
-              pagination={pagination ? {
-                currentPage: pagination.page,
-                totalPages: pagination.totalPages,
-                onPageChange: setCurrentPage,
-              } : undefined}
-            />
+            <>
+              <Table
+                data={results}
+                columns={columns}
+              />
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
+              )}
+            </>
           )}
         </CardBody>
       </Card>

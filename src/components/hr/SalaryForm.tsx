@@ -134,11 +134,13 @@ export function SalaryForm({
     if (!formData.netSalary) {
       newErrors.netSalary = t('netSalaryRequired') || 'Net salary is required';
     }
-    if (formData.workingDays < 0) {
+    if (formData.workingDays !== undefined && formData.workingDays < 0) {
       newErrors.workingDays = t('workingDaysInvalid') || 'Working days must be >= 0';
     }
-    if (formData.workedDays < 0 || formData.workedDays > formData.workingDays) {
-      newErrors.workedDays = t('workedDaysInvalid') || 'Worked days must be >= 0 and <= working days';
+    if (formData.workedDays !== undefined && formData.workingDays !== undefined) {
+      if (formData.workedDays < 0 || formData.workedDays > formData.workingDays) {
+        newErrors.workedDays = t('workedDaysInvalid') || 'Worked days must be >= 0 and <= working days';
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {

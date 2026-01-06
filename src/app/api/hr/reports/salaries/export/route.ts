@@ -28,7 +28,13 @@ export async function GET(request: Request) {
       conditions.push(eq(salaries.status, status as any));
     }
 
-    let query = db
+    if (parishId) {
+      conditions.push(eq(employees.parishId, parishId));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const baseQuery = db
       .select({
         salary: salaries,
         employee: employees,
@@ -36,16 +42,7 @@ export async function GET(request: Request) {
       .from(salaries)
       .innerJoin(employees, eq(salaries.employeeId, employees.id));
 
-    if (parishId) {
-      conditions.push(eq(employees.parishId, parishId));
-    }
-
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
-    const results = await query;
+    const results = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
     if (format === 'excel') {
       // Prepare data for Excel
@@ -128,5 +125,6 @@ export async function GET(request: Request) {
     });
   }
 }
+
 
 

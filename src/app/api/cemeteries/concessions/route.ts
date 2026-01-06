@@ -11,7 +11,9 @@ import {
   normalizeSortParams, 
   validateUuid,
   buildSearchCondition,
-  validateDateRange 
+  validateDateRange,
+  isValidConcessionStatus,
+  buildWhereClause
 } from '@/lib/utils/cemetery';
 
 const createConcessionSchema = z.object({
@@ -115,41 +117,38 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessions);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(cemeteryConcessions);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db.select().from(cemeteryConcessions);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(cemeteryConcessions);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Apply sorting
+    let finalQuery;
     if (sortBy === 'contractNumber') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessions.contractNumber))
-        : query.orderBy(asc(cemeteryConcessions.contractNumber));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryConcessions.contractNumber))
+        : queryWithWhere.orderBy(asc(cemeteryConcessions.contractNumber));
     } else if (sortBy === 'contractDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessions.contractDate))
-        : query.orderBy(asc(cemeteryConcessions.contractDate));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryConcessions.contractDate))
+        : queryWithWhere.orderBy(asc(cemeteryConcessions.contractDate));
     } else if (sortBy === 'expiryDate') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessions.expiryDate))
-        : query.orderBy(asc(cemeteryConcessions.expiryDate));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryConcessions.expiryDate))
+        : queryWithWhere.orderBy(asc(cemeteryConcessions.expiryDate));
     } else if (sortBy === 'createdAt') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(desc(cemeteryConcessions.createdAt))
-        : query.orderBy(asc(cemeteryConcessions.createdAt));
+      finalQuery = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(desc(cemeteryConcessions.createdAt))
+        : queryWithWhere.orderBy(asc(cemeteryConcessions.createdAt));
     } else {
-      query = query.orderBy(desc(cemeteryConcessions.contractDate));
+      finalQuery = queryWithWhere.orderBy(desc(cemeteryConcessions.contractDate));
     }
 
-    const allConcessions = await query.limit(pageSize).offset(offset);
+    const allConcessions = await finalQuery.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

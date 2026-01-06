@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmployeeForm } from '@/components/hr/EmployeeForm';
@@ -13,12 +13,13 @@ import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
+import { showErrorToast } from '@/lib/utils/hr';
 
 export default function EmployeesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tMenu = useTranslations('menu');
   usePageTitle(t('employees'));
   const { showToast } = useToast();
 
@@ -32,15 +33,6 @@ export default function EmployeesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: tMenu('hr') || 'Resurse Umane', href: `/${locale}/dashboard/hr` },
-      { label: t('employees') },
-    ],
-    [t, tMenu, locale]
-  );
 
   // Handlers for form actions
   const handleAdd = useCallback(() => {
@@ -70,14 +62,7 @@ export default function EmployeesPage() {
     setEmployeeToDelete(null);
   }, []);
 
-  // Helper function to show error toast
-  const showErrorToast = useCallback(
-    (error: unknown, fallbackMessage: string) => {
-      const message = error instanceof Error ? error.message : fallbackMessage;
-      showToast(message, 'error');
-    },
-    [showToast]
-  );
+  const breadcrumbs = useHRBreadcrumbs(locale, t('employees'));
 
   // Handler for form submission (create or update)
   const handleFormSubmit = useCallback(
@@ -93,12 +78,12 @@ export default function EmployeesPage() {
         }
         handleFormClose();
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [selectedEmployee, updateEmployee, createEmployee, showToast, t, handleFormClose, showErrorToast]
+    [selectedEmployee, updateEmployee, createEmployee, showToast, t, handleFormClose]
   );
 
   // Handler for delete confirmation
@@ -115,11 +100,11 @@ export default function EmployeesPage() {
         showToast(t('errorDeletingEmployee') || 'Error deleting employee', 'error');
       }
     } catch (error) {
-      showErrorToast(error, t('errorOccurred') || 'An error occurred');
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
-  }, [employeeToDelete, deleteEmployee, showToast, t, handleDeleteDialogClose, showErrorToast]);
+  }, [employeeToDelete, deleteEmployee, showToast, t, handleDeleteDialogClose]);
 
   // Delete confirmation message
   const deleteMessage = useMemo(() => {
@@ -135,14 +120,12 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('employees')}</h1>
-        </div>
-        <Button onClick={handleAdd}>{t('addEmployee')}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('employees')}
+        action={<Button onClick={handleAdd}>{t('addEmployee')}</Button>}
+      />
 
       <EmployeesTable onEdit={handleEdit} onDelete={handleDelete} />
 

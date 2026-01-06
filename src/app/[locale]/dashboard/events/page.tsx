@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { EVENTS_PERMISSIONS } from '@/lib/permissions/events';
+import { TablePagination } from '@/components/ui/TablePagination';
 
 export default function EventsPage() {
   const params = useParams();
@@ -195,17 +196,17 @@ export default function EventsPage() {
   };
 
   const columns = [
-    { key: 'type', label: t('type'), sortable: true, render: (value: EventType) => getTypeLabel(value) },
+    { key: 'type' as keyof ChurchEvent, label: t('type'), sortable: true, render: (value: EventType) => getTypeLabel(value) },
     {
-      key: 'eventDate',
+      key: 'eventDate' as keyof ChurchEvent,
       label: t('date'),
       sortable: true,
       render: (value: string | null) => formatDate(value),
     },
-    { key: 'location', label: t('location'), sortable: false, render: (value: string | null) => value || '-' },
-    { key: 'priestName', label: t('priest'), sortable: false, render: (value: string | null) => value || '-' },
+    { key: 'location' as keyof ChurchEvent, label: t('location'), sortable: false, render: (value: string | null) => value || '-' },
+    { key: 'priestName' as keyof ChurchEvent, label: t('priest'), sortable: false, render: (value: string | null) => value || '-' },
     {
-      key: 'status',
+      key: 'status' as keyof ChurchEvent,
       label: t('status'),
       sortable: false,
       render: (value: EventStatus) => {
@@ -223,7 +224,7 @@ export default function EventsPage() {
       },
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof ChurchEvent,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: ChurchEvent) => (
@@ -247,24 +248,20 @@ export default function EventsPage() {
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('events') },
-  ];
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('events')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('event')}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('events') },
+        ]}
+        title={t('events')}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('event')}</Button>}
+      />
 
       {/* Statistics Cards */}
       {statistics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card variant="elevated">
             <CardBody>
               <div className="text-sm text-text-secondary">{t('totalEvents')}</div>
@@ -293,7 +290,7 @@ export default function EventsPage() {
       )}
 
       {/* Filters */}
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input
@@ -360,16 +357,26 @@ export default function EventsPage() {
               {error}
             </div>
           )}
-          <Table
-            data={events}
-            columns={columns}
-            loading={loading}
-            pagination={pagination ? {
-              currentPage: pagination.page,
-              totalPages: pagination.totalPages,
-              onPageChange: setCurrentPage,
-            } : undefined}
-          />
+          {loading ? (
+            <div className="text-center py-8 text-text-secondary">{t('loading') || 'Loading...'}</div>
+          ) : (
+            <>
+              <Table
+                data={events}
+                columns={columns}
+                emptyMessage={t('noData') || 'No events available'}
+              />
+              {pagination && pagination.totalPages > 1 && (
+                <TablePagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  loading={loading}
+                  t={t}
+                />
+              )}
+            </>
+          )}
         </CardBody>
       </Card>
 

@@ -59,14 +59,17 @@ export function useConversations(): UseConversationsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseConversationsReturn['pagination']>(null);
 
-  const fetchConversations = useCallback(async (params = {}) => {
+  const fetchConversations = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
 
       const url = `/api/chat/conversations?${queryParams.toString()}`;
       const response = await fetch(url);

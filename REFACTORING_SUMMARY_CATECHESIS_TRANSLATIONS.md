@@ -180,3 +180,7 @@ Refactored catechesis module components to use translation keys instead of hardc
 **Refactoring Completed**: All hardcoded strings have been successfully replaced with translation keys, ensuring full internationalization support for the catechesis module.
 
 
+
+
+
+

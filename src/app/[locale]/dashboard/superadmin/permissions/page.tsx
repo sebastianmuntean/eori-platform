@@ -2,12 +2,12 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { usePermissions } from '@/hooks/usePermissions';
+import { usePermissions, Permission } from '@/hooks/usePermissions';
 import { useTable } from '@/hooks/useTable';
 import { Badge } from '@/components/ui/Badge';
 import { useTranslations } from 'next-intl';
@@ -151,7 +151,7 @@ export default function PermissionsPage() {
 
   const columns = [
     {
-      key: 'checkbox' as const,
+      key: 'checkbox' as keyof Permission,
       label: (
         <div className="flex items-center gap-2">
           <input
@@ -176,12 +176,12 @@ export default function PermissionsPage() {
       ),
     },
     {
-      key: 'name' as const,
+      key: 'name' as keyof Permission,
       label: t('name'),
       sortable: true,
     },
     {
-      key: 'resource' as const,
+      key: 'resource' as keyof Permission,
       label: 'Resource',
       sortable: true,
       render: (value: string, row: typeof permissions[0]) => {
@@ -210,18 +210,18 @@ export default function PermissionsPage() {
       },
     },
     {
-      key: 'action' as const,
+      key: 'action' as keyof Permission,
       label: 'Acțiune',
       sortable: true,
       render: (value: string) => <Badge variant="secondary" size="sm">{value}</Badge>,
     },
     {
-      key: 'description' as const,
+      key: 'description' as keyof Permission,
       label: 'Descriere',
       sortable: false,
     },
     {
-      key: 'actions' as const,
+      key: 'actions' as keyof Permission,
       label: 'Acțiuni',
       sortable: false,
       render: (_: any, row: typeof permissions[0]) => (
@@ -324,19 +324,20 @@ export default function PermissionsPage() {
   console.log('✓ Rendering permissions page');
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('managePermissions')}</h1>
-        </div>
-        <Button onClick={() => {
-          setEditingPermission(null);
-          setFormData({ name: '', description: '', resource: '', action: '' });
-          setIsModalOpen(true);
-        }}>
-          {t('addPermission')}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('managePermissions') || 'Manage Permissions'}
+        action={
+          <Button onClick={() => {
+            setEditingPermission(null);
+            setFormData({ name: '', description: '', resource: '', action: '' });
+            setIsModalOpen(true);
+          }}>
+            {t('addPermission')}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-4 p-4 bg-danger bg-opacity-10 border border-danger rounded-md text-danger">

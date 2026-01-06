@@ -95,3 +95,7 @@ CREATE INDEX IF NOT EXISTS "payments_partner_id_idx" ON "payments" ("partner_id"
 
 
 
+
+
+
+

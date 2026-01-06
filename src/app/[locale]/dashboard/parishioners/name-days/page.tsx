@@ -2,11 +2,11 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
-import { useNameDays } from '@/hooks/useNameDays';
+import { useNameDays, NameDay } from '@/hooks/useNameDays';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -57,43 +57,41 @@ export default function NameDaysPage() {
 
   const columns = [
     {
-      key: 'upcomingNameDay',
+      key: 'upcomingNameDay' as keyof NameDay,
       label: t('nameDay') || 'Name Day',
       sortable: true,
       render: (value: string) => formatDate(value),
     },
     {
-      key: 'firstName',
+      key: 'firstName' as keyof NameDay,
       label: t('name') || 'Name',
       sortable: false,
       render: (_: any, row: any) => `${row.firstName || ''} ${row.lastName || ''}`.trim() || row.code,
     },
     {
-      key: 'daysUntil',
+      key: 'daysUntil' as keyof NameDay,
       label: t('daysUntil') || 'Days Until',
       sortable: false,
     },
     {
-      key: 'phone',
+      key: 'phone' as keyof NameDay,
       label: t('phone'),
       sortable: false,
     },
   ];
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
-    { label: t('nameDays') || 'Name Days' },
-  ];
-
   return (
-    <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">{t('nameDays') || 'Upcoming Name Days'}</h1>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('parishioners') || 'Parishioners', href: `/${locale}/dashboard/parishioners` },
+          { label: t('nameDays') || 'Name Days' },
+        ]}
+        title={t('nameDays') || 'Upcoming Name Days'}
+      />
 
-      <Card variant="outlined" className="mb-6">
+      <Card variant="outlined">
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select

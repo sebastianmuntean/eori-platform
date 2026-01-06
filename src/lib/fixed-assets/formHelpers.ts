@@ -5,6 +5,7 @@
 
 import { FixedAssetFormData } from '@/components/fixed-assets/FixedAssetForm';
 import { FixedAsset } from '@/hooks/useFixedAssets';
+import { CreateFixedAssetData, UpdateFixedAssetData } from '@/lib/types/payments';
 
 /**
  * Creates initial form data with default values
@@ -59,6 +60,58 @@ export function assetToFormData(
     disposalValue: asset.disposalValue || '',
     disposalReason: asset.disposalReason || '',
     notes: asset.notes || '',
+  };
+}
+
+/**
+ * Converts FixedAssetFormData to CreateFixedAssetData
+ * Converts string values to appropriate types for API
+ */
+export function formDataToCreateData(formData: FixedAssetFormData): CreateFixedAssetData {
+  return {
+    parishId: formData.parishId,
+    inventoryNumber: formData.inventoryNumber,
+    name: formData.name,
+    description: formData.description || null,
+    category: formData.category || null,
+    type: formData.type || null,
+    location: formData.location || null,
+    acquisitionDate: formData.acquisitionDate || null,
+    acquisitionValue: formData.acquisitionValue || null,
+    currentValue: formData.currentValue || null,
+    depreciationMethod: formData.depreciationMethod || null,
+    usefulLifeYears: formData.usefulLifeYears ? parseInt(formData.usefulLifeYears, 10) : null,
+    status: formData.status,
+    disposalDate: formData.disposalDate || null,
+    disposalValue: formData.disposalValue || null,
+    disposalReason: formData.disposalReason || null,
+    notes: formData.notes || null,
+  };
+}
+
+/**
+ * Converts FixedAssetFormData to UpdateFixedAssetData
+ * Converts string values to appropriate types for API
+ */
+export function formDataToUpdateData(formData: FixedAssetFormData): UpdateFixedAssetData {
+  return {
+    parishId: formData.parishId,
+    inventoryNumber: formData.inventoryNumber,
+    name: formData.name,
+    description: formData.description || null,
+    category: formData.category || null,
+    type: formData.type || null,
+    location: formData.location || null,
+    acquisitionDate: formData.acquisitionDate || null,
+    acquisitionValue: formData.acquisitionValue || null,
+    currentValue: formData.currentValue || null,
+    depreciationMethod: formData.depreciationMethod || null,
+    usefulLifeYears: formData.usefulLifeYears ? parseInt(formData.usefulLifeYears, 10) : null,
+    status: formData.status,
+    disposalDate: formData.disposalDate || null,
+    disposalValue: formData.disposalValue || null,
+    disposalReason: formData.disposalReason || null,
+    notes: formData.notes || null,
   };
 }
 

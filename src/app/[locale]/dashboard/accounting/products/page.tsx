@@ -1,25 +1,30 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ProductAddModal } from '@/components/accounting/ProductAddModal';
+import { ProductEditModal } from '@/components/accounting/ProductEditModal';
+import { DeleteProductDialog } from '@/components/accounting/DeleteProductDialog';
+import { ProductsFiltersCard } from '@/components/accounting/ProductsFiltersCard';
+import { ProductsTableCard } from '@/components/accounting/ProductsTableCard';
 import { useProducts, Product } from '@/hooks/useProducts';
+import { Column } from '@/components/ui/Table';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { useProductForm } from '@/hooks/useProductForm';
+
+// Utility function to convert string boolean filter to boolean | undefined
+const parseBooleanFilter = (value: string): boolean | undefined => {
+  if (value === '') return undefined;
+  return value === 'true';
+};
 
 export default function ProductsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PRODUCTS_VIEW);
@@ -52,117 +57,166 @@ export default function ProductsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    parishId: '',
-    code: '',
-    name: '',
-    description: '',
-    category: '',
-    unit: 'buc',
-    purchasePrice: '',
-    salePrice: '',
-    vatRate: '19',
-    barcode: '',
-    trackStock: true,
-    minStock: '',
-    isActive: true,
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const {
+    formData,
+    resetForm,
+    updateFormData,
+    loadProduct,
+    validateForm,
+    toApiData,
+  } = useProductForm();
 
   useEffect(() => {
     if (permissionLoading) return;
     fetchParishes({ all: true });
   }, [permissionLoading, fetchParishes]);
 
+  // Build fetch parameters, converting empty strings to undefined
+  // to avoid sending empty query parameters
+  const getFetchParams = useCallback(() => ({
+    page: currentPage,
+    pageSize: 10,
+    search: searchTerm || undefined,
+    parishId: parishFilter || undefined,
+    category: categoryFilter || undefined,
+    isActive: parseBooleanFilter(isActiveFilter),
+  }), [currentPage, searchTerm, parishFilter, categoryFilter, isActiveFilter]);
+
   useEffect(() => {
     if (permissionLoading) return;
-    const params: any = {
-      page: currentPage,
-      pageSize: 10,
-      search: searchTerm || undefined,
-      parishId: parishFilter || undefined,
-      category: categoryFilter || undefined,
-      isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
-    };
-    fetchProducts(params);
-  }, [permissionLoading, currentPage, searchTerm, parishFilter, categoryFilter, isActiveFilter, fetchProducts]);
+    fetchProducts(getFetchParams());
+  }, [permissionLoading, getFetchParams, fetchProducts]);
 
-  const handleAdd = () => {
+  // Generic form submission handler that works for both create and update
+  const handleFormSubmit = useCallback(async (
+    operation: 'create' | 'update',
+    productId?: string
+  ) => {
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const validation = validateForm(t);
+      if (!validation.valid) {
+        setSubmitError(validation.error || t('fillRequiredFields') || 'Please fill all required fields');
+        return;
+      }
+
+      const productData = toApiData();
+      const result = operation === 'create'
+        ? await createProduct(productData)
+        : await updateProduct(productId!, productData);
+      
+      if (result) {
+        if (operation === 'create') {
+          setShowAddModal(false);
+          resetForm();
+        } else {
+          setShowEditModal(false);
+          setSelectedProduct(null);
+        }
+        fetchProducts(getFetchParams());
+      } else {
+        const errorKey = operation === 'create' ? 'createProductError' : 'updateProductError';
+        setSubmitError(t(errorKey) || `Failed to ${operation} product. Please try again.`);
+      }
+    } catch (error) {
+      const errorKey = operation === 'create' ? 'createProductError' : 'updateProductError';
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : t(errorKey) || `An error occurred while ${operation === 'create' ? 'creating' : 'updating'} the product.`;
+      setSubmitError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [validateForm, toApiData, createProduct, updateProduct, getFetchParams, fetchProducts, resetForm, t]);
+
+  const handleAdd = useCallback(() => {
     resetForm();
+    setSubmitError(null);
     setShowAddModal(true);
-  };
+  }, [resetForm]);
 
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product);
-    setFormData({
-      parishId: product.parishId,
-      code: product.code,
-      name: product.name,
-      description: product.description || '',
-      category: product.category || '',
-      unit: product.unit,
-      purchasePrice: product.purchasePrice || '',
-      salePrice: product.salePrice || '',
-      vatRate: product.vatRate,
-      barcode: product.barcode || '',
-      trackStock: product.trackStock,
-      minStock: product.minStock || '',
-      isActive: product.isActive,
-    });
-    setShowEditModal(true);
-  };
+  const handleEdit = useCallback(
+    (product: Product) => {
+      setSelectedProduct(product);
+      loadProduct(product);
+      setSubmitError(null);
+      setShowEditModal(true);
+    },
+    [loadProduct]
+  );
 
-  const handleSave = async () => {
-    if (selectedProduct) {
-      const result = await updateProduct(selectedProduct.id, formData);
-      if (result) {
-        setShowEditModal(false);
-        setSelectedProduct(null);
-        fetchProducts({ page: currentPage, pageSize: 10 });
+  const handleCreate = useCallback(() => handleFormSubmit('create'), [handleFormSubmit]);
+  const handleUpdate = useCallback(() => {
+    if (!selectedProduct) return;
+    handleFormSubmit('update', selectedProduct.id);
+  }, [selectedProduct, handleFormSubmit]);
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const success = await deleteProduct(id);
+      if (success) {
+        setDeleteConfirm(null);
+        fetchProducts(getFetchParams());
       }
-    } else {
-      const result = await createProduct(formData);
-      if (result) {
-        setShowAddModal(false);
-        resetForm();
-        fetchProducts({ page: currentPage, pageSize: 10 });
-      }
-    }
-  };
+    },
+    [deleteProduct, getFetchParams, fetchProducts]
+  );
 
-  const handleDelete = async (id: string) => {
-    const success = await deleteProduct(id);
-    if (success) {
-      setDeleteConfirm(null);
-      fetchProducts({ page: currentPage, pageSize: 10 });
-    }
-  };
+  // Filter change handlers that reset page to 1
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
 
-  const resetForm = () => {
-    setFormData({
-      parishId: '',
-      code: '',
-      name: '',
-      description: '',
-      category: '',
-      unit: 'buc',
-      purchasePrice: '',
-      salePrice: '',
-      vatRate: '19',
-      barcode: '',
-      trackStock: true,
-      minStock: '',
-      isActive: true,
-    });
+  const handleParishFilterChange = useCallback((value: string) => {
+    setParishFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleCategoryFilterChange = useCallback((value: string) => {
+    setCategoryFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleIsActiveFilterChange = useCallback((value: string) => {
+    setIsActiveFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleFilterClear = useCallback(() => {
+    setSearchTerm('');
+    setParishFilter('');
+    setCategoryFilter('');
+    setIsActiveFilter('');
+    setCurrentPage(1);
+  }, []);
+
+  // Modal close handlers
+  const handleAddModalClose = useCallback(() => {
+    setShowAddModal(false);
+    resetForm();
+    setSubmitError(null);
+  }, [resetForm]);
+
+  const handleEditModalClose = useCallback(() => {
+    setShowEditModal(false);
     setSelectedProduct(null);
-  };
+    resetForm();
+    setSubmitError(null);
+  }, [resetForm]);
 
-  const columns: any[] = [
-    { key: 'code', label: t('code') || 'Code', sortable: true },
-    { key: 'name', label: t('name') || 'Name', sortable: true },
-    { key: 'category', label: t('category') || 'Category', sortable: true },
-    { key: 'unit', label: t('unit') || 'Unit', sortable: false },
+  const columns: Column<Product>[] = useMemo(() => [
+    { key: 'code' as keyof Product, label: t('code') || 'Code', sortable: true },
+    { key: 'name' as keyof Product, label: t('name') || 'Name', sortable: true },
+    { key: 'category' as keyof Product, label: t('category') || 'Category', sortable: true },
+    { key: 'unit' as keyof Product, label: t('unit') || 'Unit', sortable: false },
     {
-      key: 'trackStock',
+      key: 'trackStock' as keyof Product,
       label: t('trackStock') || 'Track Stock',
       sortable: false,
       render: (value: boolean) => (
@@ -172,7 +226,7 @@ export default function ProductsPage() {
       ),
     },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof Product,
       label: t('status') || 'Status',
       sortable: false,
       render: (value: boolean) => (
@@ -182,7 +236,7 @@ export default function ProductsPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'id' as keyof Product,
       label: t('actions') || 'Actions',
       sortable: false,
       render: (_: any, row: Product) => (
@@ -201,7 +255,7 @@ export default function ProductsPage() {
         />
       ),
     },
-  ];
+  ], [t, handleEdit]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -210,215 +264,74 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
-          { label: t('products') || 'Products', href: `/${locale}/dashboard/accounting/products` },
+          { label: t('products') || 'Products' },
         ]}
+        title={t('products') || 'Products'}
+        action={<Button onClick={handleAdd}>{t('add') || 'Add'}</Button>}
       />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t('products') || 'Products'}</h1>
-            <Button onClick={handleAdd}>{t('add') || 'Add'}</Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <SearchInput
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('search') || 'Search...'}
-              />
-            </div>
+      {/* Filters */}
+      <ProductsFiltersCard
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        parishFilter={parishFilter}
+        onParishFilterChange={handleParishFilterChange}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={handleCategoryFilterChange}
+        isActiveFilter={isActiveFilter}
+        onIsActiveFilterChange={handleIsActiveFilterChange}
+        onClear={handleFilterClear}
+        parishes={parishes}
+      />
 
-            <FilterGrid>
-              <ParishFilter
-                value={parishFilter}
-                onChange={(value) => {
-                  setParishFilter(value);
-                  setCurrentPage(1);
-                }}
-                parishes={parishes}
-              />
-              <Input
-                label={t('category') || 'Category'}
-                value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t('filterByCategory') || 'Filter by category...'}
-              />
-              <FilterSelect
-                label={t('status') || 'Status'}
-                value={isActiveFilter}
-                onChange={(value) => {
-                  setIsActiveFilter(value);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('all') || 'All' },
-                  { value: 'true', label: t('active') || 'Active' },
-                  { value: 'false', label: t('inactive') || 'Inactive' },
-                ]}
-              />
-              <FilterClear
-                onClear={() => {
-                  setSearchTerm('');
-                  setParishFilter('');
-                  setCategoryFilter('');
-                  setIsActiveFilter('');
-                  setCurrentPage(1);
-                }}
-              />
-            </FilterGrid>
+      {/* Products Table */}
+      <ProductsTableCard
+        data={products}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No data available'}
+      />
 
-            {error && (
-              <div className="p-4 bg-danger/10 text-danger rounded">
-                {error}
-              </div>
-            )}
+      {/* Add Modal */}
+      <ProductAddModal
+        isOpen={showAddModal}
+        onClose={handleAddModalClose}
+        onCancel={handleAddModalClose}
+        formData={formData}
+        onFormDataChange={updateFormData}
+        parishes={parishes}
+        onSubmit={handleCreate}
+        isSubmitting={isSubmitting}
+        error={submitError}
+      />
 
-            <Table
-              data={products}
-              columns={columns}
-              loading={loading}
-              pagination={pagination}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </CardBody>
-      </Card>
+      {/* Edit Modal */}
+      <ProductEditModal
+        isOpen={showEditModal}
+        onClose={handleEditModalClose}
+        onCancel={handleEditModalClose}
+        formData={formData}
+        onFormDataChange={updateFormData}
+        parishes={parishes}
+        onSubmit={handleUpdate}
+        isSubmitting={isSubmitting}
+        error={submitError}
+      />
 
-      {/* Add/Edit Modal */}
-      <FormModal
-        isOpen={showAddModal || showEditModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setShowEditModal(false);
-          resetForm();
-        }}
-        onCancel={() => {
-          setShowAddModal(false);
-          setShowEditModal(false);
-          resetForm();
-        }}
-        title={selectedProduct ? (t('editProduct') || 'Edit Product') : (t('addProduct') || 'Add Product')}
-        onSubmit={handleSave}
-        isSubmitting={false}
-        submitLabel={t('save') || 'Save'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        size="lg"
-      >
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-          <Select
-            label={t('parish') || 'Parish'}
-            value={formData.parishId}
-            onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-            options={parishes.map(p => ({ value: p.id, label: p.name }))}
-            required
-          />
-          <Input
-            label={t('code') || 'Code'}
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label={t('name') || 'Name'}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('description') || 'Description'}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={t('category') || 'Category'}
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          />
-          <Input
-            label={t('unit') || 'Unit'}
-            value={formData.unit}
-            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-            required
-          />
-          <Input
-            label={t('purchasePrice') || 'Purchase Price'}
-            type="number"
-            step="0.01"
-            value={formData.purchasePrice}
-            onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-          />
-          <Input
-            label={t('salePrice') || 'Sale Price'}
-            type="number"
-            step="0.01"
-            value={formData.salePrice}
-            onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-          />
-          <Input
-            label={t('vatRate') || 'VAT Rate (%)'}
-            type="number"
-            step="0.01"
-            value={formData.vatRate}
-            onChange={(e) => setFormData({ ...formData, vatRate: e.target.value })}
-          />
-          <Input
-            label={t('barcode') || 'Barcode'}
-            value={formData.barcode}
-            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-          />
-          <Input
-            label={t('minStock') || 'Minimum Stock'}
-            type="number"
-            step="0.001"
-            value={formData.minStock}
-            onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="trackStock"
-              checked={formData.trackStock}
-              onChange={(e) => setFormData({ ...formData, trackStock: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="trackStock" className="text-sm">{t('trackStock') || 'Track Stock'}</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm">{t('active') || 'Active'}</label>
-          </div>
-        </div>
-      </FormModal>
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* Delete Confirmation Dialog */}
+      <DeleteProductDialog
         isOpen={!!deleteConfirm}
+        productId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete') || 'Confirm Delete'}
-        message={t('confirmDeleteMessage') || 'Are you sure you want to delete this product?'}
-        confirmLabel={t('delete') || 'Delete'}
-        cancelLabel={t('cancel') || 'Cancel'}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

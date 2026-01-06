@@ -57,11 +57,39 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = timeEntries[sortBy as keyof typeof timeEntries];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = desc(timeEntries.entryDate);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.id) : desc(timeEntries.id);
+        break;
+      case 'employeeId':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.employeeId) : desc(timeEntries.employeeId);
+        break;
+      case 'entryDate':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.entryDate) : desc(timeEntries.entryDate);
+        break;
+      case 'checkInTime':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.checkInTime) : desc(timeEntries.checkInTime);
+        break;
+      case 'checkOutTime':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.checkOutTime) : desc(timeEntries.checkOutTime);
+        break;
+      case 'workedHours':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.workedHours) : desc(timeEntries.workedHours);
+        break;
+      case 'overtimeHours':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.overtimeHours) : desc(timeEntries.overtimeHours);
+        break;
+      case 'status':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.status) : desc(timeEntries.status);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.createdAt) : desc(timeEntries.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(timeEntries.updatedAt) : desc(timeEntries.updatedAt);
+        break;
+      default:
+        orderBy = desc(timeEntries.entryDate);
     }
 
     const offset = (page - 1) * pageSize;
@@ -128,20 +156,22 @@ export async function POST(request: Request) {
     }
 
     // Create time entry
+    const insertValues = {
+      employeeId: data.employeeId,
+      entryDate: data.entryDate,
+      checkInTime: data.checkInTime ? new Date(data.checkInTime) : null,
+      checkOutTime: data.checkOutTime ? new Date(data.checkOutTime) : null,
+      breakDurationMinutes: data.breakDurationMinutes || 0,
+      workedHours: data.workedHours || null,
+      overtimeHours: data.overtimeHours || '0',
+      status: data.status || 'present',
+      notes: data.notes || null,
+      createdBy: userId,
+    };
+    
     const [newEntry] = await db
       .insert(timeEntries)
-      .values({
-        employeeId: data.employeeId,
-        entryDate: data.entryDate,
-        checkInTime: data.checkInTime || null,
-        checkOutTime: data.checkOutTime || null,
-        breakDurationMinutes: data.breakDurationMinutes || 0,
-        workedHours: data.workedHours || null,
-        overtimeHours: data.overtimeHours || '0',
-        status: data.status || 'present',
-        notes: data.notes || null,
-        createdBy: userId,
-      })
+      .values(insertValues)
       .returning();
 
     return NextResponse.json(

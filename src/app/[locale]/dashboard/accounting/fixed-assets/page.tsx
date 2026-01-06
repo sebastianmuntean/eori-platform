@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
@@ -96,20 +96,15 @@ export default function FixedAssetsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting') || 'Accounting', href: `/${locale}/dashboard/accounting` },
-          { label: tMenu('fixedAssets') || 'Mijloace fixe si obiecte de inventar', href: `/${locale}/dashboard/accounting/fixed-assets` },
+          { label: tMenu('fixedAssets') || 'Mijloace fixe si obiecte de inventar' },
         ]}
+        title={tMenu('fixedAssets') || 'Mijloace fixe si obiecte de inventar'}
+        description={tMenu('fixedAssetsDescription') || 'Gestionare și raportare pentru mijloace fixe și obiecte de inventar'}
       />
-
-      <div>
-        <h1 className="text-3xl font-bold mb-2">{tMenu('fixedAssets') || 'Mijloace fixe si obiecte de inventar'}</h1>
-        <p className="text-text-secondary mb-6">
-          {tMenu('fixedAssetsDescription') || 'Gestionare și raportare pentru mijloace fixe și obiecte de inventar'}
-        </p>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {navigationItems.map((item, index) => (

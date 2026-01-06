@@ -84,7 +84,19 @@ export function useInvoices(): UseInvoicesReturn {
   const [pagination, setPagination] = useState<UseInvoicesReturn['pagination']>(null);
   const [summary, setSummary] = useState<InvoiceSummary | null>(null);
 
-  const fetchInvoices = useCallback(async (params = {}) => {
+  const fetchInvoices = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    type?: 'issued' | 'received';
+    status?: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+    clientId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -119,7 +131,11 @@ export function useInvoices(): UseInvoicesReturn {
     }
   }, []);
 
-  const fetchSummary = useCallback(async (params = {}) => {
+  const fetchSummary = useCallback(async (params: {
+    parishId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) => {
     try {
       // Calculate summary from invoices list
       // For now, we'll calculate it from the fetched invoices

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { useTable, SortConfig } from '@/hooks/useTable';
 
-interface Column<T> {
+export interface Column<T> {
   key: keyof T;
   label: string | React.ReactNode;
   sortable?: boolean;

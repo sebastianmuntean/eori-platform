@@ -91,7 +91,7 @@ export async function GET(
       maintenance: 0,
     };
 
-    gravesByStatus.forEach((row: { status: string; count: number }) => {
+    gravesByStatus.forEach((row: { status: string | null; count: number }) => {
       gravesStats.total += Number(row.count);
       if (row.status === 'free') gravesStats.free = Number(row.count);
       if (row.status === 'occupied') gravesStats.occupied = Number(row.count);

@@ -25,12 +25,8 @@ export async function GET(request: Request) {
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Fetch all employees matching the criteria
-    let query = db.select().from(employees);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
-
-    const allEmployees = await query;
+    const baseQuery = db.select().from(employees);
+    const allEmployees = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
     // Get active contracts for each employee
     const employeesWithContracts = await Promise.all(
@@ -130,5 +126,6 @@ export async function GET(request: Request) {
     });
   }
 }
+
 
 

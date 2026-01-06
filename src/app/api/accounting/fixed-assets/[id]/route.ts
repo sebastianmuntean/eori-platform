@@ -87,8 +87,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
@@ -201,8 +201,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await getCurrentUser();
-    if (!userId) {
+    const { userId, user } = await getCurrentUser();
+    if (!userId || !user) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }

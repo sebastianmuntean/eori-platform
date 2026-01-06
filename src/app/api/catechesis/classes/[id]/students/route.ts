@@ -14,13 +14,12 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   return handleApiRoute(async () => {
     const { userId, user } = await getCurrentUser();
     if (!userId || !user) {
       return createErrorResponse('Not authenticated', 401);
     }
-
-    const { id } = await params;
 
     // Check if class exists
     const [classItem] = await db

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { pilgrimageSchedule } from '@/database/schema';
-import { formatErrorResponse, logError } from '@/lib/errors';
+import { formatErrorResponse, logError, AuthorizationError } from '@/lib/errors';
 import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { eq, asc } from 'drizzle-orm';
 import { z } from 'zod';
 import { getPilgrimageById } from '@/lib/services/pilgrimages-service';
+import { isValidUUID, formatValidationErrors } from '@/lib/api-utils/validation';
+import { requireParishAccess } from '@/lib/api-utils/authorization';
 
 const createScheduleSchema = z.object({
   dayNumber: z.number().int().positive().optional().nullable(),

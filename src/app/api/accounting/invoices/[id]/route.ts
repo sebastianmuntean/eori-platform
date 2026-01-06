@@ -192,7 +192,12 @@ export async function PUT(
             id,
             data.type || existingInvoice.type,
             data.date || existingInvoice.date,
-            data.items,
+            data.items.map(item => ({
+              ...item,
+              productId: item.productId ?? undefined,
+              warehouseId: item.warehouseId ?? undefined,
+              unitCost: item.unitCost ?? undefined,
+            })),
             data.parishId || existingInvoice.parishId,
             data.clientId || existingInvoice.clientId,
             userId

@@ -32,3 +32,7 @@ export const pilgrimageTransport = pgTable('pilgrimage_transport', {
 
 
 
+
+
+
+

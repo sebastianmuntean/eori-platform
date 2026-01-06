@@ -100,11 +100,8 @@ export async function GET(request: Request) {
       .leftJoin(warehouses, eq(inventorySessions.warehouseId, warehouses.id))
       .leftJoin(users, eq(inventorySessions.createdBy, users.id));
 
-    if (whereClause) {
-      sessionsQuery = sessionsQuery.where(whereClause);
-    }
-
-    const sessionsData = await sessionsQuery
+    const sessionsQueryWithWhere = whereClause ? sessionsQuery.where(whereClause) : sessionsQuery;
+    const sessionsData = await sessionsQueryWithWhere
       .orderBy(orderBy)
       .limit(pageSize)
       .offset(offset);

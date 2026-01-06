@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -185,8 +185,11 @@ export default function SuperadminPage() {
   console.log('✓ Rendering superadmin overview');
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      <h1 className="text-3xl font-bold text-text-primary mb-6">Superadmin</h1>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title="Superadmin"
+        className="mb-6"
+      />
 
       {statsError && (
         <div className="mb-4 p-4 bg-warning bg-opacity-10 border border-warning rounded-md text-warning">

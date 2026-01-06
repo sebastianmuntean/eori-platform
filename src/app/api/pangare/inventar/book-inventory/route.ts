@@ -208,11 +208,8 @@ export async function GET(request: Request) {
         .from(stockMovements)
         .groupBy(stockMovements.warehouseId, stockMovements.productId);
 
-      if (whereClause) {
-        stockQuery = stockQuery.where(whereClause);
-      }
-
-      const stockLevels = await stockQuery;
+      const stockQueryWithWhere = whereClause ? stockQuery.where(whereClause) : stockQuery;
+      const stockLevels = await stockQueryWithWhere;
 
       // Filter out zero or negative quantities before fetching related data
       const validLevels = stockLevels.filter(level => Number(level.quantity) > 0);

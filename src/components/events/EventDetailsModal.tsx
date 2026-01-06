@@ -5,7 +5,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
-import { ChurchEvent, ChurchEventParticipant } from './EventForm';
+import { ChurchEvent } from './EventForm';
+import { ChurchEventParticipant } from './ParticipantForm';
 import { useTranslations } from 'next-intl';
 
 interface EventDetailsModalProps {

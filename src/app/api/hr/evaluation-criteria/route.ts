@@ -58,12 +58,35 @@ export async function GET(request: Request) {
       .where(whereClause);
     const total = Number(countResult[0]?.count || 0);
 
+    // Map sortable fields to their column references with type safety
     let orderBy;
-    const sortColumn = evaluationCriteria[sortBy as keyof typeof evaluationCriteria];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = asc(evaluationCriteria.name);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.id) : desc(evaluationCriteria.id);
+        break;
+      case 'code':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.code) : desc(evaluationCriteria.code);
+        break;
+      case 'name':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.name) : desc(evaluationCriteria.name);
+        break;
+      case 'maxScore':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.maxScore) : desc(evaluationCriteria.maxScore);
+        break;
+      case 'weight':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.weight) : desc(evaluationCriteria.weight);
+        break;
+      case 'isActive':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.isActive) : desc(evaluationCriteria.isActive);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.createdAt) : desc(evaluationCriteria.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(evaluationCriteria.updatedAt) : desc(evaluationCriteria.updatedAt);
+        break;
+      default:
+        orderBy = asc(evaluationCriteria.name);
     }
 
     const offset = (page - 1) * pageSize;
@@ -159,6 +182,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

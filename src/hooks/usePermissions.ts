@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface Permission {
+export interface Permission {
   id: string;
   name: string;
   description: string | null;

@@ -123,10 +123,8 @@ export async function GET(request: Request) {
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(fixedAssets);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(fixedAssets);
+    const query = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     const allAssets = await query.orderBy(orderBy).limit(pageSize).offset(offset);
 

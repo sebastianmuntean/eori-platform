@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SalaryForm } from '@/components/hr/SalaryForm';
@@ -13,12 +13,13 @@ import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
+import { showErrorToast } from '@/lib/utils/hr';
 
 export default function SalariesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tMenu = useTranslations('menu');
   usePageTitle(t('salaries'));
   const { showToast } = useToast();
 
@@ -32,15 +33,6 @@ export default function SalariesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [salaryToDelete, setSalaryToDelete] = useState<Salary | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: tMenu('hr') || 'Resurse Umane', href: `/${locale}/dashboard/hr` },
-      { label: t('salaries') },
-    ],
-    [t, tMenu, locale]
-  );
 
   // Handlers for form actions
   const handleAdd = useCallback(() => {
@@ -70,14 +62,7 @@ export default function SalariesPage() {
     setSalaryToDelete(null);
   }, []);
 
-  // Helper function to show error toast
-  const showErrorToast = useCallback(
-    (error: unknown, fallbackMessage: string) => {
-      const message = error instanceof Error ? error.message : fallbackMessage;
-      showToast(message, 'error');
-    },
-    [showToast]
-  );
+  const breadcrumbs = useHRBreadcrumbs(locale, t('salaries'));
 
   // Handler for approve action
   const handleApprove = useCallback(
@@ -91,12 +76,12 @@ export default function SalariesPage() {
           showToast(t('errorApprovingSalary') || 'Error approving salary', 'error');
         }
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [approveSalary, showToast, t, showErrorToast]
+    [approveSalary, showToast, t]
   );
 
   // Handler for pay action
@@ -111,12 +96,12 @@ export default function SalariesPage() {
           showToast(t('errorPayingSalary') || 'Error paying salary', 'error');
         }
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [paySalary, showToast, t, showErrorToast]
+    [paySalary, showToast, t]
   );
 
   // Handler for form submission (create or update)
@@ -133,12 +118,12 @@ export default function SalariesPage() {
         }
         handleFormClose();
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [selectedSalary, updateSalary, createSalary, showToast, t, handleFormClose, showErrorToast]
+    [selectedSalary, updateSalary, createSalary, showToast, t, handleFormClose]
   );
 
   // Handler for delete confirmation
@@ -155,11 +140,11 @@ export default function SalariesPage() {
         showToast(t('errorDeletingSalary') || 'Error deleting salary', 'error');
       }
     } catch (error) {
-      showErrorToast(error, t('errorOccurred') || 'An error occurred');
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
-  }, [salaryToDelete, deleteSalary, showToast, t, handleDeleteDialogClose, showErrorToast]);
+  }, [salaryToDelete, deleteSalary, showToast, t, handleDeleteDialogClose]);
 
   // Delete confirmation message
   const deleteMessage = useMemo(() => {
@@ -175,14 +160,12 @@ export default function SalariesPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('salaries')}</h1>
-        </div>
-        <Button onClick={handleAdd}>{t('addSalary') || 'Add Salary'}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('salaries')}
+        action={<Button onClick={handleAdd}>{t('addSalary') || 'Add Salary'}</Button>}
+      />
 
       <SalariesTable
         onEdit={handleEdit}

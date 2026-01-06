@@ -1,0 +1,12 @@
+{
+  "name": "lodash-get-replacement",
+  "version": "1.0.0",
+  "description": "Replacement for deprecated lodash.get using modern JavaScript",
+  "main": "index.js",
+  "license": "MIT"
+}
+
+
+
+
+

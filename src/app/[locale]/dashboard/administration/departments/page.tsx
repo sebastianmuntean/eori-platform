@@ -1,19 +1,21 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ToastContainer } from '@/components/ui/Toast';
+import { DepartmentAddModal, DepartmentFormData } from '@/components/administration/DepartmentAddModal';
+import { DepartmentEditModal } from '@/components/administration/DepartmentEditModal';
+import { DeleteDepartmentDialog } from '@/components/administration/DeleteDepartmentDialog';
+import { DepartmentsFiltersCard } from '@/components/administration/DepartmentsFiltersCard';
+import { DepartmentsTableCard } from '@/components/administration/DepartmentsTableCard';
 import { useDepartments, Department } from '@/hooks/useDepartments';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
@@ -38,6 +40,7 @@ export default function DepartmentsPage() {
   } = useDepartments();
 
   const { parishes, fetchParishes } = useParishes();
+  const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
@@ -47,7 +50,7 @@ export default function DepartmentsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DepartmentFormData>({
     parishId: '',
     code: '',
     name: '',
@@ -74,9 +77,30 @@ export default function DepartmentsPage() {
     });
   }, [currentPage, searchTerm, parishFilter, statusFilter, fetchDepartments]);
 
+  const getInitialFormData = useCallback((): DepartmentFormData => ({
+    parishId: '',
+    code: '',
+    name: '',
+    description: '',
+    headName: '',
+    phone: '',
+    email: '',
+    isActive: true,
+  }), []);
+
+  const resetForm = useCallback(() => {
+    setFormData(getInitialFormData());
+  }, [getInitialFormData]);
+
   const handleCreate = async () => {
     if (!formData.parishId || !formData.code || !formData.name) {
-      alert(t('fillRequiredFields'));
+      showError(t('fillRequiredFields') || 'Please fill all required fields');
+      return;
+    }
+
+    // Validate email if provided
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showError(t('invalidEmail') || 'Invalid email format');
       return;
     }
 
@@ -90,16 +114,10 @@ export default function DepartmentsPage() {
 
     if (result) {
       setShowAddModal(false);
-      setFormData({
-        parishId: '',
-        code: '',
-        name: '',
-        description: '',
-        headName: '',
-        phone: '',
-        email: '',
-        isActive: true,
-      });
+      resetForm();
+      showSuccess(t('departmentCreated') || 'Department created successfully');
+    } else {
+      showError(t('departmentCreationFailed') || 'Failed to create department');
     }
   };
 
@@ -107,7 +125,13 @@ export default function DepartmentsPage() {
     if (!selectedDepartment) return;
 
     if (!formData.parishId || !formData.code || !formData.name) {
-      alert(t('fillRequiredFields'));
+      showError(t('fillRequiredFields') || 'Please fill all required fields');
+      return;
+    }
+
+    // Validate email if provided
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showError(t('invalidEmail') || 'Invalid email format');
       return;
     }
 
@@ -122,6 +146,9 @@ export default function DepartmentsPage() {
     if (result) {
       setShowEditModal(false);
       setSelectedDepartment(null);
+      showSuccess(t('departmentUpdated') || 'Department updated successfully');
+    } else {
+      showError(t('departmentUpdateFailed') || 'Failed to update department');
     }
   };
 
@@ -129,6 +156,9 @@ export default function DepartmentsPage() {
     const result = await deleteDepartment(id);
     if (result) {
       setDeleteConfirm(null);
+      showSuccess(t('departmentDeleted') || 'Department deleted successfully');
+    } else {
+      showError(t('departmentDeletionFailed') || 'Failed to delete department');
     }
   };
 
@@ -148,34 +178,34 @@ export default function DepartmentsPage() {
   };
 
   // Get parish name for display
-  const getParishName = (parishId: string) => {
+  const getParishName = useCallback((parishId: string) => {
     const parish = parishes.find((p) => p.id === parishId);
     return parish ? parish.name : parishId;
-  };
+  }, [parishes]);
 
-  const columns = [
-    { key: 'code', label: t('code'), sortable: true },
-    { key: 'name', label: t('name'), sortable: true },
+  const columns = useMemo(() => [
+    { key: 'code' as keyof Department, label: t('code'), sortable: true },
+    { key: 'name' as keyof Department, label: t('name'), sortable: true },
     {
-      key: 'parishId',
+      key: 'parishId' as keyof Department,
       label: t('parish'),
       sortable: false,
       render: (value: string) => getParishName(value),
     },
     {
-      key: 'headName',
+      key: 'headName' as keyof Department,
       label: t('headName'),
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'phone',
+      key: 'phone' as keyof Department,
       label: t('phone'),
       sortable: false,
       render: (value: string | null) => value || '-',
     },
     {
-      key: 'isActive',
+      key: 'isActive' as keyof Department,
       label: t('status'),
       sortable: false,
       render: (value: boolean) => (
@@ -185,7 +215,7 @@ export default function DepartmentsPage() {
       ),
     },
     {
-      key: 'actions',
+      key: 'actions' as keyof Department,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: Department) => (
@@ -205,7 +235,7 @@ export default function DepartmentsPage() {
         />
       ),
     },
-  ];
+  ], [t, getParishName]);
 
   if (permissionLoading) {
     return (
@@ -215,264 +245,99 @@ export default function DepartmentsPage() {
     );
   }
 
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
-    { label: 'Departments' },
-  ];
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('departamente')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('departamente')}</Button>
-      </div>
+    <div className="space-y-6">
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('breadcrumbAdministration'), href: `/${locale}/dashboard/administration` },
+          { label: t('departamente') || 'Departments' },
+        ]}
+        title={t('departamente') || 'Departments'}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('departamente')}</Button>}
+      />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <Input
-              placeholder={t('search') + '...'}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-md"
-            />
-            <select
-              value={parishFilter}
-              onChange={(e) => {
-                setParishFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border rounded"
-            >
-              <option value="">{t('allParishes')}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border rounded"
-            >
-              <option value="">{t('allStatuses')}</option>
-              <option value="true">{t('active')}</option>
-              <option value="false">{t('inactive')}</option>
-            </select>
-          </div>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>{t('loading')}</div>
-          ) : (
-            <>
-              <Table
-                data={departments}
-                columns={columns}
-                loading={loading}
-              />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    {t('page')} {pagination.page} {t('of')} {pagination.totalPages} ({pagination.total} {t('total')})
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      {/* Filters */}
+      <DepartmentsFiltersCard
+        searchTerm={searchTerm}
+        parishFilter={parishFilter}
+        statusFilter={statusFilter}
+        parishes={parishes}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onParishFilterChange={(value) => {
+          setParishFilter(value);
+          setCurrentPage(1);
+        }}
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value);
+          setCurrentPage(1);
+        }}
+        onClear={() => {
+          setSearchTerm('');
+          setParishFilter('');
+          setStatusFilter('');
+          setCurrentPage(1);
+        }}
+      />
+
+      {/* Departments Table */}
+      <DepartmentsTableCard
+        data={departments}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No departments available'}
+      />
 
       {/* Add Modal */}
-      <FormModal
+      <DepartmentAddModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onCancel={() => setShowAddModal(false)}
-        title={`${t('add')} ${t('departamente')}`}
+        onClose={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
         onSubmit={handleCreate}
         isSubmitting={false}
-        submitLabel={t('create')}
-        cancelLabel={t('cancel')}
-      >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
-            <select
-              value={formData.parishId}
-              onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
-              required
-            >
-              <option value="">{t('selectParish')}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Input
-            label={`${t('code')} *`}
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label={`${t('name')} *`}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={t('headName')}
-            value={formData.headName}
-            onChange={(e) => setFormData({ ...formData, headName: e.target.value })}
-          />
-          <Input
-            label={t('phone')}
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Input
-            label={t('email')}
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActive" className="text-sm font-medium">
-              {t('active')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+      />
 
       {/* Edit Modal */}
-      <FormModal
+      <DepartmentEditModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onCancel={() => setShowEditModal(false)}
-        title={`${t('edit')} ${t('departamente')}`}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedDepartment(null);
+        }}
+        onCancel={() => {
+          setShowEditModal(false);
+          setSelectedDepartment(null);
+        }}
+        formData={formData}
+        onFormDataChange={setFormData}
+        parishes={parishes}
         onSubmit={handleUpdate}
         isSubmitting={false}
-        submitLabel={t('update')}
-        cancelLabel={t('cancel')}
-      >
-        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-          <div>
-            <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
-            <select
-              value={formData.parishId}
-              onChange={(e) => setFormData({ ...formData, parishId: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
-              required
-            >
-              <option value="">{t('selectParish')}</option>
-              {parishes.map((parish) => (
-                <option key={parish.id} value={parish.id}>
-                  {parish.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Input
-            label={`${t('code')} *`}
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-          <Input
-            label={`${t('name')} *`}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <Input
-            label={t('headName')}
-            value={formData.headName}
-            onChange={(e) => setFormData({ ...formData, headName: e.target.value })}
-          />
-          <Input
-            label={t('phone')}
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Input
-            label={t('email')}
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isActiveEdit"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="isActiveEdit" className="text-sm font-medium">
-              {t('active')}
-            </label>
-          </div>
-        </div>
-      </FormModal>
+      />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* Delete Confirmation Dialog */}
+      <DeleteDepartmentDialog
         isOpen={!!deleteConfirm}
+        departmentId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete')}
-        message={t('confirmDelete')}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+        onConfirm={handleDelete}
       />
     </div>
   );

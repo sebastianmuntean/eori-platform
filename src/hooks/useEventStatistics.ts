@@ -38,7 +38,11 @@ export function useEventStatistics(): UseEventStatisticsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStatistics = useCallback(async (params = {}) => {
+  const fetchStatistics = useCallback(async (params: {
+    parishId?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 

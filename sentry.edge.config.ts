@@ -8,6 +8,68 @@ import * as Sentry from "@sentry/nextjs";
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Constants for sensitive data sanitization
+const SENSITIVE_HEADERS = ['authorization', 'cookie', 'x-api-key'] as const;
+const SENSITIVE_QUERY_PARAMS = ['token', 'password', 'secret', 'key', 'api_key', 'access_token'] as const;
+const REDACTED_VALUE = '[REDACTED]';
+
+/**
+ * Removes sensitive headers from the request headers object
+ */
+function sanitizeHeaders(headers: Record<string, unknown>): void {
+  SENSITIVE_HEADERS.forEach(header => {
+    delete headers[header];
+  });
+}
+
+/**
+ * Sanitizes sensitive query parameters in a URL by replacing their values with [REDACTED]
+ */
+function sanitizeUrlParams(urlString: string): string {
+  try {
+    const url = new URL(urlString);
+    SENSITIVE_QUERY_PARAMS.forEach(param => {
+      if (url.searchParams.has(param)) {
+        url.searchParams.set(param, REDACTED_VALUE);
+      }
+    });
+    return url.toString();
+  } catch {
+    // Invalid URL, return original string
+    return urlString;
+  }
+}
+
+/**
+ * Sanitizes user data, keeping only the user ID if PII is not enabled
+ */
+function sanitizeUserData(user: Sentry.User): Sentry.User {
+  return { id: user.id };
+}
+
+/**
+ * Sanitizes sensitive data from a Sentry event before sending
+ */
+function sanitizeEvent<T extends Sentry.Event>(event: T): T {
+  // Sanitize request data
+  if (event.request) {
+    if (event.request.headers) {
+      sanitizeHeaders(event.request.headers as Record<string, unknown>);
+    }
+
+    if (event.request.url) {
+      event.request.url = sanitizeUrlParams(event.request.url);
+    }
+  }
+
+  // Sanitize user context if PII is not enabled
+  if (!process.env.SENTRY_SEND_PII && event.user) {
+    event.user = sanitizeUserData(event.user);
+  }
+
+  return event;
+}
+
 // Only initialize Sentry if DSN is configured
 if (dsn) {
   Sentry.init({
@@ -30,40 +92,7 @@ if (dsn) {
         return null;
       }
 
-      // Sanitize sensitive data from request
-      if (event.request) {
-        // Remove sensitive headers
-        if (event.request.headers) {
-          delete event.request.headers.authorization;
-          delete event.request.headers.cookie;
-          delete event.request.headers['x-api-key'];
-        }
-        
-        // Sanitize URL parameters that might contain sensitive data
-        if (event.request.url) {
-          try {
-            const url = new URL(event.request.url);
-            // Remove common sensitive query parameters
-            const sensitiveParams = ['token', 'password', 'secret', 'key', 'api_key', 'access_token'];
-            sensitiveParams.forEach(param => {
-              if (url.searchParams.has(param)) {
-                url.searchParams.set(param, '[REDACTED]');
-              }
-            });
-            event.request.url = url.toString();
-          } catch {
-            // Invalid URL, keep as is
-          }
-        }
-      }
-
-      // Sanitize user context if PII is not enabled
-      if (!process.env.SENTRY_SEND_PII && event.user) {
-        // Only keep user ID, remove email and username
-        event.user = { id: event.user.id };
-      }
-
-      return event;
+      return sanitizeEvent(event);
     },
 
     // Ignore specific errors

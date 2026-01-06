@@ -18,6 +18,7 @@
   "targetModuleGeneralRegister": "General Register",
   "targetModuleEvents": "Events",
   "targetModulePartners": "Partners",
+  "targetModuleClients": "Clients",
   "widgetCode": "Widget Code",
   "widgetCodeDescription": "Unique code for integration on third-party sites",
   "copyWidgetCode": "Copy Widget Code",

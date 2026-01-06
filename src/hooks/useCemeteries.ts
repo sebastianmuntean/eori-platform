@@ -47,18 +47,25 @@ export function useCemeteries(): UseCemeteriesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseCemeteriesReturn['pagination']>(null);
 
-  const fetchCemeteries = useCallback(async (params = {}) => {
+  const fetchCemeteries = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.parishId) queryParams.append('parishId', params.parishId);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const response = await fetch(`/api/cemeteries?${queryParams.toString()}`);
       const result = await response.json();
@@ -174,6 +181,9 @@ export function useCemeteries(): UseCemeteriesReturn {
     deleteCemetery,
   };
 }
+
+
+
 
 
 

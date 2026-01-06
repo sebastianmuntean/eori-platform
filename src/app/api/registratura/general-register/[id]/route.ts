@@ -557,7 +557,7 @@ export async function PATCH(
       status: DocumentStatus;
       subject?: string;
       description?: string | null;
-      dueDate?: Date | null;
+      dueDate?: string | null;
     } = {
       updatedBy: userId,
       updatedAt: new Date(),
@@ -571,7 +571,7 @@ export async function PATCH(
       updateData.description = data.description;
     }
     if (data.dueDate !== undefined) {
-      updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+      updateData.dueDate = data.dueDate || null;
     }
 
     // Update document

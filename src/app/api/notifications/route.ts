@@ -101,24 +101,18 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(notifications);
-    if (whereClause) {
-      countQuery = countQuery.where(whereClause);
-    }
+    const baseCountQuery = db.select({ count: sql<number>`count(*)` }).from(notifications);
+    const countQuery = whereClause ? baseCountQuery.where(whereClause) : baseCountQuery;
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(notifications);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(notifications);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
+    const queryWithOrder = queryWithWhere.orderBy(desc(notifications.createdAt));
 
-    // Apply sorting (created_at desc by default)
-    query = query.orderBy(desc(notifications.createdAt));
-
-    const allNotifications = await query.limit(pageSize).offset(offset);
+    const allNotifications = await queryWithOrder.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

@@ -111,7 +111,7 @@ export async function POST(
       data: { mappingsApplied: mappings?.length || 0 },
     });
   } catch (error) {
-    logError('Error applying mapping dataset', error);
+    logError(error, { endpoint: '/api/online-forms/mapping-datasets/[id]/apply', method: 'POST' });
     const errorResponse = formatErrorResponse(error);
     return NextResponse.json(
       {

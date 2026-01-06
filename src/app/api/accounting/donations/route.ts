@@ -77,23 +77,24 @@ export async function GET(request: Request) {
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(payments).where(whereClause);
+    const baseQuery = db.select().from(payments).where(whereClause);
 
     // Apply sorting
+    let query;
     if (sortBy === 'date') {
       query = sortOrder === 'desc' 
-        ? query.orderBy(desc(payments.date))
-        : query.orderBy(asc(payments.date));
+        ? baseQuery.orderBy(desc(payments.date))
+        : baseQuery.orderBy(asc(payments.date));
     } else if (sortBy === 'paymentNumber') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(payments.paymentNumber))
-        : query.orderBy(asc(payments.paymentNumber));
+        ? baseQuery.orderBy(desc(payments.paymentNumber))
+        : baseQuery.orderBy(asc(payments.paymentNumber));
     } else if (sortBy === 'amount') {
       query = sortOrder === 'desc'
-        ? query.orderBy(desc(payments.amount))
-        : query.orderBy(asc(payments.amount));
+        ? baseQuery.orderBy(desc(payments.amount))
+        : baseQuery.orderBy(asc(payments.amount));
     } else {
-      query = query.orderBy(desc(payments.createdAt));
+      query = baseQuery.orderBy(desc(payments.createdAt));
     }
 
     const allDonations = await query.limit(pageSize).offset(offset);
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if partner exists (if provided)
+    // Check if client exists (if provided)
     if (data.clientId) {
       console.log(`Step 3: Checking if client ${data.clientId} exists`);
       const [existingClient] = await db
@@ -173,7 +174,7 @@ export async function POST(request: Request) {
       if (!existingClient) {
         console.log(`❌ Client ${data.clientId} not found`);
         return NextResponse.json(
-          { success: false, error: 'Partner not found' },
+          { success: false, error: 'Client not found' },
           { status: 400 }
         );
       }

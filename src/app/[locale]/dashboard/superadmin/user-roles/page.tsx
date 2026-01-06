@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -69,10 +69,11 @@ export default function UserRolesPage() {
   console.log('✓ Rendering user roles page');
   return (
     <div>
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
-        <h1 className="text-3xl font-bold text-text-primary">Atribuire Roluri Utilizatori</h1>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title="Atribuire Roluri Utilizatori"
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-4 p-4 bg-danger bg-opacity-10 border border-danger rounded-md text-danger">

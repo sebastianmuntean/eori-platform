@@ -285,3 +285,7 @@ CREATE INDEX IF NOT EXISTS "clients_is_parishioner_idx" ON "clients" ("is_parish
 
 
 
+
+
+
+

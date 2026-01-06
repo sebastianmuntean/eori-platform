@@ -2,28 +2,26 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { FormModal } from '@/components/accounting/FormModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useClients, Client } from '@/hooks/useClients';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear } from '@/components/ui/FilterGrid';
 import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/useToast';
-import { formatCurrency, getClientDisplayName } from '@/lib/utils/accounting';
-import { validateSupplierForm, SupplierFormData } from '@/lib/validations/suppliers';
-import { ClientForm, ClientFormData } from '@/components/accounting/ClientForm';
+import { getClientDisplayName } from '@/lib/utils/accounting';
+import { validateSupplierForm } from '@/lib/validations/suppliers';
+import { ClientFormData } from '@/components/accounting/ClientForm';
 import { getClientType, createEmptyClientFormData, clientToFormData } from '@/lib/utils/clients';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { SupplierAddModal } from '@/components/accounting/SupplierAddModal';
+import { SupplierEditModal } from '@/components/accounting/SupplierEditModal';
+import { DeleteSupplierDialog } from '@/components/accounting/DeleteSupplierDialog';
+import { SuppliersFiltersCard } from '@/components/accounting/SuppliersFiltersCard';
+import { SuppliersTableCard } from '@/components/accounting/SuppliersTableCard';
 
 export default function SuppliersPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.SUPPLIERS_VIEW);
@@ -62,7 +60,7 @@ export default function SuppliersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
-  useEffect(() => {
+  const refreshClients = useCallback(() => {
     fetchClients({
       page: currentPage,
       pageSize: 10,
@@ -71,6 +69,10 @@ export default function SuppliersPage() {
       sortOrder: 'asc',
     });
   }, [currentPage, searchTerm, fetchClients]);
+
+  useEffect(() => {
+    refreshClients();
+  }, [refreshClients]);
 
   const handleCreate = useCallback(async () => {
     setFormErrors({});
@@ -100,7 +102,7 @@ export default function SuppliersPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, clientType, t, createClient, success, showError]);
+  }, [formData, clientType, t, createClient, success, showError, refreshClients]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedClient) return;
@@ -132,7 +134,7 @@ export default function SuppliersPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedClient, formData, clientType, t, updateClient, success, showError]);
+  }, [selectedClient, formData, clientType, t, updateClient, success, showError, refreshClients]);
 
   const handleDelete = useCallback(async (id: string) => {
     const result = await deleteClient(id);
@@ -143,7 +145,7 @@ export default function SuppliersPage() {
     } else {
       showError(t('errorDeletingSupplier') || 'Failed to delete supplier');
     }
-  }, [deleteClient, success, showError, t]);
+  }, [deleteClient, success, showError, t, refreshClients]);
 
   const handleEdit = useCallback((client: Client) => {
     setSelectedClient(client);
@@ -158,16 +160,6 @@ export default function SuppliersPage() {
     setClientType('person');
     setFormErrors({});
   }, []);
-
-  const refreshClients = useCallback(() => {
-    fetchClients({
-      page: currentPage,
-      pageSize: 10,
-      search: searchTerm || undefined,
-      sortBy: 'code',
-      sortOrder: 'asc',
-    });
-  }, [currentPage, searchTerm, fetchClients]);
 
   const handleFieldChange = useCallback((field: keyof ClientFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -191,13 +183,13 @@ export default function SuppliersPage() {
   const columns = useMemo(() => [
     { key: 'code' as keyof Client, label: t('code'), sortable: true },
     {
-      key: 'code' as keyof Client,
+      key: 'name' as keyof Client,
       label: t('name'),
       sortable: true,
       render: (_: any, row: Client) => getClientDisplayName(row),
     },
     {
-      key: 'code' as keyof Client,
+      key: 'type' as keyof Client,
       label: t('type'),
       sortable: false,
       render: (_: any, row: Client) => (
@@ -219,7 +211,7 @@ export default function SuppliersPage() {
       ),
     },
     {
-      key: 'code' as keyof Client,
+      key: 'actions' as keyof Client,
       label: t('actions'),
       sortable: false,
       render: (_: any, row: Client) => (
@@ -233,151 +225,100 @@ export default function SuppliersPage() {
           }
           items={[
             { label: t('edit'), onClick: () => handleEdit(row) },
-            { label: t('delete'), onClick: () => handleDelete(row.id), variant: 'danger' },
+            { label: t('delete'), onClick: () => setDeleteConfirm(row.id), variant: 'danger' },
           ]}
           align="right"
         />
       ),
     },
-  ], [t, handleEdit, handleDelete]);
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-    { label: t('suppliers') },
-  ];
+  ], [t, handleEdit]);
 
   return (
-    <div>
+    <div className="space-y-6">
       <ToastContainer toasts={toasts} onClose={removeToast} />
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('suppliers')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>{t('add')} {t('suppliers')}</Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
+          { label: t('suppliers') },
+        ]}
+        title={t('suppliers')}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('suppliers')}</Button>}
+      />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-4">
-            <SearchInput
-              value={searchTerm}
-              onChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              placeholder={`${t('search')} ${t('suppliers')}...`}
-            />
-          </div>
-          <FilterGrid>
-            <FilterClear
-              onClear={() => {
-                setSearchTerm('');
-                setCurrentPage(1);
-              }}
-            />
-          </FilterGrid>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <>
-              <Table
-                data={clients}
-                columns={columns}
-              />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      {/* Filters */}
+      <SuppliersFiltersCard
+        searchTerm={searchTerm}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
+        onClearFilters={() => {
+          setSearchTerm('');
+          setCurrentPage(1);
+        }}
+      />
 
-      <FormModal
+      {/* Suppliers Table */}
+      <SuppliersTableCard
+        data={clients}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No suppliers available'}
+      />
+
+      {/* Add Modal */}
+      <SupplierAddModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
-        title={`${t('add')} ${t('suppliers')}`}
-        onSubmit={handleCreate}
         onCancel={resetForm}
+        formData={formData}
+        clientType={clientType}
+        formErrors={formErrors}
+        onTypeChange={setClientType}
+        onFieldChange={handleFieldChange}
+        onClearError={handleClearError}
+        onSubmit={handleCreate}
         isSubmitting={isSubmitting}
-        submitLabel={isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
         error={error || null}
-      >
-        <ClientForm
-          formData={formData}
-          clientType={clientType}
-          formErrors={formErrors}
-          isSubmitting={isSubmitting}
-          onTypeChange={setClientType}
-          onFieldChange={handleFieldChange}
-          onClearError={handleClearError}
-        />
-      </FormModal>
+      />
 
-      <FormModal
+      {/* Edit Modal */}
+      <SupplierEditModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
           setSelectedClient(null);
           setFormErrors({});
         }}
-        title={`${t('edit')} ${t('suppliers')}`}
-        onSubmit={handleUpdate}
         onCancel={() => {
           setSelectedClient(null);
           setFormErrors({});
         }}
+        formData={formData}
+        clientType={clientType}
+        formErrors={formErrors}
+        onTypeChange={setClientType}
+        onFieldChange={handleFieldChange}
+        onClearError={handleClearError}
+        onSubmit={handleUpdate}
         isSubmitting={isSubmitting}
-        submitLabel={isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
         error={error || null}
-      >
-        <ClientForm
-          formData={formData}
-          clientType={clientType}
-          formErrors={formErrors}
-          isSubmitting={isSubmitting}
-          onTypeChange={setClientType}
-          onFieldChange={handleFieldChange}
-          onClearError={handleClearError}
-        />
-      </FormModal>
+      />
 
-      <ConfirmDialog
+      {/* Delete Confirmation Dialog */}
+      <DeleteSupplierDialog
         isOpen={!!deleteConfirm}
+        supplierId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title={t('confirmDelete')}
-        message={t('confirmDeleteSupplier') || 'Are you sure you want to delete this supplier?'}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+        onConfirm={handleDelete}
         isLoading={loading}
       />
     </div>

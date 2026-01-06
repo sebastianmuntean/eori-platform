@@ -60,7 +60,11 @@ export function useChat(conversationId: string | null): UseChatReturn {
     };
   }, [connected, onMessage, offMessage]);
 
-  const fetchMessages = useCallback(async (params = {}) => {
+  const fetchMessages = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    beforeMessageId?: string;
+  }) => {
     if (!conversationId) return;
 
     setLoading(true);
@@ -68,12 +72,12 @@ export function useChat(conversationId: string | null): UseChatReturn {
 
     try {
       const queryParams = new URLSearchParams();
-      const page = params.page || 1;
-      const pageSize = params.pageSize || 50;
+      const page = params?.page || 1;
+      const pageSize = params?.pageSize || 50;
       
       queryParams.append('page', page.toString());
       queryParams.append('pageSize', pageSize.toString());
-      if (params.beforeMessageId) {
+      if (params?.beforeMessageId) {
         queryParams.append('beforeMessageId', params.beforeMessageId);
       }
 
@@ -95,7 +99,7 @@ export function useChat(conversationId: string | null): UseChatReturn {
         })),
       })) as ChatMessage[];
 
-      if (params.page === 1 || !params.page) {
+      if (params?.page === 1 || !params?.page) {
         // Replace messages for first page
         setMessages(fetchedMessages);
       } else {

@@ -62,11 +62,39 @@ export async function GET(request: Request) {
     const total = Number(countResult[0]?.count || 0);
 
     let orderBy;
-    const sortColumn = trainingCourses[sortBy as keyof typeof trainingCourses];
-    if (sortColumn) {
-      orderBy = sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
-    } else {
-      orderBy = asc(trainingCourses.name);
+    switch (sortBy) {
+      case 'id':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.id) : desc(trainingCourses.id);
+        break;
+      case 'code':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.code) : desc(trainingCourses.code);
+        break;
+      case 'name':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.name) : desc(trainingCourses.name);
+        break;
+      case 'provider':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.provider) : desc(trainingCourses.provider);
+        break;
+      case 'durationHours':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.durationHours) : desc(trainingCourses.durationHours);
+        break;
+      case 'cost':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.cost) : desc(trainingCourses.cost);
+        break;
+      case 'isCertified':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.isCertified) : desc(trainingCourses.isCertified);
+        break;
+      case 'isActive':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.isActive) : desc(trainingCourses.isActive);
+        break;
+      case 'createdAt':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.createdAt) : desc(trainingCourses.createdAt);
+        break;
+      case 'updatedAt':
+        orderBy = sortOrder === 'asc' ? asc(trainingCourses.updatedAt) : desc(trainingCourses.updatedAt);
+        break;
+      default:
+        orderBy = asc(trainingCourses.name);
     }
 
     const offset = (page - 1) * pageSize;
@@ -164,6 +192,7 @@ export async function POST(request: Request) {
     });
   }
 }
+
 
 
 

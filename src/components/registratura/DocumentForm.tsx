@@ -33,11 +33,11 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
     registrationDate: document?.registrationDate ? new Date(document.registrationDate).toISOString().split('T')[0] : '',
     externalNumber: document?.externalNumber || '',
     externalDate: document?.externalDate ? new Date(document.externalDate).toISOString().split('T')[0] : '',
-    senderPartnerId: document?.senderPartnerId || '',
+    senderClientId: document?.senderClientId || '',
     senderName: document?.senderName || '',
     senderDocNumber: document?.senderDocNumber || '',
     senderDocDate: document?.senderDocDate ? new Date(document.senderDocDate).toISOString().split('T')[0] : '',
-    recipientPartnerId: document?.recipientPartnerId || '',
+    recipientClientId: document?.recipientClientId || '',
     recipientName: document?.recipientName || '',
     subject: document?.subject || '',
     content: document?.content || '',
@@ -73,11 +73,11 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
       const nullableFields = [
         'externalNumber',
         'externalDate',
-        'senderPartnerId',
+        'senderClientId',
         'senderName',
         'senderDocNumber',
         'senderDocDate',
-        'recipientPartnerId',
+        'recipientClientId',
         'recipientName',
         'content',
         'departmentId',
@@ -190,12 +190,15 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
         {isIncoming && (
           <>
             <ClientSelect
-              label="Expeditor (Partener)"
-              value={formData.senderPartnerId || ''}
-              onChange={(value) => setFormData({ ...formData, senderPartnerId: value || null })}
+              label="Expeditor (Client)"
+              value={formData.senderClientId || ''}
+              onChange={(value) => {
+                const clientId = Array.isArray(value) ? value[0] || null : (value || null);
+                setFormData({ ...formData, senderClientId: clientId });
+              }}
               clients={clients}
               onlyCompanies={false}
-              placeholder="Selectează partener"
+              placeholder="Selectează client"
             />
             <Input
               label="Nume Expeditor"
@@ -220,12 +223,15 @@ export function DocumentForm({ document, parishId, onSave, onCancel, loading: ex
         {isOutgoing && (
           <>
             <ClientSelect
-              label="Destinatar (Partener)"
-              value={formData.recipientPartnerId || ''}
-              onChange={(value) => setFormData({ ...formData, recipientPartnerId: value || null })}
+              label="Destinatar (Client)"
+              value={formData.recipientClientId || ''}
+              onChange={(value) => {
+                const clientId = Array.isArray(value) ? value[0] || null : (value || null);
+                setFormData({ ...formData, recipientClientId: clientId });
+              }}
               clients={clients}
               onlyCompanies={false}
-              placeholder="Selectează partener"
+              placeholder="Selectează client"
             />
             <Input
               label="Nume Destinatar"

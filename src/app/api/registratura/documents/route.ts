@@ -122,26 +122,27 @@ export async function GET(request: Request) {
 
     // Get paginated results
     const offset = (page - 1) * pageSize;
-    let query = db.select().from(documentRegistry).where(whereClause);
+    const baseQuery = db.select().from(documentRegistry).where(whereClause);
 
     // Apply sorting
+    let queryWithOrder;
     if (sortBy === 'registrationDate' && documentRegistry.registrationDate) {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(documentRegistry.registrationDate))
-        : query.orderBy(asc(documentRegistry.registrationDate));
+      queryWithOrder = sortOrder === 'desc'
+        ? baseQuery.orderBy(desc(documentRegistry.registrationDate))
+        : baseQuery.orderBy(asc(documentRegistry.registrationDate));
     } else if (sortBy === 'registrationNumber') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(documentRegistry.registrationNumber))
-        : query.orderBy(asc(documentRegistry.registrationNumber));
+      queryWithOrder = sortOrder === 'desc'
+        ? baseQuery.orderBy(desc(documentRegistry.registrationNumber))
+        : baseQuery.orderBy(asc(documentRegistry.registrationNumber));
     } else if (sortBy === 'priority') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(desc(documentRegistry.priority))
-        : query.orderBy(asc(documentRegistry.priority));
+      queryWithOrder = sortOrder === 'desc'
+        ? baseQuery.orderBy(desc(documentRegistry.priority))
+        : baseQuery.orderBy(asc(documentRegistry.priority));
     } else {
-      query = query.orderBy(desc(documentRegistry.createdAt));
+      queryWithOrder = baseQuery.orderBy(desc(documentRegistry.createdAt));
     }
 
-    const documents = await query.limit(pageSize).offset(offset);
+    const documents = await queryWithOrder.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,
@@ -229,13 +230,13 @@ export async function POST(request: Request) {
         registrationNumber,
         registrationYear,
         formattedNumber,
-        registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
+        registrationDate: data.registrationDate || null,
         externalNumber: data.externalNumber || null,
-        externalDate: data.externalDate ? new Date(data.externalDate) : null,
+        externalDate: data.externalDate || null,
         senderClientId: data.senderClientId || null,
         senderName: data.senderName || null,
         senderDocNumber: data.senderDocNumber || null,
-        senderDocDate: data.senderDocDate ? new Date(data.senderDocDate) : null,
+        senderDocDate: data.senderDocDate || null,
         recipientClientId: data.recipientClientId || null,
         recipientName: data.recipientName || null,
         subject: data.subject,
@@ -244,7 +245,7 @@ export async function POST(request: Request) {
         status: data.status || 'draft',
         departmentId: data.departmentId || null,
         assignedTo: data.assignedTo || null,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        dueDate: data.dueDate || null,
         fileIndex: data.fileIndex || null,
         parentDocumentId: data.parentDocumentId || null,
         isSecret: data.isSecret || false,

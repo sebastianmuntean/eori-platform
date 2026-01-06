@@ -88,14 +88,14 @@ export async function GET(request: Request) {
       })
       .from(churchEvents);
 
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const finalQuery = whereClause
+      ? query.where(whereClause)
+      : query;
 
     // Order by date
-    query = query.orderBy(churchEvents.eventDate);
+    const orderedQuery = finalQuery.orderBy(churchEvents.eventDate);
 
-    const events = await query;
+    const events = await orderedQuery;
 
     console.log(`✓ Found ${events.length} events for calendar`);
 

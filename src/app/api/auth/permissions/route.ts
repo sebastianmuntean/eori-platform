@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import type { Request } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { getUserEffectivePermissions } from '../../../../../lib/auth/permissions';
 import { formatErrorResponse, logError } from '@/lib/errors';
@@ -63,7 +62,7 @@ const PERMISSIONS_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
  * - Rate limited to prevent enumeration
  * - Returns empty array on error (doesn't leak information)
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   logRequest('/api/auth/permissions', 'GET');
 
   try {

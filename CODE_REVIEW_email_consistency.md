@@ -221,3 +221,7 @@ These should be updated to require templates and fail gracefully if templates ar
 **All emails do use the same Brevo method** (`sendTransacEmail`), but **not all emails use templates** - the two functions mentioned above have hardcoded HTML fallbacks that bypass the template system.
 
 
+
+
+
+

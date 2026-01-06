@@ -30,7 +30,6 @@ interface UseClientStatementReturn {
   error: string | null;
   fetchStatement: (params?: {
     clientId?: string;
-    partnerId?: string; // @deprecated Use clientId instead
     dateFrom?: string;
     dateTo?: string;
     invoiceType?: 'issued' | 'received';
@@ -48,20 +47,18 @@ export function useClientStatement(): UseClientStatementReturn {
 
   const fetchStatement = useCallback(async (params?: {
     clientId?: string;
-    partnerId?: string; // @deprecated Use clientId instead
     dateFrom?: string;
     dateTo?: string;
     invoiceType?: 'issued' | 'received';
     invoiceStatus?: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
     paymentType?: 'income' | 'expense';
   }) => {
-    // Support both clientId and partnerId for backward compatibility
-    const id = params?.clientId || params?.partnerId;
-    
-    if (!id) {
+    if (!params?.clientId) {
       setError('Client ID is required');
       return;
     }
+
+    const id = params.clientId;
 
     setLoading(true);
     setError(null);

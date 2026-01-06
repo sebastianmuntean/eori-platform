@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ContractForm } from '@/components/hr/ContractForm';
@@ -13,12 +13,13 @@ import { useToast } from '@/hooks/useToast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { HR_PERMISSIONS } from '@/lib/permissions/hr';
+import { useHRBreadcrumbs } from '@/lib/hr/breadcrumbs';
+import { showErrorToast } from '@/lib/utils/hr';
 
 export default function ContractsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tMenu = useTranslations('menu');
   usePageTitle(t('employmentContracts'));
   const { showToast } = useToast();
 
@@ -32,15 +33,6 @@ export default function ContractsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [contractToDelete, setContractToDelete] = useState<EmploymentContract | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: tMenu('hr') || 'Resurse Umane', href: `/${locale}/dashboard/hr` },
-      { label: t('employmentContracts') },
-    ],
-    [t, tMenu, locale]
-  );
 
   // Handlers for form actions
   const handleAdd = useCallback(() => {
@@ -86,14 +78,7 @@ export default function ContractsPage() {
     setContractToDelete(null);
   }, []);
 
-  // Helper function to show error toast
-  const showErrorToast = useCallback(
-    (error: unknown, fallbackMessage: string) => {
-      const message = error instanceof Error ? error.message : fallbackMessage;
-      showToast(message, 'error');
-    },
-    [showToast]
-  );
+  const breadcrumbs = useHRBreadcrumbs(locale, t('employmentContracts'));
 
   // Handler for form submission (create or update)
   const handleFormSubmit = useCallback(
@@ -109,12 +94,12 @@ export default function ContractsPage() {
         }
         handleFormClose();
       } catch (error) {
-        showErrorToast(error, t('errorOccurred') || 'An error occurred');
+        showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [selectedContract, updateContract, createContract, showToast, t, handleFormClose, showErrorToast]
+    [selectedContract, updateContract, createContract, showToast, t, handleFormClose]
   );
 
   // Handler for delete confirmation
@@ -131,11 +116,11 @@ export default function ContractsPage() {
         showToast(t('errorDeletingContract') || 'Error deleting contract', 'error');
       }
     } catch (error) {
-      showErrorToast(error, t('errorOccurred') || 'An error occurred');
+      showErrorToast(error, t('errorOccurred') || 'An error occurred', showToast);
     } finally {
       setIsSubmitting(false);
     }
-  }, [contractToDelete, deleteContract, showToast, t, handleDeleteDialogClose, showErrorToast]);
+  }, [contractToDelete, deleteContract, showToast, t, handleDeleteDialogClose]);
 
   // Delete confirmation message
   const deleteMessage = useMemo(() => {
@@ -151,14 +136,12 @@ export default function ContractsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('employmentContracts')}</h1>
-        </div>
-        <Button onClick={handleAdd}>{t('addContract') || 'Add Contract'}</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('employmentContracts')}
+        action={<Button onClick={handleAdd}>{t('addContract') || 'Add Contract'}</Button>}
+      />
 
       <ContractsTable onEdit={handleEdit} onDelete={handleDelete} onRenew={handleRenew} onTerminate={handleTerminate} />
 

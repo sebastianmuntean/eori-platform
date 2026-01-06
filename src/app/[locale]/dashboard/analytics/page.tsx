@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { ChartContainer, ChartDataPoint } from '@/components/analytics/ChartContainer';
 import { Input } from '@/components/ui/Input';
@@ -109,10 +109,11 @@ export default function AnalyticsPage() {
   if (loading && !metrics) {
     return (
       <div>
-        <Breadcrumbs items={breadcrumbs} className="mb-6" />
-        <h1 className="text-3xl font-bold text-text-primary mb-6">
-          {t('analytics') || 'Analytics'}
-        </h1>
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          title={t('analytics') || 'Analytics'}
+          className="mb-6"
+        />
         <div className="text-center py-12">
           <p className="text-text-secondary">{t('loading')}</p>
         </div>
@@ -123,10 +124,11 @@ export default function AnalyticsPage() {
   if (error && !metrics) {
     return (
       <div>
-        <Breadcrumbs items={breadcrumbs} className="mb-6" />
-        <h1 className="text-3xl font-bold text-text-primary mb-6">
-          {t('analytics') || 'Analytics'}
-        </h1>
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          title={t('analytics') || 'Analytics'}
+          className="mb-6"
+        />
         <div className="text-center py-12">
           <p className="text-danger">{error}</p>
           <Button onClick={fetchMetrics} className="mt-4">
@@ -177,23 +179,24 @@ export default function AnalyticsPage() {
   const financialComparisonData: ChartDataPoint[] = Array.from(financialMap.entries())
     .map(([date, values]) => ({
       date,
+      value: values.income + values.expenses, // Required by ChartDataPoint interface
       income: values.income,
       expenses: values.expenses,
     }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
   return (
     <div>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-text-primary">
-          {t('analytics') || 'Analytics'}
-        </h1>
-        <Button onClick={() => setShowReportBuilder(true)} variant="primary">
-          {t('createReport') || 'Create Report'}
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('analytics') || 'Analytics'}
+        action={
+          <Button onClick={() => setShowReportBuilder(true)} variant="primary">
+            {t('createReport') || 'Create Report'}
+          </Button>
+        }
+        className="mb-6"
+      />
 
       {/* Date Range Filter */}
       <Card variant="elevated" className="mb-6">

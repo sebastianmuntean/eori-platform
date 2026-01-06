@@ -96,7 +96,17 @@ export function useInventory(): UseInventoryReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseInventoryReturn['pagination']>(null);
 
-  const fetchSessions = useCallback(async (params = {}) => {
+  const fetchSessions = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    parishId?: string;
+    warehouseId?: string;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -271,7 +281,11 @@ export function useInventory(): UseInventoryReturn {
     }
   }, [fetchSessions]);
 
-  const fetchBookInventory = useCallback(async (params = {}): Promise<BookInventoryItem[]> => {
+  const fetchBookInventory = useCallback(async (params: {
+    parishId?: string;
+    warehouseId?: string;
+    type?: 'product' | 'fixed_asset';
+  } = {}): Promise<BookInventoryItem[]> => {
     setLoading(true);
     setError(null);
 
@@ -312,6 +326,9 @@ export function useInventory(): UseInventoryReturn {
     fetchBookInventory,
   };
 }
+
+
+
 
 
 

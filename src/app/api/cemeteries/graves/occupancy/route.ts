@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Query graves with related data
-    let query = db
+    const baseQuery = db
       .select({
         grave: cemeteryGraves,
         cemetery: cemeteries,
@@ -73,9 +73,7 @@ export async function GET(request: Request) {
       .innerJoin(cemeteryParcels, eq(cemeteryGraves.parcelId, cemeteryParcels.id))
       .innerJoin(cemeteryRows, eq(cemeteryGraves.rowId, cemeteryRows.id));
 
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const query = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     const results = await query;
 

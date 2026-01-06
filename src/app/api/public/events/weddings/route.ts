@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (data.groom) {
       participants.push({
         eventId: newEvent.id,
-        role: 'groom',
+        role: 'groom' as const,
         firstName: data.groom.firstName,
         lastName: data.groom.lastName || null,
         birthDate: data.groom.birthDate || null,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (data.bride) {
       participants.push({
         eventId: newEvent.id,
-        role: 'bride',
+        role: 'bride' as const,
         firstName: data.bride.firstName,
         lastName: data.bride.lastName || null,
         birthDate: data.bride.birthDate || null,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     if (data.groomParents?.father) {
       participants.push({
         eventId: newEvent.id,
-        role: 'parent',
+        role: 'parent' as const,
         firstName: data.groomParents.father.firstName,
         lastName: data.groomParents.father.lastName || null,
         birthDate: data.groomParents.father.birthDate || null,
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     if (data.groomParents?.mother) {
       participants.push({
         eventId: newEvent.id,
-        role: 'parent',
+        role: 'parent' as const,
         firstName: data.groomParents.mother.firstName,
         lastName: data.groomParents.mother.lastName || null,
         birthDate: data.groomParents.mother.birthDate || null,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     if (data.brideParents?.father) {
       participants.push({
         eventId: newEvent.id,
-        role: 'parent',
+        role: 'parent' as const,
         firstName: data.brideParents.father.firstName,
         lastName: data.brideParents.father.lastName || null,
         birthDate: data.brideParents.father.birthDate || null,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     if (data.brideParents?.mother) {
       participants.push({
         eventId: newEvent.id,
-        role: 'parent',
+        role: 'parent' as const,
         firstName: data.brideParents.mother.firstName,
         lastName: data.brideParents.mother.lastName || null,
         birthDate: data.brideParents.mother.birthDate || null,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       for (const witness of data.witnesses) {
         participants.push({
           eventId: newEvent.id,
-          role: 'witness',
+          role: 'witness' as const,
           firstName: witness.firstName,
           lastName: witness.lastName || null,
           birthDate: witness.birthDate || null,
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     // Contact person
     participants.push({
       eventId: newEvent.id,
-      role: 'other',
+      role: 'other' as const,
       firstName: data.contactName,
       phone: data.contactPhone,
       email: data.contactEmail || null,
@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+
 
 
 

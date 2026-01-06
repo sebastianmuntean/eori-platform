@@ -93,15 +93,16 @@ export async function GET(request: Request) {
     );
 
     // Get paginated results
-    let query = db.select().from(emailTemplates);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const query = whereClause
+      ? db.select().from(emailTemplates).where(whereClause)
+      : db.select().from(emailTemplates);
     const allTemplates = await query.orderBy(orderBy).limit(pageSize).offset(offset);
 
     logger.info(`Fetched ${allTemplates.length} email templates`, { page, totalCount, userId });
 
-    return createSuccessResponse(allTemplates, undefined, {
+    return NextResponse.json({
+      success: true,
+      data: allTemplates,
       pagination: calculatePagination(totalCount, page, pageSize),
     });
   } catch (error) {

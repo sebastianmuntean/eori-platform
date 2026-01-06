@@ -14,7 +14,7 @@ interface FieldMappingEditorProps {
   onSave: (mapping: Partial<FormFieldMapping>) => Promise<void>;
   mapping?: FormFieldMapping | null;
   fieldKey?: string;
-  targetModule: 'registratura' | 'general_register' | 'events' | 'partners';
+  targetModule: 'registratura' | 'general_register' | 'events' | 'clients';
   availableFieldKeys: string[];
 }
 
@@ -57,8 +57,8 @@ const TARGET_TABLES: Record<string, { table: string; columns: string[] }> = {
       'priest_name',
     ],
   },
-  partners: {
-    table: 'partners',
+  clients: {
+    table: 'clients',
     columns: [
       'first_name',
       'last_name',

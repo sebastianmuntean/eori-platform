@@ -41,14 +41,17 @@ export function useCatechesisEnrollments(): UseCatechesisEnrollmentsReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEnrollments = useCallback(async (params = {}) => {
+  const fetchEnrollments = useCallback(async (params?: {
+    classId?: string;
+    studentId?: string;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.classId) queryParams.append('classId', params.classId);
-      if (params.studentId) queryParams.append('studentId', params.studentId);
+      if (params?.classId) queryParams.append('classId', params.classId);
+      if (params?.studentId) queryParams.append('studentId', params.studentId);
 
       const response = await fetch(`/api/catechesis/enrollments?${queryParams.toString()}`);
       const result = await response.json();
@@ -169,6 +172,9 @@ export function useCatechesisEnrollments(): UseCatechesisEnrollmentsReturn {
     deleteEnrollment,
   };
 }
+
+
+
 
 
 

@@ -56,7 +56,14 @@ export function useFormSubmissions(): UseFormSubmissionsReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseFormSubmissionsReturn['pagination']>(null);
 
-  const fetchSubmissions = useCallback(async (params = {}) => {
+  const fetchSubmissions = useCallback(async (params: {
+    page?: number;
+    limit?: number;
+    formId?: string;
+    status?: SubmissionStatus;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -159,6 +166,9 @@ export function useFormSubmission(): UseFormSubmissionReturn {
     fetchSubmission,
   };
 }
+
+
+
 
 
 

@@ -4,7 +4,7 @@ export interface MappingDataset {
   id: string;
   name: string;
   description?: string | null;
-  targetModule: 'registratura' | 'general_register' | 'events' | 'partners';
+  targetModule: 'registratura' | 'general_register' | 'events' | 'clients';
   parishId?: string | null;
   parishName?: string | null;
   isDefault: boolean;

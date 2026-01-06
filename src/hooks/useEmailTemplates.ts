@@ -73,20 +73,28 @@ export function useEmailTemplates(): UseEmailTemplatesReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseEmailTemplatesReturn['pagination']>(null);
 
-  const fetchTemplates = useCallback(async (params = {}) => {
+  const fetchTemplates = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    category?: string;
+    isActive?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
     console.log('Step 2: Fetching email templates with params:', params);
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = new URLSearchParams();
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.category) queryParams.append('category', params.category);
-      if (params.isActive) queryParams.append('isActive', params.isActive);
-      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.category) queryParams.append('category', params.category);
+      if (params?.isActive) queryParams.append('isActive', params.isActive);
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const url = `/api/email-templates?${queryParams.toString()}`;
       console.log(`  Fetching from: ${url}`);

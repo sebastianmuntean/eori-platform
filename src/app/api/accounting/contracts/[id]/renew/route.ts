@@ -60,7 +60,7 @@ export async function POST(
         direction: originalContract.direction,
         type: originalContract.type,
         status: 'active',
-        partnerId: originalContract.partnerId,
+        clientId: originalContract.clientId,
         title: originalContract.title,
         startDate: startDate || originalContract.endDate, // New start date
         endDate: endDate || originalContract.endDate, // New end date

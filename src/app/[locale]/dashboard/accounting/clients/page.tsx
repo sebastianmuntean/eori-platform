@@ -2,18 +2,17 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { FormModal } from '@/components/accounting/FormModal';
 import { useClients, Client } from '@/hooks/useClients';
-import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, TypeFilter } from '@/components/ui/FilterGrid';
 import { useTranslations } from 'next-intl';
 import { ClientForm, ClientFormData } from '@/components/accounting/ClientForm';
+import { ClientsFiltersCard } from '@/components/accounting/ClientsFiltersCard';
+import { ClientsTableCard } from '@/components/accounting/ClientsTableCard';
+import { DeleteClientDialog } from '@/components/accounting/DeleteClientDialog';
 import {
   getClientDisplayName,
   getClientType,
@@ -58,18 +57,25 @@ export default function ClientsPage() {
   const [clientType, setClientType] = useState<'person' | 'company' | 'organization'>('person');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Build fetch parameters
+  const fetchParams = useMemo(
+    () => ({
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+      search: searchTerm || undefined,
+      sortBy: 'code' as const,
+      sortOrder: 'asc' as const,
+    }),
+    [currentPage, searchTerm]
+  );
 
   // Fetch clients when filters or page changes
   useEffect(() => {
     if (permissionLoading) return;
-    fetchClients({
-      page: currentPage,
-      pageSize: PAGE_SIZE,
-      search: searchTerm || undefined,
-      sortBy: 'code',
-      sortOrder: 'asc',
-    });
-  }, [permissionLoading, currentPage, searchTerm, fetchClients]);
+    fetchClients(fetchParams);
+  }, [permissionLoading, fetchParams, fetchClients]);
 
   // Filter clients by type on client-side (API doesn't support it yet)
   const filteredClients = useMemo(
@@ -100,31 +106,33 @@ export default function ClientsPage() {
 
   // Refresh clients list
   const refreshClients = useCallback(() => {
-    fetchClients({
-      page: currentPage,
-      pageSize: PAGE_SIZE,
-      search: searchTerm || undefined,
-      sortBy: 'code',
-      sortOrder: 'asc',
-    });
-  }, [currentPage, searchTerm, fetchClients]);
+    fetchClients(fetchParams);
+  }, [fetchParams, fetchClients]);
+
+  // Validate form and return errors
+  const validateForm = useCallback(() => {
+    setFormErrors({});
+    const errors = validateClientForm(formData, clientType, t);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return false;
+    }
+    return true;
+  }, [formData, clientType, t]);
+
+  // Prepare client data for API
+  const prepareClientData = useCallback(() => ({
+    ...formData,
+    birthDate: formData.birthDate || null,
+  }), [formData]);
 
   // Validate and create client
   const handleCreate = useCallback(async () => {
-    setFormErrors({});
-    const errors = validateClientForm(formData, clientType, t);
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     try {
-      const result = await createClient({
-        ...formData,
-        birthDate: formData.birthDate || null,
-      });
+      const result = await createClient(prepareClientData());
       if (result) {
         setShowAddModal(false);
         resetForm();
@@ -133,26 +141,15 @@ export default function ClientsPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, clientType, t, createClient, resetForm, refreshClients]);
+  }, [validateForm, createClient, prepareClientData, resetForm, refreshClients]);
 
   // Validate and update client
   const handleUpdate = useCallback(async () => {
-    if (!selectedClient) return;
-
-    setFormErrors({});
-    const errors = validateClientForm(formData, clientType, t);
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    if (!selectedClient || !validateForm()) return;
 
     setIsSubmitting(true);
     try {
-      const result = await updateClient(selectedClient.id, {
-        ...formData,
-        birthDate: formData.birthDate || null,
-      });
+      const result = await updateClient(selectedClient.id, prepareClientData());
       if (result) {
         setShowEditModal(false);
         setSelectedClient(null);
@@ -162,20 +159,36 @@ export default function ClientsPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedClient, formData, clientType, t, updateClient, refreshClients]);
+  }, [selectedClient, validateForm, updateClient, prepareClientData, refreshClients]);
 
   // Delete client
   const handleDelete = useCallback(
     async (id: string) => {
-      if (window.confirm(t('confirmDeleteClient') || 'Are you sure you want to delete this client?')) {
-        const success = await deleteClient(id);
-        if (success) {
-          refreshClients();
-        }
+      const success = await deleteClient(id);
+      if (success) {
+        setDeleteConfirm(null);
+        refreshClients();
       }
     },
-    [t, deleteClient, refreshClients]
+    [deleteClient, refreshClients]
   );
+
+  // Filter handlers with page reset
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleTypeFilterChange = useCallback((value: string) => {
+    setTypeFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setTypeFilter('');
+    setCurrentPage(1);
+  }, []);
 
   // Open edit modal with client data
   const handleEdit = useCallback((client: Client) => {
@@ -263,7 +276,7 @@ export default function ClientsPage() {
                 onClick: () => handleViewStatement(row.id),
               },
               { label: t('edit'), onClick: () => handleEdit(row) },
-              { label: t('delete'), onClick: () => handleDelete(row.id), variant: 'danger' },
+              { label: t('delete'), onClick: () => setDeleteConfirm(row.id), variant: 'danger' },
             ]}
             align="right"
           />
@@ -273,102 +286,43 @@ export default function ClientsPage() {
     [t, handleViewStatement, handleEdit, handleDelete]
   );
 
-  // Breadcrumbs configuration
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-      { label: t('clients') },
-    ],
-    [t, locale]
-  );
-
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return <div>{t('loading')}</div>;
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{t('clients')}</h1>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          {t('add')} {t('clients')}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
+          { label: t('clients') },
+        ]}
+        title={t('clients')}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('clients')}</Button>}
+      />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-4">
-            <SearchInput
-              value={searchTerm}
-              onChange={(value) => {
-                setSearchTerm(value);
-                setCurrentPage(1);
-              }}
-              placeholder={`${t('search')} ${t('clients')}...`}
-            />
-          </div>
-          <FilterGrid>
-            <TypeFilter
-              value={typeFilter}
-              onChange={(value) => {
-                setTypeFilter(value);
-                setCurrentPage(1);
-              }}
-              types={[
-                { value: 'person', label: t('person') || 'Person' },
-                { value: 'company', label: t('company') || 'Company' },
-                { value: 'organization', label: t('organization') || 'Organization' },
-              ]}
-            />
-            <FilterClear
-              onClear={() => {
-                setSearchTerm('');
-                setTypeFilter('');
-                setCurrentPage(1);
-              }}
-            />
-          </FilterGrid>
-        </CardHeader>
-        <CardBody>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
-          {loading ? (
-            <div>{t('loading') || 'Loading...'}</div>
-          ) : (
-            <>
-              <Table data={filteredClients} columns={columns} />
-              {pagination && (
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    {t('page') || 'Page'} {pagination.page} {t('of') || 'of'} {pagination.totalPages} (
-                    {pagination.total} {t('total') || 'total'})
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      {t('previous') || 'Previous'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      {t('next') || 'Next'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardBody>
-      </Card>
+      {/* Filters */}
+      <ClientsFiltersCard
+        searchTerm={searchTerm}
+        typeFilter={typeFilter}
+        onSearchChange={handleSearchChange}
+        onTypeFilterChange={handleTypeFilterChange}
+        onClearFilters={handleClearFilters}
+      />
+
+      {/* Clients Table */}
+      <ClientsTableCard
+        data={filteredClients}
+        columns={columns}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No clients available'}
+      />
 
       {/* Add Client Modal */}
       <FormModal
@@ -415,6 +369,15 @@ export default function ClientsPage() {
           onClearError={handleClearError}
         />
       </FormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteClientDialog
+        isOpen={!!deleteConfirm}
+        clientId={deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        isLoading={isSubmitting}
+      />
     </div>
   );
 }

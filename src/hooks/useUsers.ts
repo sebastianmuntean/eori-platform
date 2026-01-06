@@ -87,7 +87,15 @@ export function useUsers(): UseUsersReturn {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<UseUsersReturn['pagination']>(null);
 
-  const fetchUsers = useCallback(async (params = {}) => {
+  const fetchUsers = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: string;
+    approvalStatus?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     console.log('Step 2: Fetching users with params:', params);
     setLoading(true);
     setError(null);
@@ -124,7 +132,16 @@ export function useUsers(): UseUsersReturn {
     }
   }, []);
 
-  const createUser = useCallback(async (userData): Promise<boolean> => {
+  const createUser = useCallback(async (userData: {
+    email: string;
+    name: string;
+    role?: string;
+    address?: string;
+    city?: string;
+    phone?: string;
+    isActive?: boolean;
+    approvalStatus?: string;
+  }): Promise<boolean> => {
     console.log('Step 2: Creating user:', userData.email);
     setLoading(true);
     setError(null);
@@ -158,7 +175,12 @@ export function useUsers(): UseUsersReturn {
     }
   }, [fetchUsers]);
 
-  const updateUser = useCallback(async (userId: string, userData): Promise<boolean> => {
+  const updateUser = useCallback(async (userId: string, userData: {
+    name?: string;
+    email?: string;
+    isActive?: boolean;
+    approvalStatus?: string;
+  }): Promise<boolean> => {
     console.log(`Step 2: Updating user ${userId}`);
     setLoading(true);
     setError(null);
@@ -256,7 +278,11 @@ export function useUsers(): UseUsersReturn {
     }
   }, [fetchUsers]);
 
-  const exportUsers = useCallback(async (params = {}): Promise<void> => {
+  const exportUsers = useCallback(async (params: {
+    search?: string;
+    status?: string;
+    approvalStatus?: string;
+  } = {}): Promise<void> => {
     console.log('Step 2: Exporting users');
     setLoading(true);
     setError(null);

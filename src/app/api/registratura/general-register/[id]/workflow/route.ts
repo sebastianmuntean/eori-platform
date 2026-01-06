@@ -47,8 +47,9 @@ export async function GET(
       .orderBy(desc(generalRegisterWorkflow.createdAt));
 
     // Build tree structure
-    const stepMap = new Map(workflowSteps.map(step => [step.id, { ...step, children: [] }]));
-    const rootSteps: any[] = [];
+    type StepWithChildren = typeof workflowSteps[0] & { children: StepWithChildren[] };
+    const stepMap = new Map<string, StepWithChildren>(workflowSteps.map(step => [step.id, { ...step, children: [] as StepWithChildren[] }]));
+    const rootSteps: StepWithChildren[] = [];
 
     for (const step of workflowSteps) {
       const stepWithChildren = stepMap.get(step.id)!;

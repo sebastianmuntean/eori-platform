@@ -124,27 +124,26 @@ export async function GET(request: Request) {
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query
-    let query = db.select().from(clients);
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const baseQuery = db.select().from(clients);
+    const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
     // Order by
+    let queryWithOrder;
     if (sortBy === 'code') {
-      query = sortOrder === 'desc' 
-        ? query.orderBy(sql`${clients.code} DESC`)
-        : query.orderBy(sql`${clients.code} ASC`);
+      queryWithOrder = sortOrder === 'desc' 
+        ? queryWithWhere.orderBy(sql`${clients.code} DESC`)
+        : queryWithWhere.orderBy(sql`${clients.code} ASC`);
     } else if (sortBy === 'name') {
-      query = sortOrder === 'desc'
-        ? query.orderBy(sql`CONCAT(COALESCE(${clients.firstName}, ''), ' ', COALESCE(${clients.lastName}, '')) DESC`)
-        : query.orderBy(sql`CONCAT(COALESCE(${clients.firstName}, ''), ' ', COALESCE(${clients.lastName}, '')) ASC`);
+      queryWithOrder = sortOrder === 'desc'
+        ? queryWithWhere.orderBy(sql`CONCAT(COALESCE(${clients.firstName}, ''), ' ', COALESCE(${clients.lastName}, '')) DESC`)
+        : queryWithWhere.orderBy(sql`CONCAT(COALESCE(${clients.firstName}, ''), ' ', COALESCE(${clients.lastName}, '')) ASC`);
     } else {
-      query = query.orderBy(sql`${clients.createdAt} DESC`);
+      queryWithOrder = queryWithWhere.orderBy(sql`${clients.createdAt} DESC`);
     }
 
     // Pagination
     const offset = (page - 1) * pageSize;
-    const results = await query.limit(pageSize).offset(offset);
+    const results = await queryWithOrder.limit(pageSize).offset(offset);
 
     return NextResponse.json({
       success: true,

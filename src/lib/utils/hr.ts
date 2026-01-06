@@ -179,3 +179,29 @@ export const DEFAULT_PAGE_SIZE = 10;
  */
 export const SEARCH_DEBOUNCE_DELAY = 300;
 
+/**
+ * Helper function to show error toast from unknown error type
+ * Extracts error message from Error objects or uses fallback message
+ * 
+ * @param error - Unknown error (Error instance or other)
+ * @param fallbackMessage - Fallback message if error is not an Error instance
+ * @param showToast - Toast show function from useToast hook
+ * @returns void
+ * 
+ * @example
+ * const { showToast } = useToast();
+ * try {
+ *   await someOperation();
+ * } catch (error) {
+ *   showErrorToast(error, t('errorOccurred'), showToast);
+ * }
+ */
+export function showErrorToast(
+  error: unknown,
+  fallbackMessage: string,
+  showToast: (message: string, type?: 'error') => void
+): void {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  showToast(message, 'error');
+}
+

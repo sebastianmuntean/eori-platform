@@ -71,7 +71,19 @@ export function usePayments(): UsePaymentsReturn {
   const [pagination, setPagination] = useState<UsePaymentsReturn['pagination']>(null);
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
 
-  const fetchPayments = useCallback(async (params = {}) => {
+  const fetchPayments = useCallback(async (params: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    parishId?: string;
+    type?: 'income' | 'expense';
+    status?: 'pending' | 'completed' | 'cancelled';
+    category?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  } = {}) => {
     setLoading(true);
     setError(null);
 
@@ -106,7 +118,12 @@ export function usePayments(): UsePaymentsReturn {
     }
   }, []);
 
-  const fetchSummary = useCallback(async (params = {}) => {
+  const fetchSummary = useCallback(async (params: {
+    parishId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    type?: 'income' | 'expense';
+  } = {}) => {
     try {
       const queryParams = new URLSearchParams();
       if (params.parishId) queryParams.append('parishId', params.parishId);

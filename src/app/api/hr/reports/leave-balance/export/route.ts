@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const conditions = [];
     conditions.push(sql`extract(year from ${leaveRequests.startDate}) = ${year}`);
 
-    let query = db
+    const baseQuery = db
       .select({
         leaveTypeId: leaveTypes.id,
         leaveTypeName: leaveTypes.name,
@@ -28,24 +28,24 @@ export async function GET(request: Request) {
       .from(leaveTypes)
       .leftJoin(leaveRequests, eq(leaveTypes.id, leaveRequests.leaveTypeId));
 
+    let queryWithJoins = baseQuery;
+    if (parishId || employeeId) {
+      queryWithJoins = queryWithJoins.leftJoin(employees, eq(leaveRequests.employeeId, employees.id));
+    }
+
     if (parishId) {
-      query = query.leftJoin(employees, eq(leaveRequests.employeeId, employees.id));
       conditions.push(eq(employees.parishId, parishId));
     }
 
     if (employeeId) {
-      query = query.leftJoin(employees, eq(leaveRequests.employeeId, employees.id));
       conditions.push(eq(leaveRequests.employeeId, employeeId));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-    if (whereClause) {
-      query = query.where(whereClause);
-    }
+    const queryWithWhere = whereClause ? queryWithJoins.where(whereClause) : queryWithJoins;
+    const queryWithGroupBy = queryWithWhere.groupBy(leaveTypes.id, leaveTypes.name, leaveTypes.code, leaveTypes.maxDaysPerYear);
 
-    query = query.groupBy(leaveTypes.id, leaveTypes.name, leaveTypes.code, leaveTypes.maxDaysPerYear);
-
-    const results = await query;
+    const results = await queryWithGroupBy;
 
     if (format === 'excel') {
       // Prepare data for Excel

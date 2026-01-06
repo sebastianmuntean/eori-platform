@@ -187,10 +187,9 @@ export async function POST(
       .values({
         eventId,
         fileName: uniqueFileName,
-        originalName: file.name,
-        mimeType: file.type || 'application/octet-stream',
+        filePath: storagePath,
+        fileType: file.type || 'application/octet-stream',
         fileSize: file.size.toString(),
-        storagePath: storagePath,
         description: description || null,
         uploadedBy: userId,
       })

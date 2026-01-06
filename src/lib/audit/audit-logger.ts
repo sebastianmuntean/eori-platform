@@ -37,7 +37,7 @@ export async function logAuditEvent(context: AuditLogContext): Promise<void> {
   try {
     // Validate required fields
     if (!context.action || !context.resourceType) {
-      logger.warn('Invalid audit log context: missing required fields', context);
+      logger.warn('Invalid audit log context: missing required fields', { ...context });
       return;
     }
 
@@ -200,6 +200,10 @@ export function extractIpAddress(request: Request): string | null {
 export function extractUserAgent(request: Request): string | null {
   return request.headers.get('user-agent') || null;
 }
+
+
+
+
 
 
 

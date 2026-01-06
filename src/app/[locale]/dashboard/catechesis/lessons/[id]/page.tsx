@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -30,7 +30,6 @@ export default function CatechesisLessonDetailsPage() {
   const { lesson, loading, error } = useLesson(id);
   usePageTitle(lesson?.title || tCatechesis('lessons.title'));
   const { classes, fetchClasses } = useCatechesisClasses();
-  const { updateLesson } = useCatechesisLessons();
 
   useEffect(() => {
     if (permissionLoading) return;
@@ -46,13 +45,6 @@ export default function CatechesisLessonDetailsPage() {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
   };
-
-  const breadcrumbs = [
-    { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-    { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
-    { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
-    { label: lesson?.title || id },
-  ];
 
   const handleSave = async (savedLesson: CatechesisLesson) => {
     // Lesson is updated in the hook, but we need to refetch to get latest data
@@ -70,7 +62,15 @@ export default function CatechesisLessonDetailsPage() {
   if (error || !lesson) {
     return (
       <div className="space-y-6">
-        <Breadcrumbs items={breadcrumbs} />
+        <PageHeader
+          breadcrumbs={[
+            { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+            { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+            { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
+            { label: id },
+          ]}
+          title={id}
+        />
         <div className="p-4 bg-danger/10 text-danger rounded-md">
           {error || tCatechesis('errors.lessonNotFound')}
         </div>
@@ -82,16 +82,23 @@ export default function CatechesisLessonDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={breadcrumbs} />
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: tCatechesis('title'), href: `/${locale}/dashboard/catechesis` },
+          { label: tCatechesis('lessons.title'), href: `/${locale}/dashboard/catechesis/lessons` },
+          { label: lesson?.title || id },
+        ]}
+        title={lesson?.title || id}
+      />
 
       {/* Lesson Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">{lesson.title}</h1>
               {lesson.description && (
-                <p className="text-text-secondary mt-1">{lesson.description}</p>
+                <p className="text-text-secondary">{lesson.description}</p>
               )}
             </div>
             <div className="flex gap-2">

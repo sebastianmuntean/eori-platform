@@ -79,7 +79,7 @@ export async function GET() {
     // Column A in roles sheet, rows 2 to 2+validRoles.length (skip header row)
     const rolesRange = `'Roluri Valide'!$A$2:$A$${validRoles.length + 1}`;
     const dataValidation = {
-      type: 'list',
+      type: 'list' as const,
       allowBlank: false,
       formulae: [rolesRange],
       showErrorMessage: true,

@@ -7,7 +7,7 @@ import { useMappingDatasets } from '@/hooks/useMappingDatasets';
 import { useTranslations } from 'next-intl';
 
 interface SqlMappingEditorProps {
-  targetModule: 'registratura' | 'general_register' | 'events' | 'partners';
+  targetModule: 'registratura' | 'general_register' | 'events' | 'clients';
   value?: {
     sqlQuery?: string;
     targetColumn?: string;

@@ -56,9 +56,9 @@ export async function DELETE(
 
     // Delete file from filesystem
     try {
-      if (existsSync(document.storagePath)) {
-        await unlink(document.storagePath);
-        console.log(`✓ File deleted: ${document.storagePath}`);
+      if (existsSync(document.filePath)) {
+        await unlink(document.filePath);
+        console.log(`✓ File deleted: ${document.filePath}`);
       }
     } catch (error) {
       console.warn(`⚠️ Failed to delete file: ${error}`);

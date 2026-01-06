@@ -1,4 +1,5 @@
-import { Pilgrimage, PilgrimageStatus, PilgrimageFormData } from '@/hooks/usePilgrimages';
+import { Pilgrimage, PilgrimageStatus } from '@/hooks/usePilgrimages';
+import { PilgrimageFormData } from '@/components/pilgrimages/PilgrimageForm';
 
 /**
  * Transform form data to API format
@@ -95,4 +96,8 @@ export function calculateStatusCounts(pilgrimages: Pilgrimage[]) {
     { open: 0, in_progress: 0, completed: 0 }
   );
 }
+
+
+
+
 
