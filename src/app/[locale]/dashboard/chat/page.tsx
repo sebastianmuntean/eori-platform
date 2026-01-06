@@ -12,15 +12,15 @@ import { CHAT_PERMISSIONS } from '@/lib/permissions/chat';
 
 export default function ChatPage() {
   const { loading: permissionLoading } = useRequirePermission(CHAT_PERMISSIONS.VIEW);
+  const params = useParams();
+  const locale = params.locale as string;
   const t = useTranslations('common');
   usePageTitle('Chat');
 
+  // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return <div>{t('loading')}</div>;
   }
-
-  const params = useParams();
-  const locale = params.locale as string;
 
   return (
     <div className="h-full flex flex-col">
