@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TimeEntryForm } from '@/components/hr/TimeEntryForm';
@@ -115,7 +116,7 @@ export default function TimeTrackingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('timeEntries')}
@@ -153,7 +154,7 @@ export default function TimeTrackingPage() {
         variant="danger"
         isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }
 

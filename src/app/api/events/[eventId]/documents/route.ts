@@ -6,13 +6,13 @@ import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import { getEventById } from '@/lib/services/events-service';
 
 // For now, we'll store files in a local uploads directory
 // In production, you'd want to use cloud storage (S3, etc.)
-const UPLOAD_DIR = process.env.EVENT_DOCUMENTS_UPLOAD_DIR || join(process.cwd(), 'uploads', 'events');
+const UPLOAD_DIR = process.env.EVENT_DOCUMENTS_UPLOAD_DIR || resolve(process.cwd(), 'uploads', 'events');
 const MAX_FILE_SIZE = parseInt(process.env.MAX_EVENT_DOCUMENT_SIZE || '10485760'); // 10MB default
 
 // Allowed MIME types for event documents
@@ -165,11 +165,12 @@ export async function POST(
       );
     }
     const uniqueFileName = `${randomUUID()}.${fileExtension}`;
-    const storagePath = join(UPLOAD_DIR, eventId, uniqueFileName);
+    // Use resolve to make it clear this is a runtime path, not a static import
+    const storagePath = resolve(UPLOAD_DIR, eventId, uniqueFileName);
 
     // Ensure upload directory exists
     try {
-      await mkdir(join(UPLOAD_DIR, eventId), { recursive: true });
+      await mkdir(resolve(UPLOAD_DIR, eventId), { recursive: true });
     } catch (error) {
       console.error('❌ Failed to create upload directory:', error);
       // Continue anyway - might already exist

@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -82,7 +83,7 @@ export default function HRDashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={tMenu('hr') || 'Resurse Umane'}
@@ -106,7 +107,7 @@ export default function HRDashboardPage() {
           </Link>
         ))}
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

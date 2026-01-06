@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { useTranslations } from 'next-intl';
 import { HRReports } from '@/components/hr/HRReports';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -26,14 +27,14 @@ export default function HRReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('reports')}
       />
 
       <HRReports />
-    </div>
+    </PageContainer>
   );
 }
 

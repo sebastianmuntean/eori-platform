@@ -6,13 +6,13 @@ import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import { getPilgrimageById } from '@/lib/services/pilgrimages-service';
 import { isValidUUID, formatValidationErrors } from '@/lib/api-utils/validation';
 import { requireParishAccess } from '@/lib/api-utils/authorization';
 
-const UPLOAD_DIR = process.env.PILGRIMAGE_DOCUMENTS_UPLOAD_DIR || join(process.cwd(), 'uploads', 'pilgrimages');
+const UPLOAD_DIR = process.env.PILGRIMAGE_DOCUMENTS_UPLOAD_DIR || resolve(process.cwd(), 'uploads', 'pilgrimages');
 const MAX_FILE_SIZE = parseInt(process.env.MAX_PILGRIMAGE_DOCUMENT_SIZE || '10485760'); // 10MB default
 
 const ALLOWED_MIME_TYPES = [
@@ -196,7 +196,7 @@ export async function POST(
     }
 
     // Create upload directory if it doesn't exist
-    await mkdir(join(UPLOAD_DIR, id), { recursive: true });
+    await mkdir(resolve(UPLOAD_DIR, id), { recursive: true });
 
     // Generate unique filename with sanitized extension
     const fileExtension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
@@ -207,7 +207,8 @@ export async function POST(
       );
     }
     const fileName = `${randomUUID()}.${fileExtension}`;
-    const filePath = join(UPLOAD_DIR, id, fileName);
+    // Use resolve to make it clear this is a runtime path, not a static import
+    const filePath = resolve(UPLOAD_DIR, id, fileName);
 
     // Save file
     const bytes = await file.arrayBuffer();

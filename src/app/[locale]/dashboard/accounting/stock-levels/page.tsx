@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table } from '@/components/ui/Table';
 import { useStockLevels } from '@/hooks/useStockLevels';
@@ -65,7 +66,7 @@ export default function StockLevelsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -106,7 +107,7 @@ export default function StockLevelsPage() {
           </div>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

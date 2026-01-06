@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
@@ -323,7 +324,7 @@ export default function PermissionsPage() {
 
   console.log('✓ Rendering permissions page');
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('managePermissions') || 'Manage Permissions'}
@@ -534,7 +535,7 @@ export default function PermissionsPage() {
           </Button>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

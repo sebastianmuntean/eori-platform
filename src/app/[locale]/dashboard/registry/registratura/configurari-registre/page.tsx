@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { RegisterConfigurationList } from '@/components/registratura/RegisterConfigurationList';
 import { useTranslations } from 'next-intl';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -23,7 +24,7 @@ export default function RegisterConfigurationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -40,6 +41,6 @@ export default function RegisterConfigurationsPage() {
           <RegisterConfigurationList />
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

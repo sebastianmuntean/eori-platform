@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -62,7 +63,7 @@ export function TablePageLayout({
   const t = useTranslations('common');
 
   return (
-    <div>
+    <PageContainer>
       <div className="flex items-center justify-between mb-6">
         <div>
           <Breadcrumbs items={breadcrumbs} className="mb-2" />
@@ -122,7 +123,7 @@ export function TablePageLayout({
           )}
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

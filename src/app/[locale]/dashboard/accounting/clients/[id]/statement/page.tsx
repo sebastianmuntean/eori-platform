@@ -16,6 +16,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 import { formatCurrency, getClientDisplayName } from '@/lib/utils/accounting';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 // Constants
 const INVOICE_STATUS_VARIANTS: Record<string, 'warning' | 'success' | 'danger' | 'secondary' | 'info'> = {
@@ -198,7 +199,7 @@ export default function ClientStatementPage() {
   const { client, summary, invoices, payments } = statement;
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('clientStatement')}
@@ -403,6 +404,6 @@ export default function ClientStatementPage() {
           )}
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

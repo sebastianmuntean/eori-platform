@@ -25,6 +25,7 @@ import { DeleteContractDialog } from '@/components/accounting/DeleteContractDial
 import { ContractsFiltersCard } from '@/components/accounting/ContractsFiltersCard';
 import { ContractsTableCard } from '@/components/accounting/ContractsTableCard';
 import { FormModal } from '@/components/accounting/FormModal';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function ContractsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CONTRACTS_VIEW);
@@ -665,7 +666,7 @@ export default function ContractsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -1071,6 +1072,6 @@ export default function ContractsPage() {
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

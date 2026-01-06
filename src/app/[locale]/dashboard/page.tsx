@@ -10,6 +10,7 @@ import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function DashboardPage() {
   console.log('Step 1: Rendering Dashboard page');
@@ -87,7 +88,7 @@ export default function DashboardPage() {
 
   console.log('✓ Rendering dashboard with', widgets.length, 'widgets');
   return (
-    <div>
+    <PageContainer>
       <Breadcrumbs items={breadcrumbs} className="mb-6" />
       
       <h1 className="text-3xl font-bold text-text-primary mb-6">{t('dashboard')}</h1>
@@ -249,7 +250,7 @@ export default function DashboardPage() {
           </CardBody>
         </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

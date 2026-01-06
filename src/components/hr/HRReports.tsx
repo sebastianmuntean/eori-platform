@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
@@ -213,7 +214,7 @@ export function HRReports({ parishId: initialParishId }: HRReportsProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Report Selection */}
       <Card>
         <CardHeader>
@@ -489,7 +490,7 @@ export function HRReports({ parishId: initialParishId }: HRReportsProps) {
           </CardBody>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }
 

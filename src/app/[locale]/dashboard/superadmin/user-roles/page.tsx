@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -68,7 +69,7 @@ export default function UserRolesPage() {
 
   console.log('✓ Rendering user roles page');
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title="Atribuire Roluri Utilizatori"
@@ -179,7 +180,7 @@ export default function UserRolesPage() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

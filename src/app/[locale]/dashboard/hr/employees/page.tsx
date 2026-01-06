@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmployeeForm } from '@/components/hr/EmployeeForm';
@@ -120,7 +121,7 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('employees')}
@@ -148,7 +149,7 @@ export default function EmployeesPage() {
         variant="danger"
         isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }
 

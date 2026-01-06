@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { ToastContainer } from '@/components/ui/Toast';
@@ -246,7 +247,7 @@ export default function DepartmentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <ToastContainer toasts={toasts} onClose={removeToast} />
       <PageHeader
         breadcrumbs={[
@@ -339,7 +340,7 @@ export default function DepartmentsPage() {
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
       />
-    </div>
+    </PageContainer>
   );
 }
 

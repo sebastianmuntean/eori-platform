@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
@@ -134,7 +135,7 @@ export default function RolesPage() {
 
   console.log('✓ Rendering roles page');
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('manageRoles') || 'Manage Roles'}
@@ -259,7 +260,7 @@ export default function RolesPage() {
           </Button>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

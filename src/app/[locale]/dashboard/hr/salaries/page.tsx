@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SalaryForm } from '@/components/hr/SalaryForm';
@@ -160,7 +161,7 @@ export default function SalariesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('salaries')}
@@ -193,7 +194,7 @@ export default function SalariesPage() {
         variant="danger"
         isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }
 

@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -306,7 +307,7 @@ export default function PilgrimagesPage() {
   }
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={tPilgrimages('pilgrimages') || 'Pilgrimages'}
@@ -465,7 +466,7 @@ export default function PilgrimagesPage() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
-    </div>
+    </PageContainer>
   );
 }
 

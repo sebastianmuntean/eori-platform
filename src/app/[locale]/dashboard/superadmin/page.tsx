@@ -2,6 +2,7 @@
 
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -184,7 +185,7 @@ export default function SuperadminPage() {
 
   console.log('✓ Rendering superadmin overview');
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title="Superadmin"
@@ -285,7 +286,7 @@ export default function SuperadminPage() {
           </div>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

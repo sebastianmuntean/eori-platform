@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -75,7 +76,7 @@ export default function PilgrimageDetailsPage() {
   ];
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={pilgrimage.title}
@@ -450,7 +451,7 @@ export default function PilgrimageDetailsPage() {
             </CardBody>
           </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }
 

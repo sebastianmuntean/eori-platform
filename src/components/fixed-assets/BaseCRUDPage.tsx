@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useMemo, useCallback } from 'react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table, Column } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
@@ -205,7 +206,7 @@ export function BaseCRUDPage({
   const breadcrumbItems = useFixedAssetsBreadcrumbs(locale, pageTitle, href);
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Breadcrumbs items={breadcrumbItems} />
 
       <Card>
@@ -342,7 +343,7 @@ export function BaseCRUDPage({
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

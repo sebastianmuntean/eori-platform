@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { usePilgrimage } from '@/hooks/usePilgrimage';
 import { usePilgrimageStatistics } from '@/hooks/usePilgrimageStatistics';
@@ -47,7 +48,7 @@ export default function PilgrimageStatisticsPage() {
   }
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={tPilgrimages('statistics') || 'Statistics'}
@@ -103,7 +104,7 @@ export default function PilgrimageStatisticsPage() {
           )}
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

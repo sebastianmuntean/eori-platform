@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import { FormModal } from '@/components/accounting/FormModal';
 import { SimpleModal } from '@/components/ui/SimpleModal';
@@ -279,7 +280,7 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -416,7 +417,7 @@ export default function EmailTemplatesPage() {
           onSend={handleSendTest}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
 

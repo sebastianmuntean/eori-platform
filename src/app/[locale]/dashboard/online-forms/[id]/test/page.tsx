@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { WidgetForm } from '@/components/online-forms/WidgetForm';
 import { useOnlineForm } from '@/hooks/useOnlineForms';
@@ -58,7 +59,7 @@ export default function TestFormPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -109,7 +110,7 @@ export default function TestFormPage() {
           )}
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

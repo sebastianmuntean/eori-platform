@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -882,7 +883,7 @@ export default function DataStatisticsPage() {
   }
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('dataStatistics') || 'Data Statistics'}
@@ -1065,6 +1066,6 @@ export default function DataStatisticsPage() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }

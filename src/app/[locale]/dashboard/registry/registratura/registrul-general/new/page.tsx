@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
 import { createGeneralRegisterDocument } from '@/hooks/useGeneralRegister';
@@ -63,7 +64,7 @@ export default function CreateDocumentPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -88,6 +89,6 @@ export default function CreateDocumentPage() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
-    </div>
+    </PageContainer>
   );
 }

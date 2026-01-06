@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Table } from '@/components/ui/Table';
@@ -139,7 +140,7 @@ export default function PilgrimageMealsPage() {
   }
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={tPilgrimages('meals') || 'Meals'}
@@ -170,6 +171,6 @@ export default function PilgrimageMealsPage() {
           )}
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

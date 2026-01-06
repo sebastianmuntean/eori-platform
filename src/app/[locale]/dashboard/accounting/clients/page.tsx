@@ -23,6 +23,7 @@ import { validateClientForm } from '@/lib/validations/clients';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 const PAGE_SIZE = 10;
 
@@ -292,7 +293,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -378,6 +379,6 @@ export default function ClientsPage() {
         onConfirm={handleDelete}
         isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }

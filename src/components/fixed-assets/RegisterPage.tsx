@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Table, Column } from '@/components/ui/Table';
@@ -63,7 +64,7 @@ export function RegisterPage({ category }: RegisterPageProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Breadcrumbs items={breadcrumbItems} />
 
       <Card>
@@ -110,7 +111,7 @@ export function RegisterPage({ category }: RegisterPageProps) {
           </div>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

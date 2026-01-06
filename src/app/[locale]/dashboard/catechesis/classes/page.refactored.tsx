@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -264,7 +265,7 @@ export default function CatechesisClassesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           ...baseBreadcrumbs,
@@ -335,7 +336,7 @@ export default function CatechesisClassesPage() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
-    </div>
+    </PageContainer>
   );
 }
 

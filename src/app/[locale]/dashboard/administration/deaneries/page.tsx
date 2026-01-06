@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Table, Column } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -264,7 +265,7 @@ export default function DeaneriesPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -351,7 +352,7 @@ export default function DeaneriesPage() {
         }}
         onConfirm={handleDelete}
       />
-    </div>
+    </PageContainer>
   );
 }
 

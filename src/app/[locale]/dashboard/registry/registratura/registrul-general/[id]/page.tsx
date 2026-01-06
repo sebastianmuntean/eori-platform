@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { DocumentDetail } from '@/components/registratura/DocumentDetail';
 import { DocumentWorkflow } from '@/components/registratura/DocumentWorkflow';
 import { DocumentAttachments } from '@/components/registratura/DocumentAttachments';
@@ -124,7 +125,7 @@ export default function DocumentDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -182,6 +183,6 @@ export default function DocumentDetailPage() {
         confirmLabel={t('delete')}
         cancelLabel={t('cancel')}
       />
-    </div>
+    </PageContainer>
   );
 }

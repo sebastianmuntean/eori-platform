@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { DocumentList } from '@/components/registratura/DocumentList';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
@@ -31,7 +32,7 @@ export default function RegistraturaGeneralPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -46,6 +47,6 @@ export default function RegistraturaGeneralPage() {
         onDocumentClick={handleDocumentClick}
         onCreateNew={handleCreateNew}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,12 +1,13 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { NavigationCardGrid } from '@/components/ui/NavigationCardGrid';
+import { NavigationItem } from '@/components/ui/NavigationCard';
 
 export default function FixedAssetsPage() {
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.FIXED_ASSETS_VIEW);
@@ -19,7 +20,7 @@ export default function FixedAssetsPage() {
     return <div>{t('loading')}</div>;
   }
 
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = [
     {
       title: tMenu('fixedAssetsManagement') || 'Mijloace fixe si obiecte de inventar',
       description: tMenu('fixedAssetsManagementDesc') || 'Gestionare mijloace fixe si obiecte de inventar',
@@ -95,7 +96,7 @@ export default function FixedAssetsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -106,40 +107,8 @@ export default function FixedAssetsPage() {
         description={tMenu('fixedAssetsDescription') || 'Gestionare și raportare pentru mijloace fixe și obiecte de inventar'}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {navigationItems.map((item, index) => (
-          <Card key={index} variant="elevated" className="hover:shadow-lg transition-shadow">
-            <Link href={item.href}>
-              <CardBody className="cursor-pointer">
-                <div className="flex items-start gap-4">
-                  <div className="text-primary flex-shrink-0">
-                    {item.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">{item.title}</h3>
-                    <p className="text-sm text-text-secondary">{item.description}</p>
-                    {item.subItems && (
-                      <div className="mt-3 space-y-1">
-                        {item.subItems.map((subItem, subIndex) => (
-                          <Link
-                            key={subIndex}
-                            href={subItem.href}
-                            className="block text-sm text-primary hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            • {subItem.title}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardBody>
-            </Link>
-          </Card>
-        ))}
-      </div>
-    </div>
+      <NavigationCardGrid items={navigationItems} />  
+    </PageContainer>
   );
 }
 

@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Column } from '@/components/ui/Table';
@@ -355,7 +356,7 @@ export default function DonationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <ToastContainer toasts={toasts} onClose={removeToast} />
       <PageHeader
         breadcrumbs={[
@@ -484,7 +485,7 @@ export default function DonationsPage() {
         onConfirm={handleDelete}
         isLoading={loading}
       />
-    </div>
+    </PageContainer>
   );
 }
 

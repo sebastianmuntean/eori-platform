@@ -5,11 +5,11 @@ import { formatErrorResponse, logError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
 import { eq, desc } from 'drizzle-orm';
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads', 'hr', 'employee-documents');
+const UPLOAD_DIR = process.env.UPLOAD_DIR || resolve(process.cwd(), 'uploads', 'hr', 'employee-documents');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const createDocumentSchema = z.object({
@@ -153,11 +153,12 @@ export async function POST(
     // Generate unique filename
     const fileExtension = file.name.split('.').pop() || '';
     const uniqueFileName = `${randomUUID()}.${fileExtension}`;
-    const storagePath = join(UPLOAD_DIR, id, uniqueFileName);
+    // Use resolve to make it clear this is a runtime path, not a static import
+    const storagePath = resolve(UPLOAD_DIR, id, uniqueFileName);
 
     // Ensure upload directory exists
     try {
-      await mkdir(join(UPLOAD_DIR, id), { recursive: true });
+      await mkdir(resolve(UPLOAD_DIR, id), { recursive: true });
     } catch (error) {
       // Continue anyway - might already exist
     }

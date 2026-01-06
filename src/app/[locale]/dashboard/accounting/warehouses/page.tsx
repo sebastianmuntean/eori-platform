@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { WarehouseAddModal, WarehouseFormData } from '@/components/accounting/WarehouseAddModal';
@@ -259,7 +260,7 @@ export default function WarehousesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -367,7 +368,7 @@ export default function WarehousesPage() {
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
       />
-    </div>
+    </PageContainer>
   );
 }
 

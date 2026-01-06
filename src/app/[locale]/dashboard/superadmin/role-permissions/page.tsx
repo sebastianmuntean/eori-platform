@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
@@ -288,7 +289,7 @@ export default function RolePermissionsPage() {
 
   console.log('✓ Rendering role permissions page');
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title="Configurare Rol-Permisiuni"
@@ -401,7 +402,7 @@ export default function RolePermissionsPage() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

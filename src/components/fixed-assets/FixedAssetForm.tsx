@@ -1,6 +1,7 @@
 'use client';
 
 import { Input } from '@/components/ui/Input';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Select } from '@/components/ui/Select';
 import { useTranslations } from 'next-intl';
 import { FIXED_ASSET_STATUS } from '@/lib/fixed-assets/constants';
@@ -85,7 +86,7 @@ export function FixedAssetForm({
   ];
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Basic Information Section */}
       <FormSection title={t('basicInformation') || 'Basic Information'}>
         <div className="md:col-span-2 lg:col-span-3">
@@ -246,7 +247,7 @@ export function FixedAssetForm({
           />
         </div>
       </FormSection>
-    </div>
+    </PageContainer>
   );
 }
 
