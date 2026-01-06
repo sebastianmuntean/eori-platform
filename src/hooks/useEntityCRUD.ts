@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-export interface EntityCRUDConfig<T, TFormData, TCreateData, TUpdateData> {
+export interface EntityCRUDConfig<T extends { id: string }, TFormData, TCreateData, TUpdateData> {
   // Data fetching
   fetchEntities: (params: any) => Promise<void>;
   createEntity: (data: TCreateData) => Promise<T | null>;
@@ -62,8 +62,13 @@ export interface UseEntityCRUDReturn<T, TFormData> {
 /**
  * Generic CRUD hook for managing entity operations
  * Extracts common CRUD logic from pages into reusable hook
+ * 
+ * @template T - Entity type that must have an `id: string` property
+ * @template TFormData - Form data type
+ * @template TCreateData - Data type for creating entities
+ * @template TUpdateData - Data type for updating entities
  */
-export function useEntityCRUD<T, TFormData, TCreateData, TUpdateData>(
+export function useEntityCRUD<T extends { id: string }, TFormData, TCreateData, TUpdateData>(
   config: EntityCRUDConfig<T, TFormData, TCreateData, TUpdateData>,
   t: (key: string) => string
 ): UseEntityCRUDReturn<T, TFormData> {
