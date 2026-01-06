@@ -8,6 +8,7 @@ interface DeleteEventDialogProps {
   eventId: string | null;
   onClose: () => void;
   onConfirm: (id: string) => void;
+  isLoading?: boolean;
 }
 
 /**
@@ -19,6 +20,7 @@ export function DeleteEventDialog({
   eventId,
   onClose,
   onConfirm,
+  isLoading = false,
 }: DeleteEventDialogProps) {
   const t = useTranslations('common');
 
@@ -38,6 +40,7 @@ export function DeleteEventDialog({
       confirmLabel={t('delete') || 'Șterge'}
       cancelLabel={t('cancel') || 'Anulează'}
       variant="danger"
+      isLoading={isLoading}
     />
   );
 }

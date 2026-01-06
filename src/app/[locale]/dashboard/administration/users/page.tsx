@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table } from '@/components/ui/Table';
@@ -297,7 +298,7 @@ export default function UtilizatoriPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Header Section */}
       <PageHeader
         breadcrumbs={[
@@ -1017,7 +1018,7 @@ export default function UtilizatoriPage() {
           </div>
         </form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -56,7 +57,7 @@ export default function SendEmailPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const handleSelectTemplate = (template: EmailTemplate) => {
@@ -92,7 +93,7 @@ export default function SendEmailPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -276,7 +277,7 @@ export default function SendEmailPage() {
           onSend={handleSend}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
 

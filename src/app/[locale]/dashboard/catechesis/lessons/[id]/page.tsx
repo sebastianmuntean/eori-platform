@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -38,7 +39,7 @@ export default function CatechesisLessonDetailsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const formatDate = (date: string | null) => {
@@ -61,7 +62,7 @@ export default function CatechesisLessonDetailsPage() {
 
   if (error || !lesson) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader
           breadcrumbs={[
             { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -74,14 +75,14 @@ export default function CatechesisLessonDetailsPage() {
         <div className="p-4 bg-danger/10 text-danger rounded-md">
           {error || tCatechesis('errors.lessonNotFound')}
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   const classItem = lesson.classId ? classes.find((c) => c.id === lesson.classId) : null;
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -152,7 +153,7 @@ export default function CatechesisLessonDetailsPage() {
         onSave={handleSave}
         onCancel={() => router.push(`/${locale}/dashboard/catechesis/lessons`)}
       />
-    </div>
+    </PageContainer>
   );
 }
 

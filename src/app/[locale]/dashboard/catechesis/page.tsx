@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useCatechesisClasses } from '@/hooks/useCatechesisClasses';
 import { useCatechesisStudents } from '@/hooks/useCatechesisStudents';
@@ -44,7 +45,7 @@ export default function CatechesisPage() {
   const publishedLessons = lessons.filter((l) => l.isPublished).length;
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -118,7 +119,7 @@ export default function CatechesisPage() {
           </div>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

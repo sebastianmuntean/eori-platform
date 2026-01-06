@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -84,7 +85,7 @@ export default function CatechesisStudentsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   // Reset form to empty state
@@ -290,7 +291,7 @@ export default function CatechesisStudentsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -371,7 +372,7 @@ export default function CatechesisStudentsPage() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
-    </div>
+    </PageContainer>
   );
 }
 

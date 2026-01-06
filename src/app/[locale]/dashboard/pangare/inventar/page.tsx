@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Button } from '@/components/ui/Button';
@@ -382,11 +383,11 @@ export default function InventarPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <ToastContainer toasts={toasts} onClose={removeToast} />
       <PageHeader
         breadcrumbs={[
@@ -492,7 +493,7 @@ export default function InventarPage() {
         onConfirm={handleCompleteSession}
         isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }
 

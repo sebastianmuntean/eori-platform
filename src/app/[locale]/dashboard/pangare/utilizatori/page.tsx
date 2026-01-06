@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
@@ -16,11 +17,11 @@ export default function UtilizatoriPangarPage() {
 
   // Don't render content while checking permissions
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -37,7 +38,7 @@ export default function UtilizatoriPangarPage() {
           </p>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

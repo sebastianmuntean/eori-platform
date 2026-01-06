@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -82,6 +83,45 @@ export default function CemeteriesPage() {
     });
   }, [permissionLoading, currentPage, searchTerm, parishFilter, fetchCemeteries]);
 
+  // Handler functions (must be defined before columns useMemo)
+  const resetForm = () => {
+    setFormData({
+      parishId: '',
+      code: '',
+      name: '',
+      address: '',
+      city: '',
+      county: '',
+      totalArea: '',
+      totalPlots: '',
+      notes: '',
+      isActive: true,
+    });
+    setSelectedCemetery(null);
+  };
+
+  const handleAdd = () => {
+    resetForm();
+    setShowAddModal(true);
+  };
+
+  const handleEdit = (cemetery: Cemetery) => {
+    setSelectedCemetery(cemetery);
+    setFormData({
+      parishId: cemetery.parishId,
+      code: cemetery.code,
+      name: cemetery.name,
+      address: cemetery.address || '',
+      city: cemetery.city || '',
+      county: cemetery.county || '',
+      totalArea: cemetery.totalArea || '',
+      totalPlots: cemetery.totalPlots?.toString() || '',
+      notes: cemetery.notes || '',
+      isActive: cemetery.isActive,
+    });
+    setShowEditModal(true);
+  };
+
   const columns = useMemo(() => [
     { key: 'code', label: t('code') || 'Code', sortable: true },
     { key: 'name', label: t('name') || 'Name', sortable: true },
@@ -122,30 +162,8 @@ export default function CemeteriesPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
-
-  const handleAdd = () => {
-    resetForm();
-    setShowAddModal(true);
-  };
-
-  const handleEdit = (cemetery: Cemetery) => {
-    setSelectedCemetery(cemetery);
-    setFormData({
-      parishId: cemetery.parishId,
-      code: cemetery.code,
-      name: cemetery.name,
-      address: cemetery.address || '',
-      city: cemetery.city || '',
-      county: cemetery.county || '',
-      totalArea: cemetery.totalArea || '',
-      totalPlots: cemetery.totalPlots?.toString() || '',
-      notes: cemetery.notes || '',
-      isActive: cemetery.isActive,
-    });
-    setShowEditModal(true);
-  };
 
   const handleCreate = async () => {
     const data: any = {
@@ -187,29 +205,13 @@ export default function CemeteriesPage() {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      parishId: '',
-      code: '',
-      name: '',
-      address: '',
-      city: '',
-      county: '',
-      totalArea: '',
-      totalPlots: '',
-      notes: '',
-      isActive: true,
-    });
-    setSelectedCemetery(null);
-  };
-
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: t('cemeteries') || 'Cemeteries' },
   ];
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         breadcrumbs={breadcrumbs}
         title={t('cemeteries') || 'Cemeteries'}
@@ -281,7 +283,7 @@ export default function CemeteriesPage() {
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
       />
-    </div>
+    </PageContainer>
   );
 }
 

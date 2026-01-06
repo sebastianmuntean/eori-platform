@@ -81,7 +81,7 @@ export default function CreateMappingDatasetPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const handleCancel = () => {

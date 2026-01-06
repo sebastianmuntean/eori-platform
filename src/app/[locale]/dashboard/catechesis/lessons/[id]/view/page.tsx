@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { LessonViewer } from '@/components/catechesis/LessonViewer';
 import { useLesson } from '@/hooks/useLesson';
 import { useTranslations } from 'next-intl';
@@ -26,7 +27,7 @@ export default function CatechesisLessonViewPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const handleClose = () => {
@@ -43,7 +44,7 @@ export default function CatechesisLessonViewPage() {
 
   if (error || !lesson) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader
           breadcrumbs={[
             { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -57,12 +58,12 @@ export default function CatechesisLessonViewPage() {
         <div className="p-4 bg-danger/10 text-danger rounded-md">
           {error || tCatechesis('errors.lessonNotFound')}
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="space-y-6 h-[calc(100vh-200px)]">
+    <PageContainer className="h-[calc(100vh-200px)]">
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -78,7 +79,7 @@ export default function CatechesisLessonViewPage() {
         onClose={handleClose}
         className="h-full"
       />
-    </div>
+    </PageContainer>
   );
 }
 

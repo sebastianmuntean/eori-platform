@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -43,7 +44,7 @@ export default function ParishionerContractDetailPage() {
 
   if (!contract) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader
           breadcrumbs={[
             { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -58,7 +59,7 @@ export default function ParishionerContractDetailPage() {
             <div>{t('loading') || 'Loading...'}</div>
           </CardBody>
         </Card>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -79,7 +80,7 @@ export default function ParishionerContractDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -157,7 +158,7 @@ export default function ParishionerContractDetailPage() {
           </div>
         </CardBody>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

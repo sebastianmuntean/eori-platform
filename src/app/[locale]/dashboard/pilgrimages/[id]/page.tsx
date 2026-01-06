@@ -40,7 +40,7 @@ export default function PilgrimageDetailsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   if (loading && !pilgrimage) {

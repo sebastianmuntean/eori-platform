@@ -90,7 +90,7 @@ export default function PilgrimageTransportPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const getTransportTypeLabel = (type: string) => {

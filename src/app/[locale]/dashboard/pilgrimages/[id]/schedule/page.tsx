@@ -68,7 +68,7 @@ export default function PilgrimageSchedulePage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   const handleCreate = async () => {

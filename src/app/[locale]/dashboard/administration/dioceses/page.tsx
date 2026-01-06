@@ -216,7 +216,7 @@ export default function DiocesesPage() {
 
   // Don't render content while checking permissions
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
   return (

@@ -30,3 +30,29 @@ export const VALID_EVENT_STATUSES: (EventStatus | '')[] = [
   'cancelled',
 ];
 
+/**
+ * Status variant mapping for Badge components
+ */
+export const STATUS_VARIANT_MAP: Record<EventStatus, 'warning' | 'success' | 'danger' | 'secondary'> = {
+  pending: 'warning',
+  confirmed: 'success',
+  completed: 'success',
+  cancelled: 'danger',
+};
+
+/**
+ * Default page size for event tables
+ */
+export const EVENT_PAGE_SIZE = 10;
+
+/**
+ * Event type constants
+ */
+import { EventType } from '@/hooks/useEvents';
+
+export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> = {
+  FUNERAL: 'funeral',
+  BAPTISM: 'baptism',
+  WEDDING: 'wedding',
+} as const;
+

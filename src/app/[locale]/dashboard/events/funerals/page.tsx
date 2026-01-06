@@ -3,21 +3,33 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
+import { ToastContainer } from '@/components/ui/Toast';
+import { MenuIcon } from '@/components/ui/icons/MenuIcon';
 import { FuneralAddModal } from '@/components/events/FuneralAddModal';
 import { FuneralFormData } from '@/components/events/types';
 import { FuneralEditModal } from '@/components/events/FuneralEditModal';
 import { DeleteEventDialog } from '@/components/events/DeleteEventDialog';
 import { FuneralsFiltersCard } from '@/components/events/FuneralsFiltersCard';
 import { FuneralsTableCard } from '@/components/events/FuneralsTableCard';
+import { STATUS_VARIANT_MAP, EVENT_PAGE_SIZE, EVENT_TYPES } from '@/components/events/constants';
 import { useEvents, ChurchEvent, EventStatus } from '@/hooks/useEvents';
 import { useParishes } from '@/hooks/useParishes';
+import { useToast } from '@/hooks/useToast';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { EVENTS_PERMISSIONS } from '@/lib/permissions/events';
+import {
+  formatEventDate,
+  mapEventToFormData,
+  getInitialEventFormData,
+  buildEventFetchParams,
+} from '@/lib/utils/events';
+import { buildEventActionItems } from '@/lib/utils/eventActions';
 
 export default function FuneralsPage() {
   const params = useParams();
@@ -44,6 +56,7 @@ export default function FuneralsPage() {
   } = useEvents();
 
   const { parishes, fetchParishes } = useParishes();
+  const { toasts, success, error: showError, removeToast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
@@ -55,14 +68,22 @@ export default function FuneralsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ChurchEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FuneralFormData>({
-    parishId: '',
-    status: 'pending',
-    eventDate: '',
-    location: '',
-    priestName: '',
-    notes: '',
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<FuneralFormData>(getInitialEventFormData());
+
+  // Helper function to build fetch parameters
+  const buildFetchParams = useCallback(() => buildEventFetchParams({
+    page: currentPage,
+    pageSize: EVENT_PAGE_SIZE,
+    type: EVENT_TYPES.FUNERAL,
+    search: searchTerm,
+    parishId: parishFilter,
+    status: statusFilter,
+    dateFrom: dateFrom,
+    dateTo: dateTo,
+    sortBy: 'eventDate',
+    sortOrder: 'desc',
+  }), [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     if (permissionLoading) return;
@@ -71,28 +92,174 @@ export default function FuneralsPage() {
 
   useEffect(() => {
     if (permissionLoading) return;
-    const params: any = {
-      page: currentPage,
-      pageSize: 10,
-      type: 'funeral', // Filter by funeral type
-      search: searchTerm || undefined,
-      parishId: parishFilter || undefined,
-      status: statusFilter || undefined,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      sortBy: 'eventDate',
-      sortOrder: 'desc',
-    };
-    fetchEvents(params);
-  }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
+    fetchEvents(buildFetchParams());
+  }, [permissionLoading, buildFetchParams, fetchEvents]);
 
-  const formatDate = useCallback((date: string | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString(locale);
-  }, [locale]);
+  // Helper functions
+  const formatDate = useCallback((date: string | null) => formatEventDate(date, locale), [locale]);
 
-  // Note: columns useMemo references handleEdit, handleConfirm, handleCancel which are defined below
-  // This is fine - hooks can reference regular functions, but hooks must be called before early return
+  const resetForm = useCallback(() => {
+    setFormData(getInitialEventFormData());
+  }, []);
+
+  const refreshEvents = useCallback(() => {
+    fetchEvents(buildFetchParams());
+  }, [buildFetchParams, fetchEvents]);
+
+  // Event handlers
+  const handleEdit = useCallback((event: ChurchEvent) => {
+    setSelectedEvent(event);
+    setFormData(mapEventToFormData(event));
+    setShowEditModal(true);
+  }, []);
+
+  const handleConfirm = useCallback(async (id: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await confirmEvent(id);
+      if (result) {
+        success(t('confirmed') || 'Eveniment confirmat cu succes!');
+        refreshEvents();
+      } else {
+        showError(t('errorConfirmingEvent') || 'Eroare la confirmarea evenimentului');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('errorOccurred') || 'A apărut o eroare';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [confirmEvent, success, showError, refreshEvents, t]);
+
+  const handleCancel = useCallback(async (id: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await cancelEvent(id);
+      if (result) {
+        success(t('cancelled') || 'Eveniment anulat cu succes!');
+        refreshEvents();
+      } else {
+        showError(t('errorCancellingEvent') || 'Eroare la anularea evenimentului');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('errorOccurred') || 'A apărut o eroare';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [cancelEvent, success, showError, refreshEvents, t]);
+
+  const handleCreate = useCallback(async () => {
+    if (!formData.parishId) {
+      showError(t('pleaseSelectParish') || 'Vă rugăm să selectați o parohie');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await createEvent({
+        ...formData,
+        type: EVENT_TYPES.FUNERAL,
+        eventDate: formData.eventDate || null,
+        location: formData.location || null,
+        priestName: formData.priestName || null,
+        notes: formData.notes || null,
+      });
+
+      if (result) {
+        success(t('created') || 'Înmormântare creată cu succes!');
+        setShowAddModal(false);
+        resetForm();
+        refreshEvents();
+      } else {
+        showError(t('errorCreatingEvent') || 'Eroare la crearea înmormântării');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('errorOccurred') || 'A apărut o eroare';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, createEvent, success, showError, resetForm, refreshEvents, t]);
+
+  const handleUpdate = useCallback(async () => {
+    if (!selectedEvent) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateEvent(selectedEvent.id, {
+        ...formData,
+        eventDate: formData.eventDate || null,
+        location: formData.location || null,
+        priestName: formData.priestName || null,
+        notes: formData.notes || null,
+      });
+
+      if (result) {
+        success(t('updated') || 'Înmormântare actualizată cu succes!');
+        setShowEditModal(false);
+        setSelectedEvent(null);
+        refreshEvents();
+      } else {
+        showError(t('errorUpdatingEvent') || 'Eroare la actualizarea înmormântării');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('errorOccurred') || 'A apărut o eroare';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [selectedEvent, formData, updateEvent, success, showError, refreshEvents, t]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await deleteEvent(id);
+      if (result) {
+        success(t('deleted') || 'Înmormântare ștearsă cu succes!');
+        setDeleteConfirm(null);
+        refreshEvents();
+      } else {
+        showError(t('errorDeletingEvent') || 'Eroare la ștergerea înmormântării');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('errorOccurred') || 'A apărut o eroare';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [deleteEvent, success, showError, refreshEvents, t]);
+
+  const handleCloseAddModal = useCallback(() => {
+    setShowAddModal(false);
+    resetForm();
+  }, [resetForm]);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedEvent(null);
+  }, []);
+
+  // Helper function to build action menu items based on event status
+  const buildActionItems = useCallback((event: ChurchEvent) => {
+    return buildEventActionItems(
+      event,
+      {
+        onEdit: handleEdit,
+        onConfirm: handleConfirm,
+        onCancel: handleCancel,
+        onDelete: (id: string) => setDeleteConfirm(id),
+      },
+      {
+        edit: t('edit') || 'Editează',
+        confirm: t('confirm'),
+        cancel: t('cancel') || 'Anulează',
+        delete: t('delete') || 'Șterge',
+      }
+    );
+  }, [t, handleEdit, handleConfirm, handleCancel]);
+
+  // Table columns definition
   const columns = useMemo(() => [
     {
       key: 'eventDate' as keyof ChurchEvent,
@@ -100,174 +267,54 @@ export default function FuneralsPage() {
       sortable: true,
       render: (value: string | null) => formatDate(value),
     },
-    { key: 'location' as keyof ChurchEvent, label: t('location') || 'Locație', sortable: false, render: (value: string | null) => value || '-' },
-    { key: 'priestName' as keyof ChurchEvent, label: t('priest') || 'Preot', sortable: false, render: (value: string | null) => value || '-' },
+    {
+      key: 'location' as keyof ChurchEvent,
+      label: t('location') || 'Locație',
+      sortable: false,
+      render: (value: string | null) => value || '-',
+    },
+    {
+      key: 'priestName' as keyof ChurchEvent,
+      label: t('priest') || 'Preot',
+      sortable: false,
+      render: (value: string | null) => value || '-',
+    },
     {
       key: 'status' as keyof ChurchEvent,
       label: t('status') || 'Status',
       sortable: false,
-      render: (value: EventStatus) => {
-        const variantMap: Record<EventStatus, 'warning' | 'success' | 'danger' | 'secondary'> = {
-          pending: 'warning',
-          confirmed: 'success',
-          completed: 'success',
-          cancelled: 'danger',
-        };
-        return (
-          <Badge variant={variantMap[value] || 'secondary'} size="sm">
-            {t(value) || value}
-          </Badge>
-        );
-      },
+      render: (value: EventStatus) => (
+        <Badge variant={STATUS_VARIANT_MAP[value] || 'secondary'} size="sm">
+          {t(value) || value}
+        </Badge>
+      ),
     },
     {
       key: 'actions' as keyof ChurchEvent,
       label: t('actions'),
       sortable: false,
-      render: (_: any, row: ChurchEvent) => {
-        // These functions will be defined below, but we can reference them here
-        const handleEdit = (event: ChurchEvent) => {
-          setSelectedEvent(event);
-          setFormData({
-            parishId: event.parishId,
-            status: event.status,
-            eventDate: event.eventDate || '',
-            location: event.location || '',
-            priestName: event.priestName || '',
-            notes: event.notes || '',
-          });
-          setShowEditModal(true);
-        };
-        const handleConfirm = async (id: string) => {
-          const result = await confirmEvent(id);
-          if (!result) {
-            console.error('Failed to confirm funeral event');
+      render: (_: any, row: ChurchEvent) => (
+        <Dropdown
+          trigger={
+            <Button variant="ghost" size="sm">
+              <MenuIcon />
+            </Button>
           }
-        };
-        const handleCancel = async (id: string) => {
-          const result = await cancelEvent(id);
-          if (!result) {
-            console.error('Failed to cancel funeral event');
-          }
-        };
-        return (
-          <Dropdown
-            trigger={
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-              </Button>
-            }
-            items={[
-              { label: t('edit') || 'Editează', onClick: () => handleEdit(row) },
-              ...(row.status === 'pending' ? [{ label: t('confirm'), onClick: () => handleConfirm(row.id) }] : []),
-              ...(row.status !== 'cancelled' && row.status !== 'completed' ? [{ label: t('cancel') || 'Anulează', onClick: () => handleCancel(row.id), variant: 'danger' as const }] : []),
-              { label: t('delete') || 'Șterge', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
-            ]}
-            align="right"
-          />
-        );
-      },
+          items={buildActionItems(row)}
+          align="right"
+        />
+      ),
     },
-  ], [t, formatDate, confirmEvent, cancelEvent, setSelectedEvent, setFormData, setShowEditModal, setDeleteConfirm]);
+  ], [t, formatDate, buildActionItems]);
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return null;
+    return <div>{t('loading')}</div>;
   }
 
-  const handleCreate = async () => {
-    if (!formData.parishId) {
-      // Validation error is handled by required field in modal
-      return;
-    }
-
-    const result = await createEvent({
-      ...formData,
-      type: 'funeral',
-      eventDate: formData.eventDate || null,
-      location: formData.location || null,
-      priestName: formData.priestName || null,
-      notes: formData.notes || null,
-    });
-
-    if (result) {
-      setShowAddModal(false);
-      resetForm();
-    }
-    // Error handling is done by the hook - error state is displayed in table card
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedEvent) return;
-
-    const result = await updateEvent(selectedEvent.id, {
-      ...formData,
-      eventDate: formData.eventDate || null,
-      location: formData.location || null,
-      priestName: formData.priestName || null,
-      notes: formData.notes || null,
-    });
-
-    if (result) {
-      setShowEditModal(false);
-      setSelectedEvent(null);
-    }
-    // Error handling is done by the hook - error state is displayed in table card
-  };
-
-  const handleDelete = async (id: string) => {
-    const result = await deleteEvent(id);
-    if (result) {
-      setDeleteConfirm(null);
-    }
-    // Error handling is done by the hook - error state is displayed in table card
-    // Dialog remains open if deletion fails so user can see the error
-  };
-
-  const handleEdit = (event: ChurchEvent) => {
-    setSelectedEvent(event);
-    setFormData({
-      parishId: event.parishId,
-      status: event.status,
-      eventDate: event.eventDate || '',
-      location: event.location || '',
-      priestName: event.priestName || '',
-      notes: event.notes || '',
-    });
-    setShowEditModal(true);
-  };
-
-  const handleConfirm = async (id: string) => {
-    const result = await confirmEvent(id);
-    if (!result) {
-      // Error is handled by the hook and displayed via error state
-      console.error('Failed to confirm funeral event');
-    }
-  };
-
-  const handleCancel = async (id: string) => {
-    const result = await cancelEvent(id);
-    if (!result) {
-      // Error is handled by the hook and displayed via error state
-      console.error('Failed to cancel funeral event');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      parishId: '',
-      status: 'pending' as EventStatus,
-      eventDate: '',
-      location: '',
-      priestName: '',
-      notes: '',
-    });
-  };
-
   return (
-    <div className="space-y-6">
+    <PageContainer>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
@@ -308,38 +355,26 @@ export default function FuneralsPage() {
       {/* Add Modal */}
       <FuneralAddModal
         isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          resetForm();
-        }}
-        onCancel={() => {
-          setShowAddModal(false);
-          resetForm();
-        }}
+        onClose={handleCloseAddModal}
+        onCancel={handleCloseAddModal}
         formData={formData}
         onFormDataChange={setFormData}
         parishes={parishes}
         onSubmit={handleCreate}
-        isSubmitting={loading}
+        isSubmitting={isSubmitting}
         error={error}
       />
 
       {/* Edit Modal */}
       <FuneralEditModal
         isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedEvent(null);
-        }}
-        onCancel={() => {
-          setShowEditModal(false);
-          setSelectedEvent(null);
-        }}
+        onClose={handleCloseEditModal}
+        onCancel={handleCloseEditModal}
         formData={formData}
         onFormDataChange={setFormData}
         parishes={parishes}
         onSubmit={handleUpdate}
-        isSubmitting={loading}
+        isSubmitting={isSubmitting}
         error={error}
       />
 
@@ -349,8 +384,9 @@ export default function FuneralsPage() {
         eventId={deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
+        isLoading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   );
 }
 
