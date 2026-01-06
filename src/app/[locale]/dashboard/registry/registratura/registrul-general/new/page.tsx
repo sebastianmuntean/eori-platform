@@ -26,11 +26,6 @@ export default function CreateDocumentPage() {
   // All hooks must be called before any conditional returns
   const [loading, setLoading] = useState(false);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const handleSave = useCallback(async (data: {
     registerConfigurationId: string;
     documentType: 'incoming' | 'outgoing' | 'internal';
@@ -57,6 +52,11 @@ export default function CreateDocumentPage() {
       setLoading(false);
     }
   }, [locale, router, success, showError, tReg]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleCancel = () => {
     router.push(`/${locale}/dashboard/registry/registratura/registrul-general`);
