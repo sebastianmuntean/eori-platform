@@ -21,12 +21,14 @@ import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
 import { validateWarehouseForm, ValidationErrors, WarehouseType } from '@/lib/validations/warehouses';
 
 export default function WarehousesPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('warehouses'));
+
+  // Check permission to access warehouses
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.WAREHOUSES_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -255,8 +257,13 @@ export default function WarehousesPage() {
   ], [t]);
 
   // Don't render content while checking permissions (after all hooks are called)
+  // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

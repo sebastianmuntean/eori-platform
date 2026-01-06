@@ -28,12 +28,14 @@ const parseBooleanFilter = (value: string): boolean | undefined => {
 };
 
 export default function ProductsPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PRODUCTS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('products'));
+
+  // Check permission to access products
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PRODUCTS_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -260,7 +262,11 @@ export default function ProductsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

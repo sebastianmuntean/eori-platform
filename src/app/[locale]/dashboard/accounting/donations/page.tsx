@@ -46,12 +46,14 @@ const STATUS_VARIANT_MAP: Record<string, 'warning' | 'success' | 'danger'> = {
 };
 
 export default function DonationsPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.DONATIONS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('donations'));
+
+  // Check permission to access donations
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.DONATIONS_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -352,7 +354,11 @@ export default function DonationsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

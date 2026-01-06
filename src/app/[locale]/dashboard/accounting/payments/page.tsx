@@ -31,13 +31,15 @@ import { PaymentsTableCard } from '@/components/accounting/payments/PaymentsTabl
 import { QuickPaymentModal } from '@/components/accounting/payments/QuickPaymentModal';
 
 export default function PaymentsPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PAYMENTS_VIEW);
   const params = useParams();
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('payments'));
+
+  // Check permission to access payments
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.PAYMENTS_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -364,7 +366,11 @@ export default function PaymentsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

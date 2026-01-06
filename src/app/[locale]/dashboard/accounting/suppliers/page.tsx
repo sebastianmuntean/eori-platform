@@ -25,12 +25,14 @@ import { SuppliersFiltersCard } from '@/components/accounting/SuppliersFiltersCa
 import { SuppliersTableCard } from '@/components/accounting/SuppliersTableCard';
 
 export default function SuppliersPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.SUPPLIERS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('suppliers'));
+
+  // Check permission to access suppliers
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.SUPPLIERS_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -233,8 +235,13 @@ export default function SuppliersPage() {
   ], [t, handleEdit]);
 
   // Don't render content while checking permissions (after all hooks are called)
+  // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

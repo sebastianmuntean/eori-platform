@@ -36,13 +36,14 @@ const PAYMENT_STATUS_VARIANTS: Record<string, 'warning' | 'success' | 'danger'> 
 type TabType = 'invoices' | 'payments';
 
 export default function ClientStatementPage() {
-  // Hooks - authentication and routing
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CLIENTS_VIEW_STATEMENT);
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
   const clientId = params.id as string;
   const t = useTranslations('common');
+
+  // Check permission to view client statement
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CLIENTS_VIEW_STATEMENT);
 
   // State
   const [dateFrom, setDateFrom] = useState('');
@@ -157,9 +158,13 @@ export default function ClientStatementPage() {
     [t]
   );
 
-  // Early returns for loading and errors
+  // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   const breadcrumbs = [
@@ -171,28 +176,28 @@ export default function ClientStatementPage() {
 
   if (loading && !statement) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader breadcrumbs={breadcrumbs} title={t('clientStatement')} />
         <div>{t('loading')}</div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (error && !statement) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader breadcrumbs={breadcrumbs} title={t('clientStatement')} />
         <div className="text-red-500">{error}</div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!statement) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <PageHeader breadcrumbs={breadcrumbs} title={t('clientStatement')} />
         <div>{t('clientNotFound') || 'Client not found'}</div>
-      </div>
+      </PageContainer>
     );
   }
 

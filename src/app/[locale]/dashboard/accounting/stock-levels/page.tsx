@@ -17,12 +17,14 @@ import { getStockLevelColumns } from '@/components/accounting/stock-levels/Stock
 import { useStockLevelFilters } from '@/hooks/useStockLevelFilters';
 
 export default function StockLevelsPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.STOCK_LEVELS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('stockLevels'));
+
+  // Check permission to access stock levels
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.STOCK_LEVELS_VIEW);
 
   const {
     stockLevels,
@@ -62,7 +64,11 @@ export default function StockLevelsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

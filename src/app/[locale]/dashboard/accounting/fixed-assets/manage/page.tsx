@@ -11,6 +11,7 @@ import { Dropdown } from '@/components/ui/Dropdown';
 import { useFixedAssets, FixedAsset } from '@/hooks/useFixedAssets';
 import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { getStatusBadgeVariant } from '@/lib/fixed-assets/helpers';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { ACCOUNTING_PERMISSIONS } from '@/lib/permissions/accounting';
@@ -28,11 +29,14 @@ import { FixedAssetsTableCard } from '@/components/accounting/FixedAssetsTableCa
 import { FixedAssetFormData } from '@/components/fixed-assets/FixedAssetForm';
 
 export default function FixedAssetsManagePage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.FIXED_ASSETS_MANAGE);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
+  usePageTitle(tMenu('fixedAssetsManagement'));
+
+  // Check permission to manage fixed assets
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.FIXED_ASSETS_MANAGE);
 
   // All hooks must be called before any conditional returns
   const {
@@ -222,7 +226,11 @@ export default function FixedAssetsManagePage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

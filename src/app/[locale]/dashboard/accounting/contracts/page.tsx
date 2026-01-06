@@ -28,12 +28,14 @@ import { FormModal } from '@/components/accounting/FormModal';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function ContractsPage() {
-  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CONTRACTS_VIEW);
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
   usePageTitle(tMenu('contracts'));
+
+  // Check permission to access contracts
+  const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.CONTRACTS_VIEW);
 
   // All hooks must be called before any conditional returns
   const {
@@ -662,7 +664,11 @@ export default function ContractsPage() {
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
-    return <div>{t('loading')}</div>;
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
   return (

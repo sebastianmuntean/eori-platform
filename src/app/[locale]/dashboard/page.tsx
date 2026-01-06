@@ -3,9 +3,9 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
@@ -13,19 +13,17 @@ import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function DashboardPage() {
-  console.log('Step 1: Rendering Dashboard page');
-
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   usePageTitle(t('dashboard'));
 
   // Check permission to access dashboard
-  const { loading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.USERS_VIEW);
+  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.USERS_VIEW);
 
   // Don't render content while checking permissions
-  if (loading) {
-    return null;
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
   }
   
   const breadcrumbs = [
@@ -86,12 +84,12 @@ export default function DashboardPage() {
     },
   ];
 
-  console.log('✓ Rendering dashboard with', widgets.length, 'widgets');
   return (
     <PageContainer>
-      <Breadcrumbs items={breadcrumbs} className="mb-6" />
-      
-      <h1 className="text-3xl font-bold text-text-primary mb-6">{t('dashboard')}</h1>
+      <PageHeader
+        breadcrumbs={breadcrumbs}
+        title={t('dashboard')}
+      />
 
       {/* Widgets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

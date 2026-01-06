@@ -2,18 +2,17 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useCrudPage } from '@/hooks/useCrudPage';
-import { TablePageLayout } from '@/components/accounting/TablePageLayout';
-import { FormModal } from '@/components/accounting/FormModal';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { FormModal } from '@/components/accounting/FormModal';
 import { useClients, Client } from '@/hooks/useClients';
-import { FilterGrid, FilterClear, TypeFilter } from '@/components/ui/FilterGrid';
 import { useTranslations } from 'next-intl';
 import { ClientForm, ClientFormData } from '@/components/accounting/ClientForm';
+import { ClientsFiltersCard } from '@/components/accounting/ClientsFiltersCard';
+import { ClientsTableCard } from '@/components/accounting/ClientsTableCard';
+import { DeleteClientDialog } from '@/components/accounting/DeleteClientDialog';
 import {
   getClientDisplayName,
   getClientType,
@@ -21,13 +20,21 @@ import {
   clientToFormData,
 } from '@/lib/utils/clients';
 import { validateClientForm } from '@/lib/validations/clients';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 const PAGE_SIZE = 10;
 
-export default function ClientsPage() {
-  const params = useParams();
+interface ClientsPageContentProps {
+  locale: string;
+}
+
+/**
+ * Clients page content component
+ * Contains all the JSX/HTML that was previously in the page file
+ * Separates presentation from routing and permission logic
+ */
+export function ClientsPageContent({ locale }: ClientsPageContentProps) {
   const router = useRouter();
-  const locale = params.locale as string;
   const t = useTranslations('common');
 
   const {
@@ -41,39 +48,36 @@ export default function ClientsPage() {
     deleteClient,
   } = useClients();
 
+  const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<ClientFormData>(createEmptyClientFormData());
   const [clientType, setClientType] = useState<'person' | 'company' | 'organization'>('person');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  // Use the reusable CRUD page hook
-  const [crudState, crudActions] = useCrudPage<Client>({
-    onEdit: (client) => {
-      setFormData(clientToFormData(client));
-      setClientType(getClientType(client));
-      setFormErrors({});
-    },
-    onAdd: () => {
-      resetForm();
-    },
-    resetFiltersCallback: () => {
-      setTypeFilter('');
-    },
-  });
+  // Build fetch parameters
+  const fetchParams = useMemo(
+    () => ({
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+      search: searchTerm || undefined,
+      sortBy: 'code' as const,
+      sortOrder: 'asc' as const,
+    }),
+    [currentPage, searchTerm]
+  );
 
   // Fetch clients when filters or page changes
   useEffect(() => {
-    fetchClients({
-      page: crudState.currentPage,
-      pageSize: PAGE_SIZE,
-      search: crudState.searchTerm || undefined,
-      sortBy: 'code',
-      sortOrder: 'asc',
-    });
-  }, [crudState.currentPage, crudState.searchTerm, fetchClients]);
+    fetchClients(fetchParams);
+  }, [fetchParams, fetchClients]);
 
-  // Filter clients by type on client-side
+  // Filter clients by type on client-side (API doesn't support it yet)
   const filteredClients = useMemo(
     () => (typeFilter ? clients.filter((client) => getClientType(client) === typeFilter) : clients),
     [clients, typeFilter]
@@ -89,14 +93,7 @@ export default function ClientsPage() {
   // Handle field changes
   const handleFieldChange = useCallback((field: keyof ClientFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (formErrors[field]) {
-      setFormErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  }, [formErrors]);
+  }, []);
 
   // Clear form error for a field
   const handleClearError = useCallback((field: string) => {
@@ -109,78 +106,98 @@ export default function ClientsPage() {
 
   // Refresh clients list
   const refreshClients = useCallback(() => {
-    fetchClients({
-      page: crudState.currentPage,
-      pageSize: PAGE_SIZE,
-      search: crudState.searchTerm || undefined,
-      sortBy: 'code',
-      sortOrder: 'asc',
-    });
-  }, [crudState.currentPage, crudState.searchTerm, fetchClients]);
+    fetchClients(fetchParams);
+  }, [fetchParams, fetchClients]);
+
+  // Validate form and return errors
+  const validateForm = useCallback(() => {
+    setFormErrors({});
+    const errors = validateClientForm(formData, clientType, t);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return false;
+    }
+    return true;
+  }, [formData, clientType, t]);
+
+  // Prepare client data for API
+  const prepareClientData = useCallback(() => ({
+    ...formData,
+    birthDate: formData.birthDate || null,
+  }), [formData]);
 
   // Validate and create client
   const handleCreate = useCallback(async () => {
-    setFormErrors({});
-    const errors = validateClientForm(formData, clientType, t);
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     try {
-      const result = await createClient({
-        ...formData,
-        birthDate: formData.birthDate || null,
-      });
+      const result = await createClient(prepareClientData());
       if (result) {
-        crudActions.closeAddModal();
+        setShowAddModal(false);
         resetForm();
         refreshClients();
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, clientType, t, createClient, resetForm, refreshClients, crudActions]);
+  }, [validateForm, createClient, prepareClientData, resetForm, refreshClients]);
 
   // Validate and update client
   const handleUpdate = useCallback(async () => {
-    if (!crudState.selectedItem) return;
-
-    setFormErrors({});
-    const errors = validateClientForm(formData, clientType, t);
-    
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    if (!selectedClient || !validateForm()) return;
 
     setIsSubmitting(true);
     try {
-      const result = await updateClient(crudState.selectedItem.id, {
-        ...formData,
-        birthDate: formData.birthDate || null,
-      });
+      const result = await updateClient(selectedClient.id, prepareClientData());
       if (result) {
-        crudActions.closeEditModal();
+        setShowEditModal(false);
+        setSelectedClient(null);
         setFormErrors({});
         refreshClients();
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [crudState.selectedItem, formData, clientType, t, updateClient, refreshClients, crudActions]);
+  }, [selectedClient, validateForm, updateClient, prepareClientData, refreshClients]);
 
   // Delete client
-  const handleDeleteConfirm = useCallback(async () => {
-    if (!crudState.deleteConfirm) return;
-    const success = await deleteClient(crudState.deleteConfirm);
-    if (success) {
-      crudActions.closeDeleteConfirm();
-      refreshClients();
-    }
-  }, [crudState.deleteConfirm, deleteClient, refreshClients, crudActions]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const success = await deleteClient(id);
+      if (success) {
+        setDeleteConfirm(null);
+        refreshClients();
+      }
+    },
+    [deleteClient, refreshClients]
+  );
+
+  // Filter handlers with page reset
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleTypeFilterChange = useCallback((value: string) => {
+    setTypeFilter(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setTypeFilter('');
+    setCurrentPage(1);
+  }, []);
+
+  // Open edit modal with client data
+  const handleEdit = useCallback((client: Client) => {
+    setSelectedClient(client);
+    setFormData(clientToFormData(client));
+    setClientType(getClientType(client));
+    setFormErrors({});
+    setShowEditModal(true);
+  }, []);
 
   // Navigate to client statement
   const handleViewStatement = useCallback(
@@ -189,6 +206,19 @@ export default function ClientsPage() {
     },
     [router, locale]
   );
+
+  // Close add modal and reset form
+  const handleCloseAddModal = useCallback(() => {
+    setShowAddModal(false);
+    resetForm();
+  }, [resetForm]);
+
+  // Close edit modal
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedClient(null);
+    setFormErrors({});
+  }, []);
 
   // Table columns configuration
   const columns = useMemo(
@@ -245,90 +275,60 @@ export default function ClientsPage() {
                 label: t('viewStatement') || 'View Statement',
                 onClick: () => handleViewStatement(row.id),
               },
-              { label: t('edit'), onClick: () => crudActions.handleEdit(row) },
-              { label: t('delete'), onClick: () => crudActions.handleDelete(row.id), variant: 'danger' },
+              { label: t('edit'), onClick: () => handleEdit(row) },
+              { label: t('delete'), onClick: () => setDeleteConfirm(row.id), variant: 'danger' },
             ]}
             align="right"
           />
         ),
       },
     ],
-    [t, handleViewStatement, crudActions]
+    [t, handleViewStatement, handleEdit]
   );
-
-  // Breadcrumbs configuration
-  const breadcrumbs = useMemo(
-    () => [
-      { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-      { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-      { label: t('clients') },
-    ],
-    [t, locale]
-  );
-
-  // Pagination handlers
-  const handlePreviousPage = useCallback(() => {
-    crudActions.setCurrentPage(Math.max(1, crudState.currentPage - 1));
-  }, [crudState.currentPage, crudActions]);
-
-  const handleNextPage = useCallback(() => {
-    if (pagination) {
-      crudActions.setCurrentPage(Math.min(pagination.totalPages, crudState.currentPage + 1));
-    }
-  }, [crudState.currentPage, pagination, crudActions]);
 
   return (
-    <>
-      <TablePageLayout
+    <PageContainer>
+      <PageHeader
+        breadcrumbs={[
+          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
+          { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
+          { label: t('clients') },
+        ]}
         title={t('clients')}
-        breadcrumbs={breadcrumbs}
-        addButtonLabel={`${t('add')} ${t('clients')}`}
-        onAdd={crudActions.handleAdd}
-        searchPlaceholder={`${t('search')} ${t('clients')}...`}
-        searchValue={crudState.searchTerm}
-        onSearchChange={crudActions.setSearchTerm}
-        filters={
-          <>
-            <TypeFilter
-              value={typeFilter}
-              onChange={(value) => {
-                setTypeFilter(value);
-                crudActions.setCurrentPage(1);
-              }}
-              types={[
-                { value: 'person', label: t('person') || 'Person' },
-                { value: 'company', label: t('company') || 'Company' },
-                { value: 'organization', label: t('organization') || 'Organization' },
-              ]}
-            />
-            <FilterClear
-              onClear={() => {
-                crudActions.resetFilters();
-              }}
-            />
-          </>
-        }
-        tableData={filteredClients}
-        tableColumns={columns}
+        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('clients')}</Button>}
+      />
+
+      {/* Filters */}
+      <ClientsFiltersCard
+        searchTerm={searchTerm}
+        typeFilter={typeFilter}
+        onSearchChange={handleSearchChange}
+        onTypeFilterChange={handleTypeFilterChange}
+        onClearFilters={handleClearFilters}
+      />
+
+      {/* Clients Table */}
+      <ClientsTableCard
+        data={filteredClients}
+        columns={columns}
         loading={loading}
         error={error}
-        pagination={pagination || null}
-        currentPage={crudState.currentPage}
-        onPageChange={crudActions.setCurrentPage}
-        onPreviousPage={handlePreviousPage}
-        onNextPage={handleNextPage}
-        emptyMessage={t('noClients') || 'No clients found'}
+        pagination={pagination}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        emptyMessage={t('noData') || 'No clients available'}
       />
 
       {/* Add Client Modal */}
       <FormModal
-        isOpen={crudState.showAddModal}
-        onClose={crudActions.closeAddModal}
+        isOpen={showAddModal}
+        onClose={handleCloseAddModal}
+        onCancel={handleCloseAddModal}
         title={`${t('add')} ${t('clients')}`}
         onSubmit={handleCreate}
-        onCancel={resetForm}
         isSubmitting={isSubmitting}
         submitLabel={isSubmitting ? t('creating') || 'Creating...' : t('create') || 'Create'}
+        cancelLabel={t('cancel') || 'Cancel'}
         error={error}
       >
         <ClientForm
@@ -344,12 +344,14 @@ export default function ClientsPage() {
 
       {/* Edit Client Modal */}
       <FormModal
-        isOpen={crudState.showEditModal}
-        onClose={crudActions.closeEditModal}
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        onCancel={handleCloseEditModal}
         title={`${t('edit')} ${t('clients')}`}
         onSubmit={handleUpdate}
         isSubmitting={isSubmitting}
         submitLabel={isSubmitting ? t('updating') || 'Updating...' : t('update') || 'Update'}
+        cancelLabel={t('cancel') || 'Cancel'}
         error={error}
       >
         <ClientForm
@@ -364,16 +366,14 @@ export default function ClientsPage() {
       </FormModal>
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={!!crudState.deleteConfirm}
-        onClose={crudActions.closeDeleteConfirm}
-        onConfirm={handleDeleteConfirm}
-        title={t('confirmDelete')}
-        message={t('confirmDeleteClient') || 'Are you sure you want to delete this client?'}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        variant="danger"
+      <DeleteClientDialog
+        isOpen={!!deleteConfirm}
+        clientId={deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        isLoading={isSubmitting}
       />
-    </>
+    </PageContainer>
   );
 }
+
