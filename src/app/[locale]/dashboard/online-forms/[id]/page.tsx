@@ -82,12 +82,8 @@ export default function EditOnlineFormPage() {
     }
   }, [permissionLoading, form, fetchDatasets]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   useEffect(() => {
+    if (permissionLoading) return;
     if (form) {
       setFormData({
         name: form.name,
@@ -102,7 +98,12 @@ export default function EditOnlineFormPage() {
       fetchFields(form.id);
       fetchMappings(form.id);
     }
-  }, [form, fetchFields, fetchMappings]);
+  }, [permissionLoading, form, fetchFields, fetchMappings]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   const handleSaveConfig = async () => {
     setErrors({});

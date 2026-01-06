@@ -84,45 +84,6 @@ export default function CatechesisLessonsPage() {
     fetchLessons(fetchParams);
   }, [permissionLoading, currentPage, searchTerm, classFilter, isPublishedFilter, fetchLessons]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
-    const result = await deleteLesson(id);
-    
-    if (result) {
-      setDeleteConfirm(null);
-      success(tCatechesis('actions.delete') + ' ' + t('success') || 'Lesson deleted successfully');
-      // Refresh the list to ensure UI is in sync
-      fetchLessons({
-        page: currentPage,
-        pageSize: 10,
-        search: searchTerm || undefined,
-        classId: classFilter || undefined,
-        isPublished: isPublishedFilter !== '' ? isPublishedFilter : undefined,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-      });
-    } else {
-      showError(tCatechesis('errors.failedToDelete') || 'Failed to delete lesson');
-    }
-    setDeletingId(null);
-  };
-
-  const handleClassFilterChange = (value: string) => {
-    setClassFilter(value);
-    setCurrentPage(1);
-    updateUrlParams({ classId: value, page: 1 });
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    updateUrlParams({ page: newPage });
-  };
-
   const formatDate = (date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
@@ -194,6 +155,45 @@ export default function CatechesisLessonsPage() {
       ),
     },
   ];
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    const result = await deleteLesson(id);
+    
+    if (result) {
+      setDeleteConfirm(null);
+      success(tCatechesis('actions.delete') + ' ' + t('success') || 'Lesson deleted successfully');
+      // Refresh the list to ensure UI is in sync
+      fetchLessons({
+        page: currentPage,
+        pageSize: 10,
+        search: searchTerm || undefined,
+        classId: classFilter || undefined,
+        isPublished: isPublishedFilter !== '' ? isPublishedFilter : undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      });
+    } else {
+      showError(tCatechesis('errors.failedToDelete') || 'Failed to delete lesson');
+    }
+    setDeletingId(null);
+  };
+
+  const handleClassFilterChange = (value: string) => {
+    setClassFilter(value);
+    setCurrentPage(1);
+    updateUrlParams({ classId: value, page: 1 });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    updateUrlParams({ page: newPage });
+  };
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

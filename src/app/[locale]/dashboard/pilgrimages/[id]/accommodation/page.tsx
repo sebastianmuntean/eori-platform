@@ -68,11 +68,6 @@ export default function PilgrimageAccommodationPage() {
     }
   }, [permissionLoading, id, fetchPilgrimage]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: tPilgrimages('pilgrimages'), href: `/${locale}/dashboard/pilgrimages` },
@@ -143,6 +138,11 @@ export default function PilgrimageAccommodationPage() {
       render: (value: number | null) => value || '-',
     },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div>

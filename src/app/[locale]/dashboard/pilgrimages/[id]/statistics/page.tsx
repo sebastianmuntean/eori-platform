@@ -34,17 +34,17 @@ export default function PilgrimageStatisticsPage() {
     }
   }, [permissionLoading, id, fetchPilgrimage, fetchStatistics]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
     { label: tPilgrimages('pilgrimages'), href: `/${locale}/dashboard/pilgrimages` },
     { label: pilgrimage?.title || tPilgrimages('pilgrimage'), href: `/${locale}/dashboard/pilgrimages/${id}` },
     { label: tPilgrimages('statistics') },
   ];
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div>

@@ -82,6 +82,44 @@ export default function CemeteriesPage() {
     });
   }, [permissionLoading, currentPage, searchTerm, parishFilter, fetchCemeteries]);
 
+  const columns = useMemo(() => [
+    { key: 'code', label: t('code') || 'Code', sortable: true },
+    { key: 'name', label: t('name') || 'Name', sortable: true },
+    { key: 'city', label: t('city') || 'City', sortable: true },
+    { key: 'county', label: t('county') || 'County', sortable: true },
+    {
+      key: 'isActive',
+      label: t('status') || 'Status',
+      sortable: false,
+      render: (value: boolean) => (
+        <Badge variant={value ? 'success' : 'secondary'} size="sm">
+          {value ? t('active') : t('inactive')}
+        </Badge>
+      ),
+    },
+    {
+      key: 'actions',
+      label: t('actions') || 'Actions',
+      sortable: false,
+      render: (_: any, row: Cemetery) => (
+        <Dropdown
+          trigger={
+            <Button variant="ghost" size="sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </Button>
+          }
+          items={[
+            { label: t('edit') || 'Edit', onClick: () => handleEdit(row) },
+            { label: t('delete') || 'Delete', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
+          ]}
+          align="right"
+        />
+      ),
+    },
+  ], [t, handleEdit]);
+
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return null;
@@ -164,49 +202,6 @@ export default function CemeteriesPage() {
     });
     setSelectedCemetery(null);
   };
-
-  const columns = useMemo(() => [
-    { key: 'code', label: t('code') || 'Code', sortable: true },
-    { key: 'name', label: t('name') || 'Name', sortable: true },
-    { key: 'city', label: t('city') || 'City', sortable: true },
-    { key: 'county', label: t('county') || 'County', sortable: true },
-    {
-      key: 'isActive',
-      label: t('status') || 'Status',
-      sortable: false,
-      render: (value: boolean) => (
-        <Badge variant={value ? 'success' : 'secondary'} size="sm">
-          {value ? t('active') : t('inactive')}
-        </Badge>
-      ),
-    },
-    {
-      key: 'actions',
-      label: t('actions') || 'Actions',
-      sortable: false,
-      render: (_: any, row: Cemetery) => (
-        <Dropdown
-          trigger={
-            <Button variant="ghost" size="sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                />
-              </svg>
-            </Button>
-          }
-          items={[
-            { label: t('edit'), onClick: () => handleEdit(row) },
-            { label: t('delete'), onClick: () => setDeleteConfirm(row.id), variant: 'danger' },
-          ]}
-          align="right"
-        />
-      ),
-    },
-  ], [t]);
 
   const breadcrumbs = [
     { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },

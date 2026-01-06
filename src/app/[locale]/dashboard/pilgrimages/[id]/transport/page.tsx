@@ -88,6 +88,11 @@ export default function PilgrimageTransportPage() {
     return time;
   };
 
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
+
   const getTransportTypeLabel = (type: string) => {
     return tPilgrimages(`transportTypes.${type}` as any) || type;
   };

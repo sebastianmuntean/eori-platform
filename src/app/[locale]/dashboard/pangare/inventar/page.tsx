@@ -230,11 +230,6 @@ export default function InventarPage() {
     }
   }, [deleteSession, refreshSessions, success, showError, t]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const handleEditSession = useCallback((session: InventorySession) => {
     setSelectedSession(session);
     setSessionFormData({
@@ -384,6 +379,11 @@ export default function InventarPage() {
     if (!sessionFormData.parishId) return warehouses;
     return warehouses.filter(w => w.parishId === sessionFormData.parishId);
   }, [warehouses, sessionFormData.parishId]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

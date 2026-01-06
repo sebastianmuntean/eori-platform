@@ -58,54 +58,6 @@ export default function PilgrimageDocumentsPage() {
     }
   }, [permissionLoading, id, fetchPilgrimage, fetchDocuments]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
-  const handleUpload = async () => {
-    if (!selectedFile || !uploadFormData.title) {
-      alert(t('fillRequiredFields'));
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const result = await uploadDocument(id, selectedFile, {
-        documentType: uploadFormData.documentType,
-        title: uploadFormData.title,
-        isPublic: uploadFormData.isPublic,
-      });
-
-      if (result) {
-        setShowUploadModal(false);
-        resetUploadForm();
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDelete = async (documentId: string) => {
-    const result = await deleteDocument(id, documentId);
-    if (result) {
-      setDeleteConfirm(null);
-    }
-  };
-
-  const handleDownload = async (documentId: string) => {
-    await downloadDocument(id, documentId);
-  };
-
-  const resetUploadForm = () => {
-    setUploadFormData({
-      documentType: 'information',
-      title: '',
-      isPublic: false,
-    });
-    setSelectedFile(null);
-  };
-
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return '-';
     if (bytes < 1024) return `${bytes} B`;
@@ -202,6 +154,54 @@ export default function PilgrimageDocumentsPage() {
     { label: pilgrimage?.title || tPilgrimages('pilgrimage'), href: `/${locale}/dashboard/pilgrimages/${id}` },
     { label: tPilgrimages('documents') },
   ];
+
+  const handleUpload = async () => {
+    if (!selectedFile || !uploadFormData.title) {
+      alert(t('fillRequiredFields'));
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const result = await uploadDocument(id, selectedFile, {
+        documentType: uploadFormData.documentType,
+        title: uploadFormData.title,
+        isPublic: uploadFormData.isPublic,
+      });
+
+      if (result) {
+        setShowUploadModal(false);
+        resetUploadForm();
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (documentId: string) => {
+    const result = await deleteDocument(id, documentId);
+    if (result) {
+      setDeleteConfirm(null);
+    }
+  };
+
+  const handleDownload = async (documentId: string) => {
+    await downloadDocument(id, documentId);
+  };
+
+  const resetUploadForm = () => {
+    setUploadFormData({
+      documentType: 'information',
+      title: '',
+      isPublic: false,
+    });
+    setSelectedFile(null);
+  };
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div>

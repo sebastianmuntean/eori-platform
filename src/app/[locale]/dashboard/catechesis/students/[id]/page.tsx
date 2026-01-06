@@ -87,15 +87,15 @@ export default function CatechesisStudentDetailsPage() {
     }
   }, [students, id, student, loadStudentData]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
   const formatDate = (date: string | null) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString(locale);
   };
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   if (loading && !student) {
     return (

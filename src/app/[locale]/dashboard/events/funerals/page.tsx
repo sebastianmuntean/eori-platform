@@ -86,6 +86,92 @@ export default function FuneralsPage() {
     fetchEvents(params);
   }, [permissionLoading, currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
 
+  const formatDate = useCallback((date: string | null) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString(locale);
+  }, [locale]);
+
+  // Note: columns useMemo references handleEdit, handleConfirm, handleCancel which are defined below
+  // This is fine - hooks can reference regular functions, but hooks must be called before early return
+  const columns = useMemo(() => [
+    {
+      key: 'eventDate' as keyof ChurchEvent,
+      label: t('date') || 'Data',
+      sortable: true,
+      render: (value: string | null) => formatDate(value),
+    },
+    { key: 'location' as keyof ChurchEvent, label: t('location') || 'Locație', sortable: false, render: (value: string | null) => value || '-' },
+    { key: 'priestName' as keyof ChurchEvent, label: t('priest') || 'Preot', sortable: false, render: (value: string | null) => value || '-' },
+    {
+      key: 'status' as keyof ChurchEvent,
+      label: t('status') || 'Status',
+      sortable: false,
+      render: (value: EventStatus) => {
+        const variantMap: Record<EventStatus, 'warning' | 'success' | 'danger' | 'secondary'> = {
+          pending: 'warning',
+          confirmed: 'success',
+          completed: 'success',
+          cancelled: 'danger',
+        };
+        return (
+          <Badge variant={variantMap[value] || 'secondary'} size="sm">
+            {t(value) || value}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'actions' as keyof ChurchEvent,
+      label: t('actions'),
+      sortable: false,
+      render: (_: any, row: ChurchEvent) => {
+        // These functions will be defined below, but we can reference them here
+        const handleEdit = (event: ChurchEvent) => {
+          setSelectedEvent(event);
+          setFormData({
+            parishId: event.parishId,
+            status: event.status,
+            eventDate: event.eventDate || '',
+            location: event.location || '',
+            priestName: event.priestName || '',
+            notes: event.notes || '',
+          });
+          setShowEditModal(true);
+        };
+        const handleConfirm = async (id: string) => {
+          const result = await confirmEvent(id);
+          if (!result) {
+            console.error('Failed to confirm funeral event');
+          }
+        };
+        const handleCancel = async (id: string) => {
+          const result = await cancelEvent(id);
+          if (!result) {
+            console.error('Failed to cancel funeral event');
+          }
+        };
+        return (
+          <Dropdown
+            trigger={
+              <Button variant="ghost" size="sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </Button>
+            }
+            items={[
+              { label: t('edit') || 'Editează', onClick: () => handleEdit(row) },
+              ...(row.status === 'pending' ? [{ label: t('confirm'), onClick: () => handleConfirm(row.id) }] : []),
+              ...(row.status !== 'cancelled' && row.status !== 'completed' ? [{ label: t('cancel') || 'Anulează', onClick: () => handleCancel(row.id), variant: 'danger' as const }] : []),
+              { label: t('delete') || 'Șterge', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
+            ]}
+            align="right"
+          />
+        );
+      },
+    },
+  ], [t, formatDate, confirmEvent, cancelEvent, setSelectedEvent, setFormData, setShowEditModal, setDeleteConfirm]);
+
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
     return null;
@@ -179,63 +265,6 @@ export default function FuneralsPage() {
       notes: '',
     });
   };
-
-  const formatDate = useCallback((date: string | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString(locale);
-  }, [locale]);
-
-  const columns = useMemo(() => [
-    {
-      key: 'eventDate' as keyof ChurchEvent,
-      label: t('date') || 'Data',
-      sortable: true,
-      render: (value: string | null) => formatDate(value),
-    },
-    { key: 'location' as keyof ChurchEvent, label: t('location') || 'Locație', sortable: false, render: (value: string | null) => value || '-' },
-    { key: 'priestName' as keyof ChurchEvent, label: t('priest') || 'Preot', sortable: false, render: (value: string | null) => value || '-' },
-    {
-      key: 'status' as keyof ChurchEvent,
-      label: t('status') || 'Status',
-      sortable: false,
-      render: (value: EventStatus) => {
-        const variantMap: Record<EventStatus, 'warning' | 'success' | 'danger' | 'secondary'> = {
-          pending: 'warning',
-          confirmed: 'success',
-          completed: 'success',
-          cancelled: 'danger',
-        };
-        return (
-          <Badge variant={variantMap[value] || 'secondary'} size="sm">
-            {t(value) || value}
-          </Badge>
-        );
-      },
-    },
-    {
-      key: 'actions' as keyof ChurchEvent,
-      label: t('actions'),
-      sortable: false,
-      render: (_: any, row: ChurchEvent) => (
-        <Dropdown
-          trigger={
-            <Button variant="ghost" size="sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
-            </Button>
-          }
-          items={[
-            { label: t('edit') || 'Editează', onClick: () => handleEdit(row) },
-            ...(row.status === 'pending' ? [{ label: t('confirm'), onClick: () => handleConfirm(row.id) }] : []),
-            ...(row.status !== 'cancelled' && row.status !== 'completed' ? [{ label: t('cancel') || 'Anulează', onClick: () => handleCancel(row.id), variant: 'danger' as const }] : []),
-            { label: t('delete') || 'Șterge', onClick: () => setDeleteConfirm(row.id), variant: 'danger' as const },
-          ]}
-          align="right"
-        />
-      ),
-    },
-  ], [t, formatDate]);
 
   return (
     <div className="space-y-6">
