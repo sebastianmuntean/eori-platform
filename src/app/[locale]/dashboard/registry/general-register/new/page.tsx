@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
@@ -38,44 +38,42 @@ export default function CreateDocumentPage() {
   const [loadingCopy, setLoadingCopy] = useState(false);
   const { toasts, success, error: showError, removeToast } = useToast();
 
+  // Memoize copyFromId to avoid unnecessary effect re-runs
+  const copyFromId = useMemo(() => searchParams.get('copyFrom'), [searchParams]);
+
   // Handle copyFrom query parameter
   useEffect(() => {
     if (permissionLoading) return;
-    const copyFromId = searchParams.get('copyFrom');
-    if (copyFromId) {
-      setLoadingCopy(true);
-      getGeneralRegisterDocument(copyFromId)
-        .then((doc: GeneralRegisterDocument | null) => {
-          if (doc) {
-            // Get petitionerClientId from document
-            const petitionerClientId = doc.petitionerClientId || null;
-            setInitialData({
-              registerConfigurationId: doc.registerConfigurationId,
-              documentType: doc.documentType,
-              subject: doc.subject,
-              from: doc.from,
-              petitionerClientId: petitionerClientId,
-              to: doc.to,
-              description: doc.description,
-              status: 'draft', // Always set to draft when copying
-            });
-          }
-        })
-        .catch((err) => {
-          const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToCreate') || 'Eroare la încărcarea documentului';
-          showError(errorMessage);
-        })
-        .finally(() => {
-          setLoadingCopy(false);
-        });
-    }
-  }, [permissionLoading, searchParams, showError, tReg]);
+    if (!copyFromId) return;
+    
+    setLoadingCopy(true);
+    getGeneralRegisterDocument(copyFromId)
+      .then((doc: GeneralRegisterDocument | null) => {
+        if (doc) {
+          // Get petitionerClientId from document
+          const petitionerClientId = doc.petitionerClientId || null;
+          setInitialData({
+            registerConfigurationId: doc.registerConfigurationId,
+            documentType: doc.documentType,
+            subject: doc.subject,
+            from: doc.from,
+            petitionerClientId: petitionerClientId,
+            to: doc.to,
+            description: doc.description,
+            status: 'draft', // Always set to draft when copying
+          });
+        }
+      })
+      .catch((err) => {
+        const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToCreate') || 'Eroare la încărcarea documentului';
+        showError(errorMessage);
+      })
+      .finally(() => {
+        setLoadingCopy(false);
+      });
+  }, [permissionLoading, copyFromId, showError, tReg]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const handleSave = useCallback(async (data: {
     registerConfigurationId: string;
     documentType: 'incoming' | 'outgoing' | 'internal';
@@ -104,9 +102,14 @@ export default function CreateDocumentPage() {
     }
   }, [locale, router, success, showError, tReg]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     router.push(`/${locale}/dashboard/registry/general-register`);
-  };
+  }, [locale, router]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
