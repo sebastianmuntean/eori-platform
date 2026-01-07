@@ -361,6 +361,9 @@ describe('LoginPage', () => {
     });
 
     it('should handle JSON parsing errors', async () => {
+      // Use real timers for this async test
+      vi.useRealTimers();
+      
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: async () => {
@@ -376,9 +379,12 @@ describe('LoginPage', () => {
       fireEvent.submit(form);
       
       await waitFor(() => {
-        // Should show connection error or login error
-        expect(screen.queryByText(/error/i)).toBeInTheDocument();
-      });
+        // Should show connection error message
+        expect(screen.getByText(/connection error. please try again/i)).toBeInTheDocument();
+      }, { timeout: 3000 });
+      
+      // Restore fake timers for other tests
+      vi.useFakeTimers();
     });
   });
 

@@ -2,321 +2,214 @@
 
 ## Overview
 
-This code review covers the refactoring of the Donations page (`src/app/[locale]/dashboard/accounting/donations/page.tsx`) where inline modals and card sections were extracted into reusable components following the pattern established in the funerals page.
+This review covers the refactoring of the Donations page to follow the separation of concerns pattern, extracting business logic and JSX into a dedicated content component.
 
 ## Files Changed
 
-1. **New Components Created:**
-   - `src/components/accounting/DonationAddModal.tsx`
-   - `src/components/accounting/DonationEditModal.tsx`
-   - `src/components/accounting/DeleteDonationDialog.tsx`
-   - `src/components/accounting/DonationsFiltersCard.tsx`
-   - `src/components/accounting/DonationsTableCard.tsx`
-
-2. **Refactored:**
-   - `src/app/[locale]/dashboard/accounting/donations/page.tsx`
+1. `src/app/[locale]/dashboard/accounting/donations/page.tsx` - Refactored to thin container
+2. `src/components/accounting/donations/DonationsPageContent.tsx` - New content component
 
 ---
 
-## Review Checklist
+## Code Review Checklist
 
 ### ✅ Functionality
 
-- [x] **Intended behavior works and matches requirements**
-  - All CRUD operations (Create, Read, Update, Delete) are preserved
-  - Form validation is maintained
-  - Filtering and pagination work correctly
-  - Summary card displays total donations
+- [x] Intended behavior works and matches requirements
+- [x] Edge cases handled gracefully
+- [x] Error handling is appropriate and informative
 
-- [x] **Edge cases handled gracefully**
-  - Empty states handled (emptyMessage prop)
-  - Loading states properly managed
-  - Error states displayed appropriately
-  - Null/undefined values handled (e.g., `donation.clientId || ''`)
+**Notes:**
+- All CRUD operations (create, update, delete) are properly implemented
+- Form validation and error handling are in place
+- Permission checks are correctly implemented in the page container
 
-- [x] **Error handling is appropriate and informative**
-  - Form validation errors displayed per field
-  - API errors shown to user via toast notifications
-  - Error states in table card component
+### ⚠️ Code Quality Issues
 
-### ⚠️ Code Quality
+#### 1. **Code Duplication**
 
-- [x] **Code structure is clear and maintainable**
-  - Components follow single responsibility principle
-  - Props interfaces are well-defined
-  - JSDoc comments present for all components
+**Issue:** Filter change handlers have repetitive inline functions (lines 391-410)
+```typescript
+onSearchChange={(value) => {
+  setSearchTerm(value);
+  setCurrentPage(1);
+}}
+```
 
-- [⚠️] **No unnecessary duplication or dead code**
-  - **ISSUE FOUND**: `getClientDisplayName` logic duplicated in both modals instead of using utility function
-  - **ISSUE FOUND**: Significant code duplication between `DonationAddModal` and `DonationEditModal` (only difference is title and submit label)
-  - **FIXED**: Duplicate code in `DeleteDonationDialog.tsx` removed
+**Impact:** Creates new function instances on every render, potential performance issue
 
-- [x] **Tests/documentation updated as needed**
-  - JSDoc comments added to all components
-  - TypeScript types properly defined
+**Recommendation:** Extract to named handlers wrapped in `useCallback`, following the pattern from `ClientsPageContent`
+
+---
+
+#### 2. **Modal Close Handler Duplication**
+
+**Issue:** Modal close handlers are duplicated inline (lines 429-432, 433-436, 449-452, 453-456)
+```typescript
+onClose={() => {
+  setShowAddModal(false);
+  resetForm();
+}}
+```
+
+**Impact:** Code duplication, harder to maintain
+
+**Recommendation:** Extract to named handlers like `handleCloseAddModal` and `handleCloseEditModal`
+
+---
+
+#### 3. **Error Handling Duplication**
+
+**Issue:** Error handling logic in `handleCreate` and `handleUpdate` is duplicated (lines 194-200, 224-230)
+
+**Impact:** Code duplication, inconsistent error handling
+
+**Recommendation:** Extract to a shared error handler function
+
+---
+
+#### 4. **Type Safety**
+
+**Issue:** Line 104 uses `any` type for params
+```typescript
+const params: any = {
+  page: currentPage,
+  // ...
+};
+```
+
+**Impact:** Loss of type safety, potential runtime errors
+
+**Recommendation:** Define proper interface or use existing type from hook
+
+---
+
+#### 5. **Performance Issues**
+
+**Issue:** `totalDonations` calculation (line 289) runs on every render
+```typescript
+const totalDonations = donations.reduce((sum, d) => sum + parseFloat(d.amount || '0'), 0);
+```
+
+**Impact:** Unnecessary recalculation on every render
+
+**Recommendation:** Wrap in `useMemo` with `donations` as dependency
+
+---
+
+#### 6. **Missing useCallback**
+
+**Issue:** `handleEdit` function (line 246) is not wrapped in `useCallback`
+
+**Impact:** Creates new function instance on every render, may cause unnecessary re-renders
+
+**Recommendation:** Wrap in `useCallback` with proper dependencies
+
+---
+
+#### 7. **Unnecessary useCallback**
+
+**Issue:** `resetToFirstPage` (line 273) is a simple function that doesn't need `useCallback`
+
+**Impact:** Minor, but adds unnecessary complexity
+
+**Recommendation:** Remove `useCallback` or inline the function
+
+---
+
+#### 8. **Form Initialization**
+
+**Issue:** Form data initialization is duplicated in `resetForm` and initial state (lines 85-96, 161-175)
+
+**Impact:** If default values change, need to update in two places
+
+**Recommendation:** Extract to a utility function like `createEmptyDonationFormData`
+
+---
+
+#### 9. **Donation to Form Data Conversion**
+
+**Issue:** `handleEdit` manually maps donation to form data (lines 248-259)
+
+**Impact:** If form structure changes, need to update mapping logic
+
+**Recommendation:** Extract to utility function like `donationToFormData`
+
+---
 
 ### ✅ Security & Safety
 
-- [x] **No obvious security vulnerabilities introduced**
-  - Input validation maintained via `validateDonationForm`
-  - Form data properly typed
-  - No direct DOM manipulation
+- [x] No obvious security vulnerabilities introduced
+- [x] Inputs validated and outputs sanitized
+- [x] Sensitive data handled correctly
 
-- [x] **Inputs validated and outputs sanitized**
-  - Form validation runs before submission
-  - Amount parsed with `parseFloat` (should validate for NaN)
-  - Empty strings converted to null for optional fields
-
-- [x] **Sensitive data handled correctly**
-  - No sensitive data exposed in components
-  - Client data properly handled
+**Notes:**
+- Form validation is properly implemented
+- Amount parsing includes validation
+- No direct DOM manipulation or XSS risks identified
 
 ---
 
-## Detailed Findings
+## Refactoring Recommendations
 
-### 🔴 Critical Issues
+### High Priority
 
-#### 1. Duplicate Code in DeleteDonationDialog.tsx
-**Status:** ✅ FIXED
-- **Issue:** File contained duplicate component definition (lines 48-92)
-- **Impact:** Would cause compilation errors
-- **Resolution:** Removed duplicate code
+1. **Extract filter handlers** - Create named handlers with `useCallback`
+2. **Extract modal close handlers** - Create `handleCloseAddModal` and `handleCloseEditModal`
+3. **Memoize totalDonations** - Wrap in `useMemo`
+4. **Fix type safety** - Replace `any` with proper type
+5. **Wrap handleEdit in useCallback** - Follow React best practices
 
-### 🟡 Medium Priority Issues
+### Medium Priority
 
-#### 2. Code Duplication Between Add and Edit Modals
-**Status:** ⚠️ RECOMMENDED FIX
-- **Issue:** `DonationAddModal` and `DonationEditModal` share ~95% of their code
-- **Location:** Both modal components
-- **Impact:** Maintenance burden - changes need to be made in two places
-- **Recommendation:** 
-  ```typescript
-  // Consider creating a shared DonationFormFields component:
-  interface DonationFormFieldsProps {
-    formData: DonationFormData;
-    onFormDataChange: (data: DonationFormData) => void;
-    parishes: Parish[];
-    clients: Client[];
-    formErrors?: Record<string, string>;
-    isSubmitting?: boolean;
-  }
-  ```
-  Or use a single `DonationModal` component with a `mode: 'add' | 'edit'` prop
+6. **Extract error handling** - Create shared error handler
+7. **Extract form utilities** - Create `createEmptyDonationFormData` and `donationToFormData`
+8. **Simplify resetToFirstPage** - Remove unnecessary `useCallback`
 
-#### 3. Duplicate Client Display Name Logic
-**Status:** ⚠️ RECOMMENDED FIX
-- **Issue:** `getClientDisplayName` function duplicated in both modals
-- **Location:** `DonationAddModal.tsx:51-53`, `DonationEditModal.tsx:49-51`
-- **Impact:** Inconsistent behavior if utility function changes
-- **Recommendation:** Use `getClientDisplayName` from `@/lib/utils/accounting`
-  ```typescript
-  import { getClientDisplayName } from '@/lib/utils/accounting';
-  
-  // Replace inline function with:
-  options={clients.map((c) => ({ 
-    value: c.id, 
-    label: getClientDisplayName(c) 
-  }))}
-  ```
+### Low Priority
 
-#### 4. Missing Dependency in useCallback
-**Status:** ⚠️ MINOR
-- **Issue:** `resetForm` used in `handleCreate` but not in dependency array
-- **Location:** `page.tsx:140`
-- **Impact:** Potential stale closure (low risk since `resetForm` is stable)
-- **Recommendation:** Add `resetForm` to dependency array or ensure it's stable
-
-#### 5. Unused Variable
-**Status:** ⚠️ MINOR
-- **Issue:** `summary` variable from `usePayments()` hook is never used
-- **Location:** `page.tsx:51`
-- **Impact:** Dead code, no functional impact
-- **Recommendation:** Remove unused variable or implement summary display
-
-### 🟢 Low Priority / Suggestions
-
-#### 6. Type Safety Improvement
-**Status:** 💡 SUGGESTION
-- **Issue:** Using `as any` for paymentMethod and status type casting
-- **Location:** `DonationAddModal.tsx:125, 146`, `DonationEditModal.tsx:123, 144`
-- **Recommendation:** Create proper type guards or use stricter typing
-  ```typescript
-  type PaymentMethod = 'cash' | 'bank_transfer' | 'card' | 'check' | '';
-  type DonationStatus = 'pending' | 'completed' | 'cancelled';
-  ```
-
-#### 7. Amount Validation
-**Status:** 💡 SUGGESTION
-- **Issue:** `parseFloat(formData.amount)` could result in NaN
-- **Location:** `page.tsx:121, 157`
-- **Recommendation:** Add validation before parsing:
-  ```typescript
-  const amount = parseFloat(formData.amount);
-  if (isNaN(amount) || amount <= 0) {
-    setFormErrors({ ...formErrors, amount: t('invalidAmount') });
-    return;
-  }
-  ```
-
-#### 8. Form Reset on Modal Close
-**Status:** 💡 SUGGESTION
-- **Issue:** Form is only reset on successful submission, not on cancel
-- **Location:** `page.tsx:393-400`
-- **Current:** `resetForm()` called in `onClose` and `onCancel`
-- **Status:** ✅ Already handled correctly
-
-#### 9. Memoization Opportunities
-**Status:** 💡 SUGGESTION
-- **Issue:** `getClientDisplayName` function recreated on every render in modals
-- **Location:** `DonationAddModal.tsx:51-53`, `DonationEditModal.tsx:49-51`
-- **Recommendation:** Move to utility function (see issue #3) or use `useMemo` if keeping inline
-
-#### 10. Error Message Consistency
-**Status:** 💡 SUGGESTION
-- **Issue:** Error messages use fallback strings with `||` operator
-- **Location:** Multiple locations
-- **Recommendation:** Ensure all translation keys exist, or use a translation fallback utility
+9. **Extract constants** - Move `PAYMENT_METHOD_MAP` and `STATUS_VARIANT_MAP` to constants file (if reused elsewhere)
 
 ---
 
-## Architecture & Design
+## Architecture Assessment
 
 ### ✅ Strengths
 
-1. **Consistent Pattern:** Follows the established pattern from funerals page
-2. **Separation of Concerns:** Clear separation between page logic and UI components
-3. **Reusability:** Components can be reused in other contexts
-4. **Type Safety:** Strong TypeScript typing throughout
-5. **Accessibility:** Uses proper form components with labels and error states
+- Clean separation of concerns (page container vs content component)
+- Follows established pattern from Clients page
+- Proper use of hooks and React patterns
+- Good error handling structure
 
-### 📊 Code Metrics
+### ⚠️ Areas for Improvement
 
-- **Lines Reduced:** ~230 lines (from ~670 to ~440 in main page)
-- **Components Created:** 5 new reusable components
-- **Code Duplication:** ~95% between Add/Edit modals (opportunity for improvement)
+- Reduce code duplication
+- Improve type safety
+- Optimize performance with memoization
+- Extract reusable utilities
 
 ---
 
 ## Performance Considerations
 
-### ✅ Good Practices
-- `useMemo` used for columns definition
-- `useCallback` used for event handlers
-- Proper dependency arrays in hooks
-
-### 💡 Potential Optimizations
-- Consider memoizing client options in modals if clients list is large
-- Consider virtualizing table if donations list grows very large
+1. **Filter handlers** - Currently create new functions on every render
+2. **Total donations calculation** - Recalculates on every render
+3. **Column definitions** - Already memoized ✅
 
 ---
 
-## Testing Recommendations
+## Maintainability
 
-### Unit Tests Needed
-1. **DonationAddModal:**
-   - Form field updates
-   - Error display
-   - Submit handling
-
-2. **DonationEditModal:**
-   - Pre-population of form data
-   - Form field updates
-   - Error display
-
-3. **DeleteDonationDialog:**
-   - Confirmation flow
-   - Loading state
-
-4. **DonationsFiltersCard:**
-   - Filter changes
-   - Clear filters
-
-5. **DonationsTableCard:**
-   - Empty state
-   - Error state
-   - Pagination
-
-### Integration Tests Needed
-- Full CRUD flow
-- Filter interactions
-- Pagination
+The code is generally maintainable but would benefit from:
+- Reducing duplication
+- Extracting utilities
+- Improving type safety
+- Following consistent patterns from other page content components
 
 ---
 
-## Security Review
+## Conclusion
 
-### ✅ Security Measures in Place
-- Permission checks via `useRequirePermission`
-- Form validation before submission
-- Type-safe form data handling
-- No direct DOM manipulation
-- Proper error handling
+The refactoring successfully separates concerns and follows the established pattern. However, there are opportunities to improve code quality, reduce duplication, and optimize performance. The recommended refactorings are straightforward and will make the code more maintainable and consistent with other page content components.
 
-### ⚠️ Recommendations
-- Validate `parseFloat` results to prevent NaN values
-- Consider rate limiting on API calls
-- Ensure server-side validation matches client-side
-
----
-
-## Migration & Compatibility
-
-### ✅ Backward Compatibility
-- All existing functionality preserved
-- No breaking changes to API
-- Same user experience
-
-### ✅ Dependencies
-- No new dependencies added
-- Uses existing component library
-
----
-
-## Action Items
-
-### Must Fix (Before Merge)
-1. ✅ ~~Remove duplicate code in `DeleteDonationDialog.tsx`~~ (FIXED)
-
-### Should Fix (High Priority)
-2. ⚠️ Extract shared form fields component to reduce duplication between Add/Edit modals
-3. ⚠️ Use `getClientDisplayName` utility function instead of inline implementation
-
-### Nice to Have (Low Priority)
-4. 💡 Remove unused `summary` variable
-5. 💡 Add `resetForm` to `handleCreate` dependency array (or ensure stability)
-6. 💡 Improve type safety for paymentMethod and status
-7. 💡 Add NaN validation for amount parsing
-
----
-
-## Overall Assessment
-
-### ✅ Approval Status: **CONDITIONAL APPROVAL**
-
-The refactoring successfully achieves its goals:
-- ✅ Code is more maintainable
-- ✅ Components are reusable
-- ✅ Pattern consistency maintained
-- ✅ Functionality preserved
-
-### Required Before Final Approval:
-1. ✅ Fix duplicate code in DeleteDonationDialog (DONE)
-2. ⚠️ Address code duplication between Add/Edit modals (RECOMMENDED)
-3. ⚠️ Use utility function for client display name (RECOMMENDED)
-
-### Recommended Improvements:
-- Extract shared form fields
-- Improve type safety
-- Add amount validation
-
----
-
-## Reviewer Notes
-
-The refactoring follows best practices and maintains consistency with the existing codebase. The main concerns are code duplication between the Add and Edit modals, which could be addressed in a follow-up refactoring. The current implementation is functional and maintainable, but could be improved further.
-
-**Reviewed by:** AI Code Reviewer  
-**Date:** 2024  
-**Review Type:** Refactoring / Component Extraction
-
+**Overall Assessment:** ✅ **Good** - Functional and follows patterns, but needs refinement for production quality.

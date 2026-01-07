@@ -32,6 +32,7 @@ interface InvoiceFormModalProps {
   getProductLabel: (product: Product) => string;
   getProductOptions: (excludeProductIds?: string[]) => AutocompleteOption[];
   onTypeChange?: (type: 'issued' | 'received') => void;
+  isSubmitting?: boolean;
   t: (key: string) => string;
 }
 
@@ -59,6 +60,7 @@ export function InvoiceFormModal({
   getProductLabel,
   getProductOptions,
   onTypeChange,
+  isSubmitting = false,
   t,
 }: InvoiceFormModalProps) {
   return (
@@ -68,7 +70,7 @@ export function InvoiceFormModal({
       onCancel={onCancel}
       title={title}
       onSubmit={onSubmit}
-      isSubmitting={false}
+      isSubmitting={isSubmitting}
       submitLabel={t('create')}
       cancelLabel={t('cancel')}
       size="full"

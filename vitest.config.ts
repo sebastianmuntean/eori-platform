@@ -23,10 +23,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      // More specific aliases must come first to ensure correct resolution
       '@/database': path.resolve(__dirname, './database'),
       '@/drizzle': path.resolve(__dirname, './drizzle'),
       '@/types': path.resolve(__dirname, './types'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });

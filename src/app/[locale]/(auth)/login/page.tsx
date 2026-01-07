@@ -41,8 +41,17 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-      console.log('Step 4: Login response received:', data);
+      let data;
+      try {
+        data = await response.json();
+        console.log('Step 4: Login response received:', data);
+      } catch (jsonError) {
+        // Handle JSON parsing errors (e.g., invalid JSON response)
+        console.log('❌ Failed to parse response as JSON:', jsonError);
+        setErrors({ general: t('connectionError') });
+        setIsLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         console.log('❌ Login failed:', data.error);
@@ -65,7 +74,8 @@ export default function LoginPage() {
         setErrors({ general: data.error || t('loginError') });
       }
     } catch (error) {
-      console.error('❌ Login error:', error);
+      // Handle network errors or other unexpected errors
+      console.log('❌ Login error:', error);
       setErrors({ general: t('connectionError') });
     } finally {
       setIsLoading(false);

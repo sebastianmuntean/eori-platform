@@ -3,9 +3,17 @@ import { createMockRequestWithParams, assertFileResponse, assertErrorResponse } 
 import { sampleEmployees, sampleEmploymentContracts, type EmployeeFixture, type EmploymentContractFixture } from '../../../../../../utils/fixtures';
 import { employees, employmentContracts } from '../../../../../../../database/schema';
 
-// Store mock data that will be returned by queries
-let mockEmployeesData: EmployeeFixture[] = [];
-let mockContractsDataMap: Map<string, EmploymentContractFixture[]> = new Map();
+// Use vi.hoisted to ensure variables are accessible in mocks
+const mockData = vi.hoisted(() => {
+  return {
+    employees: [] as EmployeeFixture[],
+    contracts: new Map<string, EmploymentContractFixture[]>(),
+  };
+});
+
+// Convenience aliases for easier access
+const mockEmployeesData = mockData.employees;
+const mockContractsDataMap = mockData.contracts;
 
 // Mock the database client with proper query handling
 vi.mock('@/database/client', () => {
@@ -13,47 +21,43 @@ vi.mock('@/database/client', () => {
     db: {
       select: vi.fn(() => ({
         from: vi.fn((table: any) => {
+          // Create a thenable object that can be awaited directly or chained with where()
+          const createQueryBuilder = (getData: () => any) => {
+            const promise = Promise.resolve(getData());
+            // Attach where method to the promise
+            (promise as any).where = vi.fn((condition: any) => {
+              return Promise.resolve(getData());
+            });
+            return promise;
+          };
+
           // If it's an employees query, return employees data
           if (table === employees) {
-            return {
-              where: vi.fn((condition: any) => {
-                // Return a thenable that resolves with the mock data
-                return Promise.resolve(mockEmployeesData);
-              }),
-              // Make it directly thenable if no where() is called
-              then: vi.fn((onfulfilled: any) => {
-                return Promise.resolve(mockEmployeesData).then(onfulfilled);
-              }),
-            };
+            return createQueryBuilder(() => mockEmployeesData);
           }
           
           // If it's a contracts query, return all contracts
           // The route code will filter them by employeeId using .find()
           // This is acceptable for unit testing - we're testing route logic, not DB filtering
           if (table === employmentContracts) {
-            return {
-              where: vi.fn((condition: any) => {
-                // Return all contracts - the route will filter by employeeId
-                const allContracts = Array.from(mockContractsDataMap.values()).flat();
-                return Promise.resolve(allContracts);
-              }),
-            };
+            return createQueryBuilder(() => {
+              return Array.from(mockContractsDataMap.values()).flat();
+            });
           }
           
           // Default query builder
-          return {
-            where: vi.fn((condition: any) => {
-              return Promise.resolve([]);
-            }),
-            then: vi.fn((onfulfilled: any) => {
-              return Promise.resolve([]).then(onfulfilled);
-            }),
-          };
+          return createQueryBuilder(() => []);
         }),
       })),
     },
   };
 });
+
+// Helper to set employees data (modifies array in place)
+function setEmployeesData(employees: EmployeeFixture[]) {
+  mockEmployeesData.length = 0;
+  mockEmployeesData.push(...employees);
+}
 
 // Helper to set contracts for a specific employee
 function setContractsForEmployee(employeeId: string, contracts: EmploymentContractFixture[]) {
@@ -113,14 +117,14 @@ let GET: typeof import('../../../../../../../src/app/api/hr/reports/employees/ex
 
 describe('GET /api/hr/reports/employees/export', () => {
   beforeEach(async () => {
-    // Reset mocks
-    vi.clearAllMocks();
-    mockEmployeesData = [];
-    mockContractsDataMap.clear();
-
     // Import GET function after mocks are set up
     const routeModule = await import('../../../../../../../src/app/api/hr/reports/employees/export/route');
     GET = routeModule.GET;
+    
+    // Reset mocks
+    vi.clearAllMocks();
+    mockData.employees.length = 0;
+    mockData.contracts.clear();
 
     // Reset ExcelJS mocks
     mockWorkbook.addWorksheet.mockReturnValue(mockWorksheet);
@@ -182,7 +186,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', testContracts1);
       setContractsForEmployee('emp-2', testContracts2);
 
@@ -220,7 +224,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -249,7 +253,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -280,7 +284,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -304,7 +308,7 @@ describe('GET /api/hr/reports/employees/export', () => {
   describe('Edge Cases', () => {
     it('should handle empty employee list', async () => {
       // Arrange
-      mockEmployeesData = [];
+      setEmployeesData([]);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
         format: 'excel',
@@ -337,7 +341,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -387,7 +391,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', testContracts);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -440,7 +444,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       // Mock ExcelJS to throw error
@@ -492,7 +496,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -517,7 +521,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -552,7 +556,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -583,7 +587,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -608,7 +612,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
@@ -634,7 +638,7 @@ describe('GET /api/hr/reports/employees/export', () => {
         },
       ];
 
-      mockEmployeesData = testEmployees;
+      setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
       const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {

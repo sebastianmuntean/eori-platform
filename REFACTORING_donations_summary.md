@@ -2,190 +2,99 @@
 
 ## Overview
 
-This document summarizes the refactoring improvements made to the Donations page components, focusing on eliminating code duplication, improving type safety, and enhancing maintainability.
+Successfully refactored the Donations page following the established pattern from the Clients page, extracting all business logic and JSX into a dedicated content component.
 
-## Refactoring Improvements
+## Changes Made
 
-### ✅ 1. Extracted Shared Form Fields Component
+### 1. Code Structure
+- ✅ Created `DonationsPageContent` component in `src/components/accounting/donations/`
+- ✅ Refactored page file to thin container (~31 lines)
+- ✅ Extracted ~477 lines of business logic and JSX to content component
 
-**Problem:** `DonationAddModal` and `DonationEditModal` had ~95% code duplication (identical form fields).
+### 2. Code Quality Improvements
 
-**Solution:** Created `DonationFormFields.tsx` - a reusable component containing all form fields.
+#### Eliminated Code Duplication
+- ✅ **Filter handlers**: Extracted inline handlers to named functions with `useCallback`
+  - `handleSearchChange`
+  - `handleParishFilterChange`
+  - `handleStatusFilterChange`
+  - `handleDateFromChange`
+  - `handleDateToChange`
+  - `handleClearFilters`
 
-**Benefits:**
-- **Eliminated ~150 lines of duplicate code**
-- Single source of truth for form fields
-- Changes to form fields only need to be made in one place
-- Both modals reduced from ~165 lines to ~45 lines each
+- ✅ **Modal close handlers**: Extracted to reusable functions
+  - `handleCloseAddModal`
+  - `handleCloseEditModal`
 
-**Files Changed:**
-- ✅ Created: `src/components/accounting/DonationFormFields.tsx`
-- ✅ Refactored: `src/components/accounting/DonationAddModal.tsx`
-- ✅ Refactored: `src/components/accounting/DonationEditModal.tsx`
+- ✅ **Error handling**: Extracted shared error handler
+  - `handleFormError` - Centralized error handling logic
 
-### ✅ 2. Improved Type Safety
+#### Improved Type Safety
+- ✅ Replaced `any` type with properly typed `fetchParams` using `useMemo`
+- ✅ Used proper type constraints (`as const`) for sort parameters
 
-**Problem:** Using `as any` type casts for `paymentMethod` and `status` fields.
+#### Performance Optimizations
+- ✅ Memoized `totalDonations` calculation with `useMemo`
+- ✅ Memoized `fetchParams` to prevent unnecessary re-renders
+- ✅ Wrapped all event handlers in `useCallback` to prevent function recreation
 
-**Solution:** 
-- Created proper type definitions: `PaymentMethod` and `DonationStatus`
-- Added type-safe handler functions: `handlePaymentMethodChange` and `handleStatusChange`
+#### Code Organization
+- ✅ Used existing utility functions from `@/lib/utils/donations`:
+  - `createEmptyDonationFormData()` - For form initialization
+  - `donationToFormData()` - For converting donation to form data
+- ✅ Renamed `normalizeFormData` to `prepareDonationData` for clarity
+- ✅ Wrapped `handleEdit` in `useCallback` for consistency
 
-**Benefits:**
-- Better compile-time type checking
-- Prevents invalid values from being assigned
-- Improved IDE autocomplete and IntelliSense
+### 3. Pattern Consistency
 
-**Code Example:**
-```typescript
-// Before:
-onChange={(e) => handleChange('paymentMethod', e.target.value as any)}
-
-// After:
-const handlePaymentMethodChange = (value: string) => {
-  handleChange('paymentMethod', value as PaymentMethod);
-};
-```
-
-### ✅ 3. Performance Optimizations
-
-**Problem:** Options arrays and client/parish mappings recalculated on every render.
-
-**Solution:** Used `useMemo` hooks to memoize:
-- Client options
-- Parish options  
-- Payment method options
-- Status options
-
-**Benefits:**
-- Reduced unnecessary recalculations
-- Better performance with large client/parish lists
-- Optimized re-renders
-
-**Code Example:**
-```typescript
-const clientOptions = useMemo(
-  () => clients.map((c) => ({ value: c.id, label: getClientDisplayName(c) })),
-  [clients]
-);
-```
-
-### ✅ 4. Enhanced Amount Validation
-
-**Problem:** `parseFloat(formData.amount)` could result in NaN, causing silent failures.
-
-**Solution:** 
-- Added validation in `normalizeFormData` function
-- Throws descriptive error for invalid amounts
-- Error handling in both create and update handlers
-- Form errors displayed to user
-
-**Benefits:**
-- Prevents invalid data from being submitted
-- Better user feedback
-- Catches edge cases (NaN, negative numbers, zero)
-
-**Code Example:**
-```typescript
-const normalizeFormData = useCallback((data: DonationFormData) => {
-  const amount = parseFloat(data.amount);
-  if (isNaN(amount) || amount <= 0) {
-    throw new Error(t('invalidAmount') || 'Please enter a valid amount');
-  }
-  // ... rest of normalization
-}, [t]);
-```
-
-### ✅ 5. Improved Error Handling
-
-**Problem:** Generic error handling didn't distinguish between validation errors and API errors.
-
-**Solution:**
-- Enhanced error handling in `handleCreate` and `handleUpdate`
-- Detects amount validation errors and displays them in form
-- Other errors shown via toast notifications
-
-**Benefits:**
-- Better user experience
-- Clear distinction between field-level and general errors
-- More informative error messages
-
-### ✅ 6. Code Organization & Readability
-
-**Improvements:**
-- Clear separation of concerns (form fields vs. modal wrapper)
-- Better function naming (`normalizeFormData`, `validateAndSetErrors`)
-- Comprehensive JSDoc comments
-- Consistent code structure
-
-## Metrics
-
-### Code Reduction
-- **Before:** ~330 lines across 2 modal files
-- **After:** ~45 lines per modal + 165 lines shared component
-- **Net Reduction:** ~75 lines (22% reduction)
-- **Duplication Eliminated:** ~150 lines
-
-### Component Structure
-- **Before:** 2 monolithic modal components
-- **After:** 1 shared form component + 2 thin modal wrappers
-
-### Type Safety
-- **Before:** 2 `as any` type casts
-- **After:** 0 type casts, proper type definitions
+The refactored code now follows the same patterns as `ClientsPageContent`:
+- ✅ Named filter handlers with page reset
+- ✅ Named modal close handlers
+- ✅ Utility functions for form data management
+- ✅ Memoized calculations
+- ✅ Proper error handling structure
 
 ## Files Modified
 
-1. **Created:**
-   - `src/components/accounting/DonationFormFields.tsx` (165 lines)
+1. **`src/app/[locale]/dashboard/accounting/donations/page.tsx`**
+   - Reduced from ~497 lines to ~31 lines
+   - Now only handles routing, permissions, and page title
 
-2. **Refactored:**
-   - `src/components/accounting/DonationAddModal.tsx` (165 → 45 lines)
-   - `src/components/accounting/DonationEditModal.tsx` (165 → 45 lines)
-   - `src/app/[locale]/dashboard/accounting/donations/page.tsx` (enhanced validation)
+2. **`src/components/accounting/donations/DonationsPageContent.tsx`**
+   - New file containing all business logic and JSX
+   - ~468 lines (optimized from original ~477 lines)
 
-## Testing Recommendations
+## Improvements Summary
 
-### Unit Tests
-- [ ] `DonationFormFields` component renders all fields
-- [ ] Form field changes trigger `onFormDataChange` correctly
-- [ ] Error messages display properly
-- [ ] Memoized options update when dependencies change
+| Category | Before | After | Improvement |
+|----------|--------|-------|-------------|
+| Code Duplication | High (inline handlers) | None (named handlers) | ✅ Eliminated |
+| Type Safety | `any` type used | Properly typed | ✅ Improved |
+| Performance | Unmemoized calculations | Memoized with `useMemo` | ✅ Optimized |
+| Maintainability | Duplicated logic | Reusable utilities | ✅ Enhanced |
+| Pattern Consistency | Mixed patterns | Consistent with Clients | ✅ Aligned |
 
-### Integration Tests
-- [ ] Add modal uses shared form fields
-- [ ] Edit modal uses shared form fields
-- [ ] Amount validation works correctly
-- [ ] Error handling displays appropriate messages
+## Testing Checklist
 
-## Future Improvements
+- [x] No linting errors
+- [x] Type safety verified
+- [x] All handlers properly memoized
+- [x] Utility functions imported correctly
+- [x] Pattern matches ClientsPageContent
 
-### Potential Enhancements
-1. **Extract form field groups:** Could further break down into smaller components (e.g., `DonationBasicFields`, `DonationPaymentFields`)
-2. **Form state management:** Consider using a form library (React Hook Form) for more complex validation
-3. **Accessibility:** Add ARIA labels and keyboard navigation improvements
-4. **Internationalization:** Ensure all error messages are properly translated
+## Next Steps
 
-## Checklist
+The refactoring is complete and ready for:
+1. Manual testing of all CRUD operations
+2. Verification of filter functionality
+3. Testing of modal interactions
+4. Performance testing with large datasets
 
-- [x] Extracted reusable functions/components
-- [x] Eliminated code duplication
-- [x] Improved variable and function naming
-- [x] Simplified complex logic and reduced nesting
-- [x] Identified and fixed performance bottlenecks
-- [x] Optimized algorithms and data structures (memoization)
-- [x] Made code more readable and self-documenting
-- [x] Followed SOLID principles (Single Responsibility)
-- [x] Improved error handling and edge case coverage
+## Code Review Status
 
-## Conclusion
-
-The refactoring successfully:
-- ✅ Eliminated significant code duplication
-- ✅ Improved type safety
-- ✅ Enhanced performance through memoization
-- ✅ Added robust validation
-- ✅ Improved maintainability and readability
-
-The code is now more maintainable, performant, and follows best practices while maintaining 100% functional compatibility.
-
+✅ **All identified issues addressed:**
+- Code duplication eliminated
+- Type safety improved
+- Performance optimized
+- Maintainability enhanced
+- Pattern consistency achieved

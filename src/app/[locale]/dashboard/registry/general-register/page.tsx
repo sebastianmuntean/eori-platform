@@ -1,52 +1,37 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { PageContainer } from '@/components/ui/PageContainer';
-import { DocumentList } from '@/components/registratura/DocumentList';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { GeneralRegisterPageContent } from '@/components/registry/general-register/GeneralRegisterPageContent';
 
+/**
+ * General Register page - thin container component
+ * Handles only routing, permissions, and page title
+ * All business logic and JSX is in GeneralRegisterPageContent
+ */
 export default function RegistryGeneralPage() {
   const params = useParams();
-  const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
+  usePageTitle(tReg('generalRegister'));
 
   // Check permission to view general register
-  const { loading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
+  const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
 
   // Don't render content while checking permissions
-  if (loading) {
-    return null;
+  if (permissionLoading) {
+    return (
+      <PageContainer>
+        <div>{t('loading')}</div>
+      </PageContainer>
+    );
   }
 
-  const handleDocumentClick = (document: any) => {
-    router.push(`/${locale}/dashboard/registry/general-register/${document.id}`);
-  };
-
-  const handleCreateNew = () => {
-    router.push(`/${locale}/dashboard/registry/general-register/new`);
-  };
-
-  return (
-    <PageContainer>
-      <PageHeader
-        breadcrumbs={[
-          { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
-          { label: tReg('generalRegister') },
-        ]}
-        title={tReg('generalRegister') || 'General Register'}
-      />
-
-      <DocumentList
-        onDocumentClick={handleDocumentClick}
-        onCreateNew={handleCreateNew}
-      />
-    </PageContainer>
-  );
+  return <GeneralRegisterPageContent locale={locale} />;
 }
 

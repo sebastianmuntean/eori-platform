@@ -2,240 +2,39 @@
 
 ## Overview
 
-This review covers the refactoring of the Stock Movements page (`src/app/[locale]/dashboard/accounting/stock-movements/page.tsx`) to extract inline modals and card sections into reusable components, following the established pattern from the funerals page.
+This document provides a comprehensive code review of the Stock Movements page refactoring, identifying issues and providing actionable improvements.
 
-**Files Changed:**
-- Created 5 new component files
-- Refactored 1 main page file
-- Added edit/delete functionality (previously missing)
+## Review Summary
 
-## Review Checklist
+**Status**: ✅ **APPROVED with Recommendations**
 
-### Functionality ✅
-
-- [x] Intended behavior works and matches requirements
-- [x] Edge cases handled gracefully
-- [x] Error handling is appropriate and informative
-
-### Code Quality ⚠️
-
-- [x] Code structure is clear and maintainable
-- [x] No unnecessary duplication or dead code
-- [ ] Tests/documentation updated as needed (N/A - no tests in codebase)
-
-### Security & Safety ✅
-
-- [x] No obvious security vulnerabilities introduced
-- [x] Inputs validated and outputs sanitized
-- [x] Sensitive data handled correctly
+The refactoring successfully separates concerns and follows the established pattern. However, several improvements can be made for better maintainability, performance, and user experience.
 
 ---
 
-## Detailed Review
+## ✅ Functionality
 
-### ✅ Strengths
+### Intended Behavior
+- ✅ Page correctly handles routing, permissions, and page title
+- ✅ All business logic extracted to content component
+- ✅ CRUD operations (Create, Read, Update, Delete) work as expected
+- ✅ Filtering and pagination functional
 
-1. **Excellent Pattern Consistency**
-   - Components follow the exact pattern established in `FuneralAddModal`, `FuneralEditModal`, etc.
-   - JSDoc comments are present and descriptive
-   - Component structure matches reference implementations
-
-2. **Good Separation of Concerns**
-   - Modal components are properly isolated
-   - Filter and table cards are reusable
-   - Main page is significantly simplified (from ~395 lines to ~392 lines, but much more maintainable)
-
-3. **Enhanced Functionality**
-   - Added edit and delete operations that were missing in the original implementation
-   - Proper error handling in all async operations
-   - Loading states properly managed
-
-4. **Performance Optimizations**
-   - Used `useMemo` for columns definition
-   - Used `useCallback` for helper functions
-   - Proper dependency arrays in hooks
-
-5. **Type Safety**
-   - Exported `StockMovementFormData` type for reuse
-   - Proper TypeScript interfaces throughout
-   - Type-safe event handlers
-
-### ⚠️ Issues & Recommendations
-
-#### 1. **Type Duplication - CRITICAL**
-
-**Issue:** Local `Warehouse` and `Product` interfaces are defined in multiple components instead of using exported types from hooks.
-
-**Location:**
-- `src/components/accounting/StockMovementAddModal.tsx` (lines 21-30)
-- `src/components/accounting/StockMovementEditModal.tsx` (lines 10-19)
-- `src/components/accounting/StockMovementsFiltersCard.tsx` (lines 8-16)
-
-**Problem:**
-```typescript
-// Current (duplicated):
-interface Warehouse {
-  id: string;
-  name: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  trackStock: boolean;
-}
-```
-
-**Solution:**
-```typescript
-// Should import from hooks:
-import { Warehouse } from '@/hooks/useWarehouses';
-import { Product } from '@/hooks/useProducts';
-```
-
-**Impact:** Medium - Type safety could be compromised if the actual types have more fields, and it creates maintenance burden.
-
-**Recommendation:** Replace local interfaces with imports from hooks.
+### Edge Cases
+- ⚠️ **MINOR**: No error handling for invalid `parseFloat` values in table rendering
+- ⚠️ **MINOR**: Validation uses `alert()` instead of proper error display
 
 ---
 
-#### 2. **Missing Error Handling in Date Parsing**
+## 🔍 Code Quality Issues
 
-**Issue:** In `handleEdit` function, date parsing assumes ISO format but doesn't handle edge cases.
+### 1. ⚠️ **MINOR**: Inline Filter Handlers (Performance Issue)
 
-**Location:** `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx` (line 158)
+**Location**: `StockMovementsPageContent.tsx:283-315`
 
-**Current Code:**
-```typescript
-movementDate: stockMovement.movementDate.split('T')[0],
-```
+**Problem**: Filter change handlers are inline functions, causing unnecessary re-renders of `StockMovementsFiltersCard`.
 
-**Problem:** If `movementDate` is already in date-only format or null, this could fail.
-
-**Recommendation:**
-```typescript
-movementDate: stockMovement.movementDate 
-  ? stockMovement.movementDate.split('T')[0] 
-  : new Date().toISOString().split('T')[0],
-```
-
-**Impact:** Low - Edge case that may not occur in practice, but defensive coding is better.
-
----
-
-#### 3. **Code Duplication in Refresh Logic**
-
-**Issue:** The same params object construction is duplicated in `handleCreate`, `handleUpdate`, and `handleDelete`.
-
-**Location:** `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx` (lines 98-107, 119-128, 137-146)
-
-**Current Code:**
-```typescript
-const params: any = {
-  page: currentPage,
-  pageSize: 10,
-  parishId: parishFilter || undefined,
-  warehouseId: warehouseFilter || undefined,
-  productId: productFilter || undefined,
-  type: typeFilter || undefined,
-  dateFrom: dateFrom || undefined,
-  dateTo: dateTo || undefined,
-};
-```
-
-**Recommendation:** Extract to a helper function:
-```typescript
-const getFetchParams = useCallback(() => ({
-  page: currentPage,
-  pageSize: 10,
-  parishId: parishFilter || undefined,
-  warehouseId: warehouseFilter || undefined,
-  productId: productFilter || undefined,
-  type: typeFilter || undefined,
-  dateFrom: dateFrom || undefined,
-  dateTo: dateTo || undefined,
-}), [currentPage, parishFilter, warehouseFilter, productFilter, typeFilter, dateFrom, dateTo]);
-```
-
-**Impact:** Low - Code quality improvement, reduces duplication.
-
----
-
-#### 4. **Missing Validation for Transfer Type**
-
-**Issue:** When type is 'transfer', `destinationWarehouseId` is required but validation happens only at form level, not in the submit handler.
-
-**Location:** `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx` (handleCreate/handleUpdate)
-
-**Recommendation:** Add validation:
-```typescript
-const handleCreate = async () => {
-  if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
-    // Show error or prevent submission
-    return;
-  }
-  // ... rest of function
-};
-```
-
-**Impact:** Medium - Could lead to invalid data being submitted.
-
----
-
-#### 5. **Type Safety in Columns Definition**
-
-**Issue:** Using `any[]` for columns type reduces type safety.
-
-**Location:** `src/components/accounting/StockMovementsTableCard.tsx` (line 11)
-
-**Current:**
-```typescript
-columns: any[];
-```
-
-**Recommendation:** Define a proper column type or use a generic:
-```typescript
-interface TableColumn<T = any> {
-  key: keyof T | string;
-  label: string;
-  sortable?: boolean;
-  render?: (value: any, row: T) => React.ReactNode;
-}
-
-columns: TableColumn<StockMovement>[];
-```
-
-**Impact:** Low - Type safety improvement, but current implementation works.
-
----
-
-#### 6. **Missing Loading State in Submit Handlers**
-
-**Issue:** `isSubmitting` is hardcoded to `false` in modal props, but the hooks provide loading states.
-
-**Location:** `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx` (lines 358, 378)
-
-**Current:**
-```typescript
-isSubmitting={false}
-```
-
-**Recommendation:**
-```typescript
-isSubmitting={loading}
-```
-
-**Impact:** Medium - Users can click submit multiple times, potentially causing duplicate submissions.
-
----
-
-#### 7. **Potential Race Condition in Filter Changes**
-
-**Issue:** Multiple filter change handlers reset `currentPage` to 1, but if multiple filters change rapidly, there could be race conditions.
-
-**Location:** `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx` (lines 294-317)
-
-**Current Pattern:**
+**Current Code**:
 ```typescript
 onParishFilterChange={(value) => {
   setParishFilter(value);
@@ -243,137 +42,184 @@ onParishFilterChange={(value) => {
 }}
 ```
 
-**Note:** This is actually correct behavior - when filters change, we want to reset to page 1. However, the multiple state updates could be batched.
+**Impact**: Creates new function references on every render, potentially causing child component re-renders.
 
-**Impact:** Low - React batches state updates, so this is fine.
-
----
-
-### 🔍 Architecture & Design
-
-**Positive Aspects:**
-- Clean component hierarchy
-- Proper prop drilling (appropriate for this use case)
-- Consistent with existing patterns
-- Good use of composition
-
-**Considerations:**
-- Components are well-sized (not too large, not too small)
-- Separation of concerns is appropriate
-- No over-engineering
+**Recommendation**: Extract to `useCallback` handlers.
 
 ---
 
-### 🚀 Performance
+### 2. ⚠️ **MINOR**: Duplicate Validation Logic
 
-**Optimizations Present:**
-- ✅ `useMemo` for columns
-- ✅ `useCallback` for helper functions
-- ✅ Proper dependency arrays
+**Location**: `StockMovementsPageContent.tsx:112-142`
 
-**Potential Improvements:**
-- Consider memoizing the filter handlers if they become expensive
-- The `columns` useMemo dependency on `getWarehouseName` and `getProductName` is good, but those callbacks depend on `warehouses` and `products` arrays - if these arrays are recreated on every render, the memoization won't help much.
+**Problem**: Transfer validation logic is duplicated in `handleCreate` and `handleUpdate`.
 
----
+**Current Code**:
+```typescript
+// In handleCreate (line 114-117)
+if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
+  alert(t('destinationWarehouseRequired') || 'Destination warehouse is required for transfer type');
+  return;
+}
 
-### 🔒 Security
+// In handleUpdate (line 131-134) - DUPLICATE
+if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
+  alert(t('destinationWarehouseRequired') || 'Destination warehouse is required for transfer type');
+  return;
+}
+```
 
-**Review:**
-- ✅ No direct DOM manipulation
-- ✅ No eval() or dangerous functions
-- ✅ Inputs are controlled components
-- ✅ No sensitive data exposed in client-side code
-- ✅ API calls use proper methods (POST, PUT, DELETE)
-- ⚠️ No client-side validation beyond HTML5 required attributes (should be validated server-side anyway)
-
-**Recommendations:**
-- Ensure server-side validation exists for all form fields
-- Consider adding client-side validation for better UX (e.g., quantity > 0, dates valid, etc.)
+**Recommendation**: Extract to a validation function.
 
 ---
 
-### 📝 Code Quality Issues Summary
+### 3. ⚠️ **MINOR**: Form Data Initialization Duplication
 
-| Severity | Issue | Location | Status |
-|----------|-------|----------|--------|
-| **Critical** | Type duplication (Warehouse/Product) | Multiple components | ⚠️ Should fix |
-| **Medium** | Missing loading state in modals | page.tsx:358,378 | ⚠️ Should fix |
-| **Medium** | Missing transfer validation | page.tsx:93,112 | ⚠️ Should fix |
-| **Low** | Date parsing edge case | page.tsx:158 | 💡 Nice to have |
-| **Low** | Code duplication in params | page.tsx:98-146 | 💡 Nice to have |
-| **Low** | Columns type safety | StockMovementsTableCard.tsx:11 | 💡 Nice to have |
+**Location**: `StockMovementsPageContent.tsx:58-68, 98-110`
+
+**Problem**: Initial form data structure is duplicated in state initialization and `resetForm`.
+
+**Recommendation**: Extract to a constant or helper function.
 
 ---
 
-## Testing Recommendations
+### 4. ⚠️ **MINOR**: Type Assertion in buildFetchParams
 
-While no test files exist in the codebase, consider testing:
+**Location**: `StockMovementsPageContent.tsx:83`
 
-1. **Unit Tests:**
-   - Form validation (especially transfer type requiring destination)
-   - Date parsing edge cases
-   - Filter clearing functionality
+**Problem**: Type assertion `as 'in' | 'out' | ...` could be cleaner.
 
-2. **Integration Tests:**
-   - Create → Edit → Delete flow
-   - Filter interactions
-   - Pagination with filters
+**Current Code**:
+```typescript
+type: (typeFilter || undefined) as 'in' | 'out' | 'transfer' | 'adjustment' | 'return' | undefined,
+```
 
-3. **E2E Tests:**
-   - Full CRUD operations
-   - Filter combinations
-   - Error scenarios
+**Recommendation**: Use type guard or conditional typing.
 
 ---
 
-## Final Verdict
+### 5. ⚠️ **MINOR**: No Error Handling for parseFloat
 
-### ✅ **APPROVED with Minor Fixes Recommended**
+**Location**: `StockMovementsPageContent.tsx:229, 235`
 
-The refactoring is **well-executed** and follows established patterns correctly. The code is **maintainable**, **readable**, and **functionally complete**. 
+**Problem**: `parseFloat(value).toFixed(3)` could throw if value is invalid.
 
-**Required Fixes Before Merge:** ✅ **ALL FIXED**
-1. ✅ Replace local `Warehouse` and `Product` interfaces with imports from hooks
-2. ✅ Add loading state to modal `isSubmitting` props
-3. ✅ Add validation for transfer type requiring destination warehouse
+**Current Code**:
+```typescript
+render: (value: string) => parseFloat(value).toFixed(3),
+```
 
-**Recommended Improvements:**
-- Extract params construction to helper function
-- Add defensive date parsing
-- Improve column type safety
-
-**Overall Assessment:**
-- **Functionality:** ✅ Excellent
-- **Code Quality:** ✅ Good (with minor improvements needed)
-- **Security:** ✅ Good
-- **Performance:** ✅ Good
-- **Maintainability:** ✅ Excellent
-
-The refactoring successfully achieves its goals of improving code organization and maintainability while adding missing functionality (edit/delete operations).
+**Recommendation**: Add error handling or validation.
 
 ---
 
-## Action Items
+### 6. ⚠️ **MINOR**: Using alert() for Validation
 
-### Must Fix (Before Merge) ✅ **FIXED**
-- [x] Import `Warehouse` and `Product` types from hooks instead of local definitions
-- [x] Pass `loading` state to modal `isSubmitting` props
-- [x] Add validation for transfer type requiring destination warehouse
+**Location**: `StockMovementsPageContent.tsx:115, 132`
 
-### Should Fix (Next PR)
-- [ ] Extract params construction to helper function
-- [ ] Add defensive date parsing in `handleEdit`
-- [ ] Improve column type definitions
+**Problem**: Using browser `alert()` is not ideal for UX. Other components use error state.
 
-### Nice to Have (Future)
-- [ ] Add client-side form validation
-- [ ] Consider extracting filter state management to a custom hook
-- [ ] Add loading indicators for individual operations
+**Recommendation**: Add error state and display in modal (if modal supports it) or use toast notifications.
 
 ---
 
-**Reviewed by:** AI Code Reviewer  
-**Date:** 2024  
-**Review Type:** Refactoring & Feature Addition
+## 🚀 Performance Optimizations
 
+### 1. Filter Handlers
+- Extract all filter handlers to `useCallback` to prevent unnecessary re-renders
+- Extract `onClear` handler to `useCallback`
+
+### 2. Memoization
+- Consider memoizing the filter handlers object if passing as props
+
+---
+
+## 📝 Maintainability Improvements
+
+### 1. Extract Validation Function
+```typescript
+const validateTransferType = useCallback((formData: StockMovementFormData): string | null => {
+  if (formData.type === 'transfer' && !formData.destinationWarehouseId) {
+    return t('destinationWarehouseRequired') || 'Destination warehouse is required for transfer type';
+  }
+  return null;
+}, [t]);
+```
+
+### 2. Extract Form Data Initialization
+```typescript
+const createEmptyFormData = (): StockMovementFormData => ({
+  warehouseId: '',
+  productId: '',
+  parishId: '',
+  type: 'in',
+  movementDate: new Date().toISOString().split('T')[0],
+  quantity: '',
+  unitCost: '',
+  notes: '',
+  destinationWarehouseId: '',
+});
+```
+
+### 3. Extract Filter Handlers
+```typescript
+const handleFilterChange = useCallback((filterName: string, value: string) => {
+  // Set filter and reset page
+  switch (filterName) {
+    case 'parish': setParishFilter(value); break;
+    case 'warehouse': setWarehouseFilter(value); break;
+    // ... etc
+  }
+  setCurrentPage(1);
+}, []);
+```
+
+---
+
+## 🔒 Security & Safety
+
+### Input Validation
+- ✅ Form data is validated before submission
+- ⚠️ **MINOR**: No validation for numeric fields (quantity, unitCost) before parsing
+- ⚠️ **MINOR**: No sanitization of notes field (though likely handled by API)
+
+### Error Handling
+- ⚠️ **MINOR**: API errors are not displayed to users in modals
+- ✅ Delete operations require confirmation
+
+---
+
+## 📋 Refactoring Recommendations
+
+### Priority 1 (High Impact)
+1. Extract filter handlers to `useCallback` - **Performance**
+2. Extract validation logic - **Maintainability**
+3. Extract form data initialization - **Maintainability**
+
+### Priority 2 (Medium Impact)
+4. Improve error handling for parseFloat - **Robustness**
+5. Replace alert() with proper error display - **UX**
+
+### Priority 3 (Low Impact)
+6. Improve type assertion in buildFetchParams - **Code Quality**
+
+---
+
+## ✅ Positive Aspects
+
+1. **Excellent separation of concerns** - Page is thin container, content component handles logic
+2. **Good use of hooks** - Proper use of `useCallback` and `useMemo` in most places
+3. **Follows established pattern** - Consistent with `ClientsPageContent`
+4. **Clean component structure** - Well-organized imports and component structure
+5. **Type safety** - Proper TypeScript usage throughout
+
+---
+
+## Conclusion
+
+The refactoring is **well-executed** and follows best practices. The identified issues are **minor** and primarily relate to:
+- Performance optimizations (filter handlers)
+- Code duplication (validation, form initialization)
+- User experience (error display)
+
+All recommendations are **non-blocking** and can be addressed in follow-up improvements.
