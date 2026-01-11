@@ -648,6 +648,19 @@
   "incomeVsExpenses": "Venituri vs Cheltuieli",
   "parishionerGrowth": "Creștere Enoriași",
   "totalDocuments": "Total Documente",
-  "netAmount": "Sumă Netă"
+  "netAmount": "Sumă Netă",
+  "outgoingInvoices": "Facturi de Ieșire",
+  "incomingInvoices": "Facturi de Intrare",
+  "availableStock": "Stoc Disponibil",
+  "productOutOfStock": "Produsul nu are stoc disponibil în gestiunea selectată",
+  "pleaseSelectWarehouse": "Vă rugăm să selectați o gestiune pentru a vedea stocul disponibil",
+  "noProductsWithStock": "Nu există produse cu stoc disponibil în această gestiune",
+  "newProduct": "Produs Nou",
+  "pricing": "Prețuri și TVA",
+  "stockAndOther": "Stoc și Alte Informații",
+  "organizationalInfo": "Informații Organizaționale",
+  "datesAndClient": "Date și Client",
+  "service": "Serviciu",
+  "selectProduct": "Selectează Produs"
 }
 

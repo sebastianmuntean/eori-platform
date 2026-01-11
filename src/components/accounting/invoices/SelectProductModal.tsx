@@ -187,12 +187,14 @@ export function SelectProductModal({
       size="lg"
     >
       <div className="space-y-4">
-        <div>
-          <SearchInput
-            value={searchTerm}
-            onChange={handleSearch}
-            placeholder={t('searchProducts') || 'Caută produse...'}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <SearchInput
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder={t('searchProducts') || 'Caută produse...'}
+            />
+          </div>
         </div>
 
         {invoiceType === 'issued' && !warehouseId && (
@@ -212,7 +214,7 @@ export function SelectProductModal({
               : t('noProducts') || 'Nu există produse'}
           </div>
         ) : (
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto border rounded">
             <Table data={productsWithStock} columns={columns} />
           </div>
         )}

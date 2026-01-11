@@ -644,6 +644,19 @@
   "incomeVsExpenses": "Income vs Expenses",
   "parishionerGrowth": "Parishioner Growth",
   "totalDocuments": "Total Documents",
-  "netAmount": "Net Amount"
+  "netAmount": "Net Amount",
+  "outgoingInvoices": "Outgoing Invoices",
+  "incomingInvoices": "Incoming Invoices",
+  "availableStock": "Available Stock",
+  "productOutOfStock": "Product does not have available stock in the selected warehouse",
+  "pleaseSelectWarehouse": "Please select a warehouse to see available stock",
+  "noProductsWithStock": "No products with available stock in this warehouse",
+  "newProduct": "New Product",
+  "pricing": "Pricing and VAT",
+  "stockAndOther": "Stock and Other Information",
+  "organizationalInfo": "Organizational Information",
+  "datesAndClient": "Dates and Client",
+  "service": "Service",
+  "selectProduct": "Select Product"
 }
 

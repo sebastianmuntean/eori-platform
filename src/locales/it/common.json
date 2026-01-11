@@ -622,5 +622,18 @@
   "incomeVsExpenses": "Entrate vs Uscite",
   "parishionerGrowth": "Crescita Parrocchiani",
   "totalDocuments": "Totale Documenti",
-  "netAmount": "Importo Netto"
+  "netAmount": "Importo Netto",
+  "outgoingInvoices": "Fatture in Uscita",
+  "incomingInvoices": "Fatture in Entrata",
+  "availableStock": "Stock Disponibile",
+  "productOutOfStock": "Il prodotto non ha stock disponibile nel magazzino selezionato",
+  "pleaseSelectWarehouse": "Si prega di selezionare un magazzino per vedere lo stock disponibile",
+  "noProductsWithStock": "Nessun prodotto con stock disponibile in questo magazzino",
+  "newProduct": "Nuovo Prodotto",
+  "pricing": "Prezzi e IVA",
+  "stockAndOther": "Stock e Altre Informazioni",
+  "organizationalInfo": "Informazioni Organizzative",
+  "datesAndClient": "Date e Cliente",
+  "service": "Servizio",
+  "selectProduct": "Seleziona Prodotto"
 }
