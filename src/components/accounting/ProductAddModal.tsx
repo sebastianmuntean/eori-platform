@@ -48,7 +48,7 @@ export function ProductAddModal({
       submitLabel={t('save') || 'Save'}
       cancelLabel={t('cancel') || 'Cancel'}
       error={error}
-      size="lg"
+      size="full"
     >
       <ProductFormFields
         formData={formData}

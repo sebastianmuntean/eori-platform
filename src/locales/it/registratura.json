@@ -127,6 +127,7 @@
   "sortOrder": "Ordine",
   "ascending": "Crescente",
   "descending": "Decrescente",
+  "loading": "Caricamento...",
   "noDocuments": "Nessun documento",
   "noAttachments": "Nessun allegato",
   "noWorkflowHistory": "Nessuna cronologia workflow",
@@ -199,7 +200,10 @@
     "actions": "Azioni",
     "error": "Errore",
     "deleting": "Eliminazione...",
-    "saving": "Salvataggio..."
+    "saving": "Salvataggio...",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina"
   }
 }
 

@@ -57,7 +57,7 @@ export function StockMovementEditModal({
       isSubmitting={isSubmitting}
       submitLabel={t('save') || 'Save'}
       cancelLabel={t('cancel') || 'Cancel'}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4">
         <Select

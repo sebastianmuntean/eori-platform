@@ -128,6 +128,7 @@
   "sortOrder": "Ordine Sortare",
   "ascending": "Crescător",
   "descending": "Descrescător",
+  "loading": "Se încarcă...",
   "noDocuments": "Nu există documente",
   "noAttachments": "Nu există atașamente",
   "noWorkflowHistory": "Nu există istoric workflow",
@@ -199,7 +200,10 @@
     "error": "Eroare",
     "deleting": "Șterge...",
     "saving": "Salvează...",
-    "continue": "Continuă"
+    "save": "Salvează",
+    "continue": "Continuă",
+    "cancel": "Anulează",
+    "delete": "Șterge"
   }
 }
 

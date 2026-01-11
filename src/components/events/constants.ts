@@ -2,7 +2,7 @@
  * Shared constants for event components
  */
 
-import { EventStatus } from '@/hooks/useEvents';
+import { EventStatus, EventType } from '@/hooks/useEvents';
 
 /**
  * Event status options for dropdowns
@@ -48,7 +48,6 @@ export const EVENT_PAGE_SIZE = 10;
 /**
  * Event type constants
  */
-import { EventType } from '@/hooks/useEvents';
 
 export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> = {
   FUNERAL: 'funeral',

@@ -50,7 +50,7 @@ export function SpotCheckModal({
       isSubmitting={isSubmitting}
       submitLabel={t('save') || 'Salvează'}
       cancelLabel={t('cancel') || 'Anulează'}
-      size="md"
+      size="full"
     >
       <div className="space-y-4">
         <div className="pb-2 border-b border-border">

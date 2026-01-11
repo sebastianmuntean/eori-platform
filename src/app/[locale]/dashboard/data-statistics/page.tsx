@@ -240,7 +240,7 @@ function BreakdownCard({ title, items, sectionType, onGenerate, onDelete, genera
               disabled={deleting}
               className="text-danger hover:bg-danger hover:text-white"
             >
-              {deleting ? 'Ștergere...' : 'Șterge date'}
+              {deleting ? t('deleting') : t('deleteData')}
             </Button>
           </div>
         </div>
@@ -423,7 +423,7 @@ export default function DataStatisticsPage() {
     const { type: sectionType, count } = showSectionModal;
 
     if (count <= 0) {
-      alert('Numărul trebuie să fie mai mare decât 0');
+      alert(t('numberMustBeGreaterThanZero'));
       return;
     }
 
@@ -697,7 +697,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Produse Stoc',
+        title: t('stockProducts'),
         sectionType: 'products' as SectionType,
         items: [
           {
@@ -709,7 +709,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Produse Pangar',
+        title: t('pangarProducts'),
         sectionType: 'pangarProducts' as SectionType,
         items: [
           {
@@ -721,7 +721,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Mijloace Fixe',
+        title: t('fixedAssets'),
         sectionType: 'fixedAssets' as SectionType,
         items: [
           {
@@ -733,7 +733,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Inventar',
+        title: t('inventory'),
         sectionType: 'inventory' as SectionType,
         items: [
           {
@@ -745,7 +745,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Documente Registratură',
+        title: t('registraturaDocuments'),
         sectionType: 'documents' as SectionType,
         items: [
           {
@@ -757,7 +757,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: 'Utilizatori',
+        title: t('users'),
         sectionType: 'users' as SectionType,
         items: [
           {
@@ -1013,7 +1013,7 @@ export default function DataStatisticsPage() {
           <p className="text-text-secondary mb-4">{currentSectionConfig?.description || ''}</p>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Număr de înregistrări ({t('default')}: 10)
+              {t('numberOfRecords')} ({t('default')}: 10)
             </label>
             <input
               type="number"
@@ -1049,11 +1049,11 @@ export default function DataStatisticsPage() {
       <Modal
         isOpen={showDeleteModal.type !== null}
         onClose={() => setShowDeleteModal({ type: null })}
-        title="Confirmare ștergere date"
+        title={t('confirmDeleteData')}
       >
         <div className="space-y-4">
           <div className="bg-danger bg-opacity-10 border border-danger rounded-lg p-4">
-            <p className="text-danger font-semibold mb-2">⚠️ Atenție!</p>
+            <p className="text-danger font-semibold mb-2">⚠️ {t('attention')}</p>
             <p className="text-text-secondary">{currentDeleteConfig?.deleteMessage || ''}</p>
           </div>
           <div className="flex justify-end gap-2 pt-4">
@@ -1061,7 +1061,7 @@ export default function DataStatisticsPage() {
               {t('cancel')}
             </Button>
             <Button onClick={handleDeleteFakeData} disabled={deleting !== null} variant="danger">
-              {deleting ? 'Ștergere...' : 'Da, șterge datele'}
+              {deleting ? t('deleting') : t('yesDeleteData')}
             </Button>
           </div>
         </div>

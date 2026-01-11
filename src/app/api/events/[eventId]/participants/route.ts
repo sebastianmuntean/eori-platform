@@ -45,7 +45,7 @@ export async function GET(
     }
 
     // Check permission to view events
-    const hasPermission = await checkPermission('events:view');
+    const hasPermission = await checkPermission('events.view');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
@@ -95,7 +95,7 @@ export async function POST(
     }
 
     // Check permission to update events
-    const hasPermission = await checkPermission('events:update');
+    const hasPermission = await checkPermission('events.update');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

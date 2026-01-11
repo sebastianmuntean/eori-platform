@@ -82,7 +82,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={t('unreadNotifications') || 'Unread Notifications'}
-      size="lg"
+      size="full"
     >
       <div className="flex flex-col h-full max-h-[600px]">
         {/* Notifications List */}

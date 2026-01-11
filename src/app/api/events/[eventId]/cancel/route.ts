@@ -36,7 +36,7 @@ export async function POST(
     const cancellationReason = validation.success ? validation.data.cancellationReason : undefined;
 
     // Check permission to update events
-    const hasPermission = await checkPermission('events:update');
+    const hasPermission = await checkPermission('events.update');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

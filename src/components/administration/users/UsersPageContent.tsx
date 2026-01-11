@@ -561,7 +561,7 @@ export function UsersPageContent({ locale }: UsersPageContentProps) {
           setEditUserErrors({});
         }}
         title={t('editUser')}
-        size="md"
+        size="full"
       >
         <form
           onSubmit={async (e) => {
@@ -792,7 +792,7 @@ export function UsersPageContent({ locale }: UsersPageContentProps) {
           setNewUserErrors({});
         }}
         title={t('addNewUser')}
-        size="md"
+        size="full"
       >
         <form
           onSubmit={async (e) => {

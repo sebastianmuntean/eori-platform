@@ -46,7 +46,7 @@ export function ProductEditModal({
       isOpen={isOpen}
       onClose={onClose}
       title={t('editProduct') || 'Editează Produs'}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4 max-h-[70vh] overflow-y-auto">
         <Select

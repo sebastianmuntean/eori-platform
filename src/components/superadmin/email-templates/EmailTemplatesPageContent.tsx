@@ -478,7 +478,7 @@ export function EmailTemplatesPageContent({ locale }: EmailTemplatesPageContentP
           setSelectedTemplate(null);
         }}
         title={selectedTemplate ? `${t('preview')} - ${selectedTemplate.name}` : t('previewTemplate')}
-        size="xl"
+        size="full"
       >
         {selectedTemplate && (
           <EmailTemplatePreview
@@ -498,7 +498,7 @@ export function EmailTemplatesPageContent({ locale }: EmailTemplatesPageContentP
           setFormErrors(null);
         }}
         title={t('copyTemplate')}
-        size="md"
+        size="full"
       >
         <div className="space-y-4">
           {formErrors && (

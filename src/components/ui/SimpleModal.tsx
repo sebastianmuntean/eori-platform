@@ -22,7 +22,7 @@ export function SimpleModal({
   onClose,
   title,
   children,
-  size = 'md',
+  size = 'full',
   actions,
 }: SimpleModalProps) {
   return (

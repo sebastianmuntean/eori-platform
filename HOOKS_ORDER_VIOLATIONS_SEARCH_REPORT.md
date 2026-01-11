@@ -96,3 +96,4 @@ The following files were already fixed according to `HOOKS_ORDER_FIX_REPORT.md` 
 - Some files may have been missed if they use different variable names for loading state
 - Files with no hooks after early returns are correctly structured and don't need changes
 
+

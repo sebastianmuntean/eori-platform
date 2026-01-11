@@ -61,7 +61,7 @@ export function WarehouseEditModal({
       isSubmitting={isSubmitting}
       submitLabel={t('save') || 'Save'}
       cancelLabel={t('cancel') || 'Cancel'}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4">
         <Select
@@ -119,6 +119,7 @@ export function WarehouseEditModal({
           type="email"
           value={formData.email}
           onChange={(e) => handleChange('email', e.target.value)}
+          required
           disabled={isSubmitting}
           error={errors.email}
         />

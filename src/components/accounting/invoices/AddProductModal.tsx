@@ -46,7 +46,7 @@ export function AddProductModal({
       isSubmitting={false}
       submitLabel={t('create')}
       cancelLabel={t('cancel')}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4 max-h-[70vh] overflow-y-auto">
         <Input

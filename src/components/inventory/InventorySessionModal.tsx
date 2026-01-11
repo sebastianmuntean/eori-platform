@@ -90,7 +90,7 @@ export function InventorySessionModal({
       isSubmitting={isSubmitting}
       submitLabel={t('save') || 'Salvează'}
       cancelLabel={t('cancel') || 'Anulează'}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4">
         <Select

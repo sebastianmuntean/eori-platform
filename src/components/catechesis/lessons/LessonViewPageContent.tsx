@@ -77,3 +77,4 @@ export function LessonViewPageContent({ locale, id }: LessonViewPageContentProps
   );
 }
 
+

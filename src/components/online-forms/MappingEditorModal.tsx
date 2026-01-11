@@ -136,7 +136,7 @@ export function MappingEditorModal({
       isOpen={isOpen}
       onClose={onClose}
       title={mapping ? tForms('editMapping') : tForms('addMapping')}
-      size="lg"
+      size="full"
     >
       <div className="space-y-4">
         <Input

@@ -128,6 +128,7 @@
   "sortOrder": "Sort Order",
   "ascending": "Ascending",
   "descending": "Descending",
+  "loading": "Loading...",
   "noDocuments": "No documents",
   "noAttachments": "No attachments",
   "noWorkflowHistory": "No workflow history",
@@ -199,7 +200,10 @@
     "actions": "Actions",
     "error": "Error",
     "deleting": "Deleting...",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
   }
 }
 

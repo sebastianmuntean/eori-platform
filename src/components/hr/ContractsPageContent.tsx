@@ -162,3 +162,4 @@ export function ContractsPageContent({ locale }: ContractsPageContentProps) {
   );
 }
 
+

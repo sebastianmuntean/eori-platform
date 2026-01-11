@@ -119,7 +119,7 @@ export function EventDetailsModal({
       isOpen={isOpen}
       onClose={onClose}
       title={`${t('eventDetails')} - ${eventTypeLabels[event.type]}`}
-      size="xl"
+      size="full"
     >
       <div className="space-y-6">
         {/* Event Information */}

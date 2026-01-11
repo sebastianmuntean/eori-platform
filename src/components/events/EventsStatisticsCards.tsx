@@ -52,3 +52,4 @@ export function EventsStatisticsCards({ statistics }: EventsStatisticsCardsProps
   );
 }
 
+

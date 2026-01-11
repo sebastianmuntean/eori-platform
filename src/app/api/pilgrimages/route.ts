@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     }
 
     // Check permission to view pilgrimages
-    const hasPermission = await checkPermission('pilgrimages:view');
+    const hasPermission = await checkPermission('pilgrimages.view');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
     }
 
     // Check permission to create pilgrimages
-    const hasPermission = await checkPermission('pilgrimages:create');
+    const hasPermission = await checkPermission('pilgrimages.create');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

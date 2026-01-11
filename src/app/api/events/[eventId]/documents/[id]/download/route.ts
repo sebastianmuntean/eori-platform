@@ -29,7 +29,7 @@ export async function GET(
     }
 
     // Check permission to view events
-    const hasPermission = await checkPermission('events:view');
+    const hasPermission = await checkPermission('events.view');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

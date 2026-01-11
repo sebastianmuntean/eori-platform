@@ -44,7 +44,7 @@ export async function GET(
       );
     }
 
-    const hasPermission = await checkPermission('pilgrimages:view');
+    const hasPermission = await checkPermission('pilgrimages.view');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
@@ -124,7 +124,7 @@ export async function PUT(
       );
     }
 
-    const hasPermission = await checkPermission('pilgrimages:update');
+    const hasPermission = await checkPermission('pilgrimages.update');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
@@ -271,7 +271,7 @@ export async function DELETE(
       );
     }
 
-    const hasPermission = await checkPermission('pilgrimages:update');
+    const hasPermission = await checkPermission('pilgrimages.update');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

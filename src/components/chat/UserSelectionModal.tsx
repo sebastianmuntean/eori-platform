@@ -106,7 +106,7 @@ export function UserSelectionModal({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      size="md"
+      size="full"
     >
       <div className="space-y-4">
         <Input

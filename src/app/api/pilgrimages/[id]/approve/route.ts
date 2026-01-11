@@ -34,7 +34,7 @@ export async function POST(
       );
     }
 
-    const hasPermission = await checkPermission('pilgrimages:update');
+    const hasPermission = await checkPermission('pilgrimages.update');
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },

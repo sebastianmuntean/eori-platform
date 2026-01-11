@@ -56,11 +56,11 @@ export function validateWarehouseForm(
     errors.name = `${t('name') || 'Name'} ${t('required') || 'is required'}`;
   }
 
-  // Email validation (optional field, but must be valid if provided)
-  if (formData.email && formData.email.trim()) {
-    if (!isValidEmail(formData.email)) {
-      errors.email = t('invalidEmail') || 'Invalid email format';
-    }
+  // Email validation (required field)
+  if (!formData.email?.trim()) {
+    errors.email = `${t('email') || 'Email'} ${t('required') || 'is required'}`;
+  } else if (!isValidEmail(formData.email)) {
+    errors.email = t('invalidEmail') || 'Invalid email format';
   }
 
   return errors;

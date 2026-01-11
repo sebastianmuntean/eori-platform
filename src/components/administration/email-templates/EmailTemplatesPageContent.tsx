@@ -386,7 +386,7 @@ export function EmailTemplatesPageContent({ locale }: EmailTemplatesPageContentP
           setSelectedTemplate(null);
         }}
         title={selectedTemplate ? `${t('preview')} - ${selectedTemplate.name}` : t('previewTemplate')}
-        size="xl"
+        size="full"
       >
         {selectedTemplate && (
           <EmailTemplatePreview

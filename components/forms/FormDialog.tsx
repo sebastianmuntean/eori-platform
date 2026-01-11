@@ -42,9 +42,9 @@ export function FormDialog({
           onClick={onClose}
         />
 
-        {/* Dialog */}
+        {/* Dialog - Full Screen */}
         <div
-          className={`relative bg-white rounded-lg shadow-xl ${fullWidth ? "w-full" : ""} ${maxWidthClasses[maxWidth]}`}
+          className="relative bg-white rounded-lg shadow-xl w-[98vw] h-[98vh] max-w-[98vw] max-h-[98vh] flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
@@ -70,7 +70,7 @@ export function FormDialog({
           </div>
 
           {/* Content */}
-          <div className="p-4">{children}</div>
+          <div className="flex-1 overflow-y-auto p-4">{children}</div>
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 p-4 border-t">

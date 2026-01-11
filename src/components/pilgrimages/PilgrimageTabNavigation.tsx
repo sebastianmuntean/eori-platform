@@ -37,3 +37,4 @@ export function PilgrimageTabNavigation({ tabs, activeTab, onTabChange }: Pilgri
   );
 }
 
+

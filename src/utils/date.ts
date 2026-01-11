@@ -13,3 +13,4 @@ export function formatDate(date: string | null, locale: string): string {
   return new Date(date).toLocaleDateString(locale);
 }
 
+
