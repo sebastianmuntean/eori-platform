@@ -23,6 +23,8 @@ interface InvoiceFormModalProps {
   newProductInput: string;
   onNewProductInputChange: (value: string) => void;
   onOpenAddProductModal: () => void;
+  onOpenSelectProductModal: () => void;
+  warehouseId?: string | null;
   parishes: Parish[];
   warehouses: Warehouse[];
   clients: Client[];
@@ -51,6 +53,8 @@ export function InvoiceFormModal({
   newProductInput,
   onNewProductInputChange,
   onOpenAddProductModal,
+  onOpenSelectProductModal,
+  warehouseId,
   parishes,
   warehouses,
   clients,
@@ -96,6 +100,8 @@ export function InvoiceFormModal({
           onUpdateItem={onUpdateItem}
           onRemoveItem={onRemoveItem}
           onOpenAddProductModal={onOpenAddProductModal}
+          onOpenSelectProductModal={onOpenSelectProductModal}
+          warehouseId={warehouseId}
           products={products}
           productsLoading={productsLoading}
           onProductSearch={onProductSearch}

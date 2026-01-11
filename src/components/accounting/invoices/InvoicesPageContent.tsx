@@ -18,6 +18,7 @@ import { InvoiceSummaryCards } from '@/components/accounting/invoices/InvoiceSum
 import { InvoiceFilters } from '@/components/accounting/invoices/InvoiceFilters';
 import { InvoiceFormModal } from '@/components/accounting/invoices/InvoiceFormModal';
 import { AddProductModal } from '@/components/accounting/invoices/AddProductModal';
+import { SelectProductModal } from '@/components/accounting/invoices/SelectProductModal';
 import { ViewInvoiceModal } from '@/components/accounting/invoices/ViewInvoiceModal';
 import { useInvoiceForm } from '@/hooks/useInvoiceForm';
 import { useInvoiceProductSelection } from '@/hooks/useInvoiceProductSelection';
@@ -72,6 +73,7 @@ export function InvoicesPageContent({ locale, invoiceType }: InvoicesPageContent
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [showSelectProductModal, setShowSelectProductModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -332,6 +334,8 @@ export function InvoicesPageContent({ locale, invoiceType }: InvoicesPageContent
     newProductInput,
     onNewProductInputChange: setNewProductInput,
     onOpenAddProductModal: () => setShowAddProductModal(true),
+    onOpenSelectProductModal: () => setShowSelectProductModal(true),
+    warehouseId: formData.warehouseId,
     parishes,
     warehouses,
     clients,
@@ -353,6 +357,7 @@ export function InvoicesPageContent({ locale, invoiceType }: InvoicesPageContent
     newProductInput,
     setNewProductInput,
     setShowAddProductModal,
+    formData.warehouseId,
     parishes,
     warehouses,
     clients,
@@ -477,6 +482,25 @@ export function InvoicesPageContent({ locale, invoiceType }: InvoicesPageContent
         isOpen={showViewModal}
         onClose={() => setShowViewModal(false)}
         invoice={selectedInvoice}
+        t={t}
+      />
+
+      <SelectProductModal
+        isOpen={showSelectProductModal}
+        onClose={() => setShowSelectProductModal(false)}
+        onCancel={() => setShowSelectProductModal(false)}
+        onSelect={(product) => {
+          addProductItem(product, formData.warehouseId || null);
+          setShowSelectProductModal(false);
+        }}
+        products={products}
+        productsLoading={productsLoading}
+        onProductSearch={handleProductSearch}
+        invoiceType={invoiceType}
+        warehouseId={formData.warehouseId}
+        excludeProductIds={formData.items
+          .map((item) => (item as ExtendedInvoiceItem).productId)
+          .filter((id): id is string => !!id)}
         t={t}
       />
 

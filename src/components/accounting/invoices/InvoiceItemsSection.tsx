@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/Button';
-import { Autocomplete, AutocompleteOption } from '@/components/ui/Autocomplete';
 import { InvoiceItemRow } from './InvoiceItemRow';
 import { ExtendedInvoiceItem, calculateTotals, formatCurrency } from '@/lib/utils/invoiceUtils';
 import { Product } from '@/hooks/useProducts';
+import { AutocompleteOption } from '@/components/ui/Autocomplete';
 
 interface InvoiceItemsSectionProps {
   items: ExtendedInvoiceItem[];
@@ -15,11 +15,13 @@ interface InvoiceItemsSectionProps {
   onUpdateItem: (index: number, field: keyof ExtendedInvoiceItem, value: any) => void;
   onRemoveItem: (index: number) => void;
   onOpenAddProductModal: () => void;
+  onOpenSelectProductModal: () => void;
   products: Product[];
   productsLoading: boolean;
   onProductSearch: (searchTerm: string) => void;
   getProductLabel: (product: Product) => string;
   getProductOptions: (excludeProductIds?: string[]) => AutocompleteOption[];
+  warehouseId?: string | null;
   t: (key: string) => string;
 }
 
@@ -34,11 +36,13 @@ export function InvoiceItemsSection({
   onUpdateItem,
   onRemoveItem,
   onOpenAddProductModal,
+  onOpenSelectProductModal,
   products,
   productsLoading,
   onProductSearch,
   getProductLabel,
   getProductOptions,
+  warehouseId,
   t,
 }: InvoiceItemsSectionProps) {
   const { subtotal, vat, total } = calculateTotals(items);
@@ -46,46 +50,25 @@ export function InvoiceItemsSection({
     .map((item) => item.productId)
     .filter((id): id is string => !!id);
 
-  const handleProductSelect = (label: string) => {
-    if (label && products.some((p) => getProductLabel(p) === label)) {
-      const product = products.find((p) => getProductLabel(p) === label);
-      if (product && !excludeIds.includes(product.id)) {
-        onAddProduct(product);
-      }
-    }
-  };
-
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <label className="block text-lg font-semibold">
           {invoiceType === 'received' ? (t('products') || 'Produse') : (t('lineItems') || 'Linii Factură')} *
         </label>
-        {invoiceType === 'received' ? (
-          <div className="flex items-center gap-2">
-            <div className="w-64">
-              <Autocomplete
-                value={newProductInput}
-                onChange={(label) => {
-                  onNewProductInputChange(label);
-                  handleProductSelect(label);
-                }}
-                options={getProductOptions(excludeIds)}
-                placeholder={t('selectProduct') || 'Selectează Produs'}
-                loading={productsLoading}
-                onSearch={onProductSearch}
-                getOptionLabel={(option) => option.label}
-              />
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={onOpenAddProductModal}>
-              +
-            </Button>
-          </div>
-        ) : (
-          <Button type="button" variant="outline" size="sm" onClick={onAddLineItem}>
-            {t('add')} {t('lineItems')}
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={onOpenSelectProductModal}>
+            {t('add')} {t('product')}
           </Button>
-        )}
+          <Button type="button" variant="outline" size="sm" onClick={onOpenAddProductModal}>
+            + {t('newProduct') || 'Produs Nou'}
+          </Button>
+          {invoiceType === 'issued' && (
+            <Button type="button" variant="outline" size="sm" onClick={onAddLineItem}>
+              {t('add')} {t('lineItems')}
+            </Button>
+          )}
+        </div>
       </div>
       <div className="space-y-2 border rounded p-2">
         {items.length === 0 ? (
