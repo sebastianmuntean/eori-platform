@@ -9,16 +9,16 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { InvoicesPageContent } from '@/components/accounting/invoices/InvoicesPageContent';
 
 /**
- * Invoices page - thin container component
+ * Received Invoices page - thin container component
  * Handles only routing, permissions, and page title
  * All business logic and JSX is in InvoicesPageContent
  */
-export default function InvoicesPage() {
+export default function ReceivedInvoicesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tMenu = useTranslations('menu');
-  usePageTitle(tMenu('outgoingInvoices') || 'Facturi de Iesire - EORI');
+  usePageTitle(tMenu('receivedInvoices') || 'Facturi de Intrare - EORI');
 
   // Check permission to access invoices
   const { loading: permissionLoading } = useRequirePermission(ACCOUNTING_PERMISSIONS.INVOICES_VIEW);
@@ -32,5 +32,6 @@ export default function InvoicesPage() {
     );
   }
 
-  return <InvoicesPageContent locale={locale} invoiceType="issued" />;
+  return <InvoicesPageContent locale={locale} invoiceType="received" />;
 }
+

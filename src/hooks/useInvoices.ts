@@ -70,6 +70,7 @@ interface UseInvoicesReturn {
     parishId?: string;
     dateFrom?: string;
     dateTo?: string;
+    type?: 'issued' | 'received';
   }) => Promise<void>;
   createInvoice: (data: Partial<Invoice>) => Promise<Invoice | null>;
   updateInvoice: (id: string, data: Partial<Invoice>) => Promise<Invoice | null>;
@@ -135,6 +136,7 @@ export function useInvoices(): UseInvoicesReturn {
     parishId?: string;
     dateFrom?: string;
     dateTo?: string;
+    type?: 'issued' | 'received';
   } = {}) => {
     try {
       // Calculate summary from invoices list
@@ -144,6 +146,7 @@ export function useInvoices(): UseInvoicesReturn {
       if (params.parishId) queryParams.append('parishId', params.parishId);
       if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
       if (params.dateTo) queryParams.append('dateTo', params.dateTo);
+      if (params.type) queryParams.append('type', params.type);
 
       const response = await fetch(`/api/accounting/invoices?${queryParams.toString()}&pageSize=1000`);
       const result = await response.json();
@@ -161,10 +164,15 @@ export function useInvoices(): UseInvoicesReturn {
         .filter((inv: Invoice) => inv.type === 'received')
         .reduce((sum: number, inv: Invoice) => sum + parseFloat(inv.total || '0'), 0);
       
-      const unpaidCount = allInvoices.filter((inv: Invoice) => inv.status !== 'paid').length;
+      // Filter unpaid and overdue counts by type if type is specified
+      const filteredInvoices = params.type 
+        ? allInvoices.filter((inv: Invoice) => inv.type === params.type)
+        : allInvoices;
+      
+      const unpaidCount = filteredInvoices.filter((inv: Invoice) => inv.status !== 'paid').length;
       
       const today = new Date().toISOString().split('T')[0];
-      const overdueCount = allInvoices.filter(
+      const overdueCount = filteredInvoices.filter(
         (inv: Invoice) => inv.status !== 'paid' && inv.dueDate < today
       ).length;
 

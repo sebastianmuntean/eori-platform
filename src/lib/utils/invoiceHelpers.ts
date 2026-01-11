@@ -36,6 +36,9 @@ export function validateInvoiceForm(formData: InvoiceFormState, isEdit: boolean 
   if (!formData.parishId) {
     return 'parishRequired';
   }
+  if (!formData.warehouseId) {
+    return 'warehouseRequired';
+  }
   if (!formData.series) {
     return 'seriesRequired';
   }

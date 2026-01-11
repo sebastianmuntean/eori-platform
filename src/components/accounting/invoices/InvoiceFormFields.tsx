@@ -1,9 +1,18 @@
+import { useCallback, useMemo } from 'react';
 import { Input } from '@/components/ui/Input';
 import { ClientSelect } from '@/components/ui/ClientSelect';
 import { Parish } from '@/hooks/useParishes';
 import { Client } from '@/hooks/useClients';
 import { Warehouse } from '@/hooks/useWarehouses';
 import { generateInvoiceNumber, calculateNextNumber } from '@/lib/utils/invoiceUtils';
+
+const INVOICE_STATUS_OPTIONS = [
+  { value: 'draft', labelKey: 'draft' },
+  { value: 'sent', labelKey: 'sent' },
+  { value: 'paid', labelKey: 'paid' },
+  { value: 'overdue', labelKey: 'overdue' },
+  { value: 'cancelled', labelKey: 'cancelled' },
+] as const;
 
 export interface InvoiceFormData {
   parishId: string;
@@ -24,7 +33,7 @@ interface InvoiceFormFieldsProps {
   formData: InvoiceFormData;
   onFormDataChange: (data: Partial<InvoiceFormData>) => void;
   onWarehouseChange?: (warehouseId: string) => void;
-  onTypeChange?: (type: 'issued' | 'received') => void;
+  invoiceType: 'issued' | 'received';
   parishes: Parish[];
   warehouses: Warehouse[];
   clients: Client[];
@@ -35,46 +44,32 @@ export function InvoiceFormFields({
   formData,
   onFormDataChange,
   onWarehouseChange,
-  onTypeChange,
+  invoiceType,
   parishes,
   warehouses,
   clients,
   t,
 }: InvoiceFormFieldsProps) {
-  const handleSeriesChange = async (series: string) => {
+  const handleSeriesChange = useCallback(async (series: string) => {
     const nextNumber = await calculateNextNumber(
       formData.parishId,
       series.toUpperCase(),
-      formData.type,
+      invoiceType,
       formData.warehouseId || undefined
     );
     onFormDataChange({
       series: series.toUpperCase(),
       number: nextNumber || formData.number,
     });
-  };
+  }, [formData.parishId, formData.warehouseId, formData.number, invoiceType, onFormDataChange]);
 
-  const handleTypeChange = async (type: 'issued' | 'received') => {
-    const nextNumber = await calculateNextNumber(
-      formData.parishId,
-      formData.series,
-      type,
-      formData.warehouseId || undefined
-    );
-    onFormDataChange({
-      type,
-      number: nextNumber || formData.number,
-    });
-    onTypeChange?.(type);
-  };
-
-  const handleWarehouseChange = async (warehouseId: string) => {
+  const handleWarehouseChange = useCallback(async (warehouseId: string) => {
     const selectedWarehouse = warehouses.find((w) => w.id === warehouseId);
     const newSeries = selectedWarehouse?.invoiceSeries || formData.series || 'INV';
     const nextNumber = await calculateNextNumber(
       formData.parishId,
       newSeries,
-      formData.type,
+      invoiceType,
       warehouseId || undefined
     );
     onFormDataChange({
@@ -83,7 +78,24 @@ export function InvoiceFormFields({
       number: nextNumber || formData.number,
     });
     onWarehouseChange?.(warehouseId);
-  };
+  }, [warehouses, formData.parishId, formData.series, formData.number, invoiceType, onFormDataChange, onWarehouseChange]);
+
+  const handleParishChange = useCallback((parishId: string) => {
+    onFormDataChange({ parishId, warehouseId: '' });
+  }, [onFormDataChange]);
+
+  const filteredWarehouses = useMemo(() => 
+    warehouses.filter((w) => w.parishId === formData.parishId),
+    [warehouses, formData.parishId]
+  );
+
+  const statusOptions = useMemo(() =>
+    INVOICE_STATUS_OPTIONS.map(({ value, labelKey }) => ({
+      value,
+      label: t(labelKey),
+    })),
+    [t]
+  );
 
   return (
     <>
@@ -92,9 +104,7 @@ export function InvoiceFormFields({
           <label className="block text-sm font-medium mb-1">{t('parish')} *</label>
           <select
             value={formData.parishId}
-            onChange={(e) => {
-              onFormDataChange({ parishId: e.target.value, warehouseId: '' });
-            }}
+            onChange={(e) => handleParishChange(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           >
@@ -107,21 +117,20 @@ export function InvoiceFormFields({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">{t('warehouse')}</label>
+          <label className="block text-sm font-medium mb-1">{t('warehouse')} *</label>
           <select
             value={formData.warehouseId}
             onChange={(e) => handleWarehouseChange(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             disabled={!formData.parishId}
+            required
           >
             <option value="">{t('selectWarehouse') || 'Select Warehouse'}</option>
-            {warehouses
-              .filter((w) => w.parishId === formData.parishId)
-              .map((warehouse) => (
-                <option key={warehouse.id} value={warehouse.id}>
-                  {warehouse.name}
-                </option>
-              ))}
+            {filteredWarehouses.map((warehouse) => (
+              <option key={warehouse.id} value={warehouse.id}>
+                {warehouse.name}
+              </option>
+            ))}
           </select>
         </div>
         <Input
@@ -146,18 +155,6 @@ export function InvoiceFormFields({
           disabled
           className="bg-gray-100"
         />
-        <div>
-          <label className="block text-sm font-medium mb-1">{t('invoiceType')} *</label>
-          <select
-            value={formData.type}
-            onChange={(e) => handleTypeChange(e.target.value as 'issued' | 'received')}
-            className="w-full px-3 py-2 border rounded"
-            required
-          >
-            <option value="issued">{t('issued')}</option>
-            <option value="received">{t('received')}</option>
-          </select>
-        </div>
         <Input
           type="date"
           label={`${t('date')} *`}
@@ -201,14 +198,16 @@ export function InvoiceFormFields({
           <label className="block text-sm font-medium mb-1">{t('status')}</label>
           <select
             value={formData.status}
-            onChange={(e) => onFormDataChange({ status: e.target.value as any })}
+            onChange={(e) => onFormDataChange({ 
+              status: e.target.value as InvoiceFormData['status'] 
+            })}
             className="w-full px-3 py-2 border rounded"
           >
-            <option value="draft">{t('draft')}</option>
-            <option value="sent">{t('sent')}</option>
-            <option value="paid">{t('paid')}</option>
-            <option value="overdue">{t('overdue')}</option>
-            <option value="cancelled">{t('cancelled')}</option>
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>

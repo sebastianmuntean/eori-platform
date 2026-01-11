@@ -496,6 +496,7 @@
   "editProduct": "Editează Produs",
   "addStockMovement": "Adaugă Mișcare Stoc",
   "editStockMovement": "Editează Mișcare Stoc",
+  "confirmDeleteStockMovement": "Ești sigur că vrei să ștergi această mișcare de stoc? Această acțiune nu poate fi anulată.",
   "unit": "Unitate",
   "purchasePrice": "Preț Cumpărare",
   "salePrice": "Preț Vânzare",

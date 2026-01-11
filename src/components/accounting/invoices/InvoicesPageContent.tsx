@@ -23,12 +23,15 @@ import { useInvoiceForm } from '@/hooks/useInvoiceForm';
 import { useInvoiceProductSelection } from '@/hooks/useInvoiceProductSelection';
 import { useInvoiceTableColumns } from '@/components/accounting/invoices/InvoiceTableColumns';
 import { prepareInvoiceData, validateInvoiceForm } from '@/lib/utils/invoiceHelpers';
+import { Product } from '@/hooks/useProducts';
+import { ExtendedInvoiceItem } from '@/lib/utils/invoiceUtils';
 
 const PAGE_SIZE = 10;
 const PRODUCTS_PAGE_SIZE = 1000;
 
 interface InvoicesPageContentProps {
   locale: string;
+  invoiceType: 'issued' | 'received';
 }
 
 /**
@@ -36,7 +39,7 @@ interface InvoicesPageContentProps {
  * Contains all the JSX/HTML and business logic that was previously in the page file
  * Separates presentation from routing and permission logic
  */
-export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
+export function InvoicesPageContent({ locale, invoiceType }: InvoicesPageContentProps) {
   const t = useTranslations('common');
 
   const {
@@ -60,7 +63,6 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [parishFilter, setParishFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [clientFilter, setClientFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -84,7 +86,7 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
     addProductItem,
     removeLineItem,
     updateLineItem,
-  } = useInvoiceForm();
+  } = useInvoiceForm(invoiceType);
 
   const {
     productFormData,
@@ -112,10 +114,10 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
 
   // Fetch products when invoice type is 'received'
   useEffect(() => {
-    if (formData.type === 'received') {
+    if (invoiceType === 'received') {
       fetchProducts({ isActive: true, pageSize: PRODUCTS_PAGE_SIZE });
     }
-  }, [formData.type, fetchProducts]);
+  }, [invoiceType, fetchProducts]);
 
   // Fetch warehouses when parish is selected
   useEffect(() => {
@@ -131,7 +133,7 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       pageSize: PAGE_SIZE,
       search: searchTerm || undefined,
       parishId: parishFilter || undefined,
-      type: typeFilter ? (typeFilter as 'issued' | 'received') : undefined,
+      type: invoiceType,
       status: statusFilter ? (statusFilter as 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled') : undefined,
       clientId: clientFilter || undefined,
       dateFrom: dateFrom || undefined,
@@ -144,8 +146,20 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       parishId: parishFilter || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
+      type: invoiceType,
     });
-  }, [currentPage, searchTerm, parishFilter, typeFilter, statusFilter, clientFilter, dateFrom, dateTo, fetchInvoices, fetchSummary]);
+  }, [currentPage, searchTerm, parishFilter, statusFilter, clientFilter, dateFrom, dateTo, invoiceType, fetchInvoices, fetchSummary]);
+
+  const handleCloseAddModal = useCallback(() => {
+    setShowAddModal(false);
+    resetForm();
+    updateFormData({ type: invoiceType });
+  }, [resetForm, updateFormData, invoiceType]);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setSelectedInvoice(null);
+  }, []);
 
   const handleCreate = useCallback(async () => {
     const validationError = validateInvoiceForm(formData, false);
@@ -160,16 +174,16 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       const result = await createInvoice(invoiceData);
 
       if (result) {
-        setShowAddModal(false);
-        resetForm();
+        handleCloseAddModal();
       }
     } catch (error) {
       console.error('Error creating invoice:', error);
-      alert(t('errorCreatingInvoice') || 'Error creating invoice');
+      const errorMessage = error instanceof Error ? error.message : t('errorCreatingInvoice') || 'Error creating invoice';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, createInvoice, resetForm, t]);
+  }, [formData, createInvoice, handleCloseAddModal, t]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedInvoice) return;
@@ -186,16 +200,16 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       const result = await updateInvoice(selectedInvoice.id, invoiceData);
 
       if (result) {
-        setShowEditModal(false);
-        setSelectedInvoice(null);
+        handleCloseEditModal();
       }
     } catch (error) {
       console.error('Error updating invoice:', error);
-      alert(t('errorUpdatingInvoice') || 'Error updating invoice');
+      const errorMessage = error instanceof Error ? error.message : t('errorUpdatingInvoice') || 'Error updating invoice';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedInvoice, formData, updateInvoice, t]);
+  }, [selectedInvoice, formData, updateInvoice, handleCloseEditModal, t]);
 
   const handleDelete = useCallback(async (id: string) => {
     setIsSubmitting(true);
@@ -206,7 +220,8 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       }
     } catch (error) {
       console.error('Error deleting invoice:', error);
-      alert(t('errorDeletingInvoice') || 'Error deleting invoice');
+      const errorMessage = error instanceof Error ? error.message : t('errorDeletingInvoice') || 'Error deleting invoice';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -233,7 +248,7 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
       status: invoice.status,
       items: invoice.items || [],
     });
-    if (invoice.type === 'received') {
+    if (invoiceType === 'received') {
       await fetchProducts({ isActive: true, pageSize: PRODUCTS_PAGE_SIZE });
     }
     setShowEditModal(true);
@@ -244,11 +259,6 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
     setShowViewModal(true);
   }, []);
 
-  const handleTypeChange = useCallback(async (type: 'issued' | 'received') => {
-    if (type === 'received') {
-      await fetchProducts({ isActive: true, pageSize: PRODUCTS_PAGE_SIZE });
-    }
-  }, [fetchProducts]);
 
   const getClientName = useCallback((clientId: string) => {
     const client = clients.find((c) => c.id === clientId);
@@ -265,37 +275,27 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
     t,
   });
 
+  // Filter state management - using a more maintainable approach
+  const filterSetters = useMemo(() => ({
+    search: setSearchTerm,
+    parish: setParishFilter,
+    status: setStatusFilter,
+    client: setClientFilter,
+    dateFrom: setDateFrom,
+    dateTo: setDateTo,
+  }), []);
+
   const handleFilterChange = useCallback((filterName: string, value: string) => {
-    switch (filterName) {
-      case 'search':
-        setSearchTerm(value);
-        break;
-      case 'parish':
-        setParishFilter(value);
-        break;
-      case 'type':
-        setTypeFilter(value);
-        break;
-      case 'status':
-        setStatusFilter(value);
-        break;
-      case 'client':
-        setClientFilter(value);
-        break;
-      case 'dateFrom':
-        setDateFrom(value);
-        break;
-      case 'dateTo':
-        setDateTo(value);
-        break;
+    const setter = filterSetters[filterName as keyof typeof filterSetters];
+    if (setter) {
+      setter(value);
+      setCurrentPage(1);
     }
-    setCurrentPage(1);
-  }, []);
+  }, [filterSetters]);
 
   const handleFilterClear = useCallback(() => {
     setSearchTerm('');
     setParishFilter('');
-    setTypeFilter('');
     setStatusFilter('');
     setClientFilter('');
     setDateFrom('');
@@ -320,19 +320,82 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
     resetProductForm();
   }, [resetProductForm]);
 
+  // Common props for InvoiceFormModal to reduce duplication
+  const commonModalProps = useMemo(() => ({
+    formData: { ...formData, type: invoiceType },
+    onFormDataChange: updateFormData,
+    onAddLineItem: addLineItem,
+    onAddProduct: (product: Product) => addProductItem(product, formData.warehouseId || null),
+    onUpdateItem: (index: number, field: keyof ExtendedInvoiceItem, value: any) => 
+      updateLineItem(index, field, value, products),
+    onRemoveItem: removeLineItem,
+    newProductInput,
+    onNewProductInputChange: setNewProductInput,
+    onOpenAddProductModal: () => setShowAddProductModal(true),
+    parishes,
+    warehouses,
+    clients,
+    products,
+    productsLoading,
+    onProductSearch: handleProductSearch,
+    getProductLabel,
+    getProductOptions,
+    invoiceType,
+    t,
+  }), [
+    formData,
+    invoiceType,
+    updateFormData,
+    addLineItem,
+    addProductItem,
+    updateLineItem,
+    removeLineItem,
+    newProductInput,
+    setNewProductInput,
+    setShowAddProductModal,
+    parishes,
+    warehouses,
+    clients,
+    products,
+    productsLoading,
+    handleProductSearch,
+    getProductLabel,
+    getProductOptions,
+    t,
+  ]);
+
+  // Page title and breadcrumb labels based on invoice type
+  const pageLabels = useMemo(() => ({
+    title: invoiceType === 'issued' 
+      ? (t('outgoingInvoices') || t('invoices'))
+      : (t('incomingInvoices') || t('receivedInvoices')),
+    breadcrumb: invoiceType === 'issued'
+      ? (t('outgoingInvoices') || t('invoices'))
+      : (t('incomingInvoices') || t('receivedInvoices')),
+  }), [invoiceType, t]);
+
+  const handleOpenAddModal = useCallback(() => {
+    updateFormData({ type: invoiceType });
+    setShowAddModal(true);
+  }, [updateFormData, invoiceType]);
+
   return (
     <PageContainer>
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
           { label: t('accounting'), href: `/${locale}/dashboard/accounting` },
-          { label: t('invoices') },
+          { label: pageLabels.breadcrumb },
         ]}
-        title={t('invoices')}
-        action={<Button onClick={() => setShowAddModal(true)}>{t('add')} {t('invoice')}</Button>}
+        title={pageLabels.title}
+        action={
+          <Button onClick={handleOpenAddModal}>
+            {t('add')} {t('invoice')}
+          </Button>
+        }
       />
 
-      <InvoiceSummaryCards summary={summary} t={t} />
+      <InvoiceSummaryCards summary={summary} invoiceType={invoiceType} t={t} />
 
       <Card>
         <CardHeader>
@@ -341,8 +404,6 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
             onSearchChange={(value) => handleFilterChange('search', value)}
             parishFilter={parishFilter}
             onParishFilterChange={(value) => handleFilterChange('parish', value)}
-            typeFilter={typeFilter}
-            onTypeFilterChange={(value) => handleFilterChange('type', value)}
             statusFilter={statusFilter}
             onStatusFilterChange={(value) => handleFilterChange('status', value)}
             clientFilter={clientFilter}
@@ -394,74 +455,22 @@ export function InvoicesPageContent({ locale }: InvoicesPageContentProps) {
 
       <InvoiceFormModal
         isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          resetForm();
-        }}
-        onCancel={() => {
-          setShowAddModal(false);
-          resetForm();
-        }}
+        onClose={handleCloseAddModal}
+        onCancel={handleCloseAddModal}
         onSubmit={handleCreate}
         title={`${t('add')} ${t('invoice')}`}
         isSubmitting={isSubmitting}
-        formData={formData}
-        onFormDataChange={updateFormData}
-        onAddLineItem={addLineItem}
-        onAddProduct={(product) => addProductItem(product, formData.warehouseId || null)}
-        onUpdateItem={(index, field, value) => updateLineItem(index, field, value, products)}
-        onRemoveItem={removeLineItem}
-        newProductInput={newProductInput}
-        onNewProductInputChange={setNewProductInput}
-        onOpenAddProductModal={() => {
-          setShowAddProductModal(true);
-        }}
-        parishes={parishes}
-        warehouses={warehouses}
-        clients={clients}
-        products={products}
-        productsLoading={productsLoading}
-        onProductSearch={handleProductSearch}
-        getProductLabel={getProductLabel}
-        getProductOptions={getProductOptions}
-        onTypeChange={handleTypeChange}
-        t={t}
+        {...commonModalProps}
       />
 
       <InvoiceFormModal
         isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedInvoice(null);
-        }}
-        onCancel={() => {
-          setShowEditModal(false);
-          setSelectedInvoice(null);
-        }}
+        onClose={handleCloseEditModal}
+        onCancel={handleCloseEditModal}
         onSubmit={handleUpdate}
         title={`${t('edit')} ${t('invoice')}`}
         isSubmitting={isSubmitting}
-        formData={formData}
-        onFormDataChange={updateFormData}
-        onAddLineItem={addLineItem}
-        onAddProduct={(product) => addProductItem(product, formData.warehouseId || null)}
-        onUpdateItem={(index, field, value) => updateLineItem(index, field, value, products)}
-        onRemoveItem={removeLineItem}
-        newProductInput={newProductInput}
-        onNewProductInputChange={setNewProductInput}
-        onOpenAddProductModal={() => {
-          setShowAddProductModal(true);
-        }}
-        parishes={parishes}
-        warehouses={warehouses}
-        clients={clients}
-        products={products}
-        productsLoading={productsLoading}
-        onProductSearch={handleProductSearch}
-        getProductLabel={getProductLabel}
-        getProductOptions={getProductOptions}
-        onTypeChange={handleTypeChange}
-        t={t}
+        {...commonModalProps}
       />
 
       <ViewInvoiceModal

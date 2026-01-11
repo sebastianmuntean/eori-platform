@@ -31,7 +31,7 @@ interface InvoiceFormModalProps {
   onProductSearch: (searchTerm: string) => void;
   getProductLabel: (product: Product) => string;
   getProductOptions: (excludeProductIds?: string[]) => AutocompleteOption[];
-  onTypeChange?: (type: 'issued' | 'received') => void;
+  invoiceType: 'issued' | 'received';
   isSubmitting?: boolean;
   t: (key: string) => string;
 }
@@ -59,7 +59,7 @@ export function InvoiceFormModal({
   onProductSearch,
   getProductLabel,
   getProductOptions,
-  onTypeChange,
+  invoiceType,
   isSubmitting = false,
   t,
 }: InvoiceFormModalProps) {
@@ -79,7 +79,7 @@ export function InvoiceFormModal({
         <InvoiceFormFields
           formData={formData}
           onFormDataChange={onFormDataChange}
-          onTypeChange={onTypeChange}
+          invoiceType={invoiceType}
           parishes={parishes}
           warehouses={warehouses}
           clients={clients}

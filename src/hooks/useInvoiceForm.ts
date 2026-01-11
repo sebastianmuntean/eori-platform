@@ -19,13 +19,13 @@ export interface InvoiceFormState {
   items: InvoiceItem[];
 }
 
-const getInitialFormData = (): InvoiceFormState => ({
+const getInitialFormData = (defaultType: 'issued' | 'received' = 'issued'): InvoiceFormState => ({
   parishId: '',
   warehouseId: '',
   series: 'INV',
   number: undefined,
   invoiceNumber: '',
-  type: 'issued',
+  type: defaultType,
   date: new Date().toISOString().split('T')[0],
   dueDate: new Date().toISOString().split('T')[0],
   clientId: '',
@@ -35,8 +35,8 @@ const getInitialFormData = (): InvoiceFormState => ({
   items: [],
 });
 
-export function useInvoiceForm() {
-  const [formData, setFormData] = useState<InvoiceFormState>(getInitialFormData());
+export function useInvoiceForm(defaultType: 'issued' | 'received' = 'issued') {
+  const [formData, setFormData] = useState<InvoiceFormState>(getInitialFormData(defaultType));
   const [newProductInput, setNewProductInput] = useState('');
   const previousItemsCountRef = useRef(0);
 
@@ -51,7 +51,7 @@ export function useInvoiceForm() {
   }, [formData.items.length, formData.type]);
 
   const resetForm = () => {
-    setFormData(getInitialFormData());
+    setFormData(getInitialFormData(defaultType));
     setNewProductInput('');
   };
 

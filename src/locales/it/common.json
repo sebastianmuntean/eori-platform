@@ -24,6 +24,7 @@
   "addRole": "Aggiungi Ruolo",
   "addStockMovement": "Aggiungi Movimento",
   "editStockMovement": "Modifica Movimento",
+  "confirmDeleteStockMovement": "Sei sicuro di voler eliminare questo movimento? Questa azione non può essere annullata.",
   "addTemplate": "Aggiungi Modello",
   "addToCart": "Aggiungi al Carrello",
   "addUser": "Aggiungi Utente",

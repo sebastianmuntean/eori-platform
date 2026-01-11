@@ -492,6 +492,7 @@
   "editProduct": "Edit Product",
   "addStockMovement": "Add Stock Movement",
   "editStockMovement": "Edit Stock Movement",
+  "confirmDeleteStockMovement": "Are you sure you want to delete this stock movement? This action cannot be undone.",
   "unit": "Unit",
   "purchasePrice": "Purchase Price",
   "salePrice": "Sale Price",

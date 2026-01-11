@@ -1,5 +1,5 @@
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, TypeFilter, ClientFilter } from '@/components/ui/FilterGrid';
+import { FilterGrid, FilterDate, FilterClear, ParishFilter, StatusFilter, ClientFilter } from '@/components/ui/FilterGrid';
 import { Parish } from '@/hooks/useParishes';
 import { Client } from '@/hooks/useClients';
 
@@ -8,8 +8,6 @@ interface InvoiceFiltersProps {
   onSearchChange: (value: string) => void;
   parishFilter: string;
   onParishFilterChange: (value: string) => void;
-  typeFilter: string;
-  onTypeFilterChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
   clientFilter: string;
@@ -29,8 +27,6 @@ export function InvoiceFilters({
   onSearchChange,
   parishFilter,
   onParishFilterChange,
-  typeFilter,
-  onTypeFilterChange,
   statusFilter,
   onStatusFilterChange,
   clientFilter,
@@ -58,14 +54,6 @@ export function InvoiceFilters({
           value={parishFilter}
           onChange={onParishFilterChange}
           parishes={parishes}
-        />
-        <TypeFilter
-          value={typeFilter}
-          onChange={onTypeFilterChange}
-          types={[
-            { value: 'issued', label: t('issued') },
-            { value: 'received', label: t('received') },
-          ]}
         />
         <StatusFilter
           value={statusFilter}
