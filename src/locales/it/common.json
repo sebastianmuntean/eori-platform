@@ -646,5 +646,18 @@
   "service": "Servizio",
   "selectProduct": "Seleziona Prodotto",
   "noProducts": "Nessun prodotto",
-  "noProductsFound": "Nessun prodotto trovato"
+  "noProductsFound": "Nessun prodotto trovato",
+  "searchPositions": "Cerca posizioni...",
+  "allDepartments": "Tutti i Dipartimenti",
+  "noPositions": "Nessuna posizione trovata",
+  "positionUpdated": "Posizione aggiornata con successo",
+  "positionCreated": "Posizione creata con successo",
+  "positionDeleted": "Posizione eliminata con successo",
+  "errorDeletingPosition": "Errore nell'eliminazione della posizione",
+  "confirmDeletePosition": "Sei sicuro di voler eliminare",
+  "deletePosition": "Elimina Posizione",
+  "clearFilters": "Cancella Filtri",
+  "addPosition": "Aggiungi Posizione",
+  "editPosition": "Modifica Posizione",
+  "salaryRange": "Fascia Stipendiale"
 }

@@ -397,18 +397,22 @@ async function getRowCount(sql: postgres.Sql, tableName: string): Promise<number
  * Main migration function
  */
 async function migrate() {
-  // Local database URL (source)
-  const localDbUrl = process.env.DATABASE_URL;
+  // Local database URL (source) - try DATABASE_URL_LOCAL first, then DATABASE_URL
+  const localDbUrl = process.env.DATABASE_URL_LOCAL || process.env.DATABASE_URL;
   
   // Neon database URL (destination) - try multiple environment variable names
   // Vercel typically sets this as POSTGRES_URL for Neon databases
-  const neonDbUrl = process.env.NEON_DATABASE_URL || 
-                    process.env.POSTGRES_URL || 
-                    process.env.VERCEL_POSTGRES_URL;
+  // If DATABASE_URL_LOCAL is set, then DATABASE_URL is Neon, otherwise use POSTGRES_URL
+  const neonDbUrl = process.env.DATABASE_URL_LOCAL 
+    ? process.env.DATABASE_URL 
+    : (process.env.NEON_DATABASE_URL || 
+       process.env.POSTGRES_URL || 
+       process.env.VERCEL_POSTGRES_URL);
 
   if (!localDbUrl) {
-    logError('DATABASE_URL environment variable is not set');
+    logError('DATABASE_URL_LOCAL or DATABASE_URL environment variable is not set');
     logError('This should point to your LOCAL database (source)');
+    logError('Set DATABASE_URL_LOCAL for local DB and DATABASE_URL or POSTGRES_URL for Neon');
     process.exit(1);
   }
 
@@ -423,8 +427,16 @@ async function migrate() {
     process.exit(1);
   }
   
-  // Log which variable was used
-  if (process.env.NEON_DATABASE_URL) {
+  // Log which variables were used
+  if (process.env.DATABASE_URL_LOCAL) {
+    log('Using DATABASE_URL_LOCAL for local database', 'blue');
+  } else {
+    log('Using DATABASE_URL for local database', 'blue');
+  }
+  
+  if (process.env.DATABASE_URL_LOCAL && process.env.DATABASE_URL) {
+    log('Using DATABASE_URL for Neon connection', 'blue');
+  } else if (process.env.NEON_DATABASE_URL) {
     log('Using NEON_DATABASE_URL for Neon connection', 'blue');
   } else if (process.env.POSTGRES_URL) {
     log('Using POSTGRES_URL for Neon connection (Vercel standard)', 'blue');

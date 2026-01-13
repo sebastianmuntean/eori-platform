@@ -691,6 +691,19 @@
   "employeeImportSuccess": "Import finalizat cu succes!",
   "employeeImportFailed": "Import eșuat. Verifică erorile și încearcă din nou.",
   "searchEmploy": "Căutare angajați...",
-  "searchEmployees": "Căutare angajați..."
+  "searchEmployees": "Căutare angajați...",
+  "searchPositions": "Caută posturi...",
+  "allDepartments": "Toate Departamentele",
+  "noPositions": "Nu există posturi",
+  "positionUpdated": "Postul a fost actualizat cu succes",
+  "positionCreated": "Postul a fost creat cu succes",
+  "positionDeleted": "Postul a fost șters cu succes",
+  "errorDeletingPosition": "Eroare la ștergerea postului",
+  "confirmDeletePosition": "Ești sigur că vrei să ștergi",
+  "deletePosition": "Șterge Post",
+  "clearFilters": "Șterge Filtrele",
+  "addPosition": "Adaugă Post",
+  "editPosition": "Editează Post",
+  "salaryRange": "Interval Salarial"
 }
 

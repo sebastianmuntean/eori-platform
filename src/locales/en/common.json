@@ -668,6 +668,19 @@
   "service": "Service",
   "selectProduct": "Select Product",
   "noProducts": "No products",
-  "noProductsFound": "No products found"
+  "noProductsFound": "No products found",
+  "searchPositions": "Search positions...",
+  "allDepartments": "All Departments",
+  "noPositions": "No positions found",
+  "positionUpdated": "Position updated successfully",
+  "positionCreated": "Position created successfully",
+  "positionDeleted": "Position deleted successfully",
+  "errorDeletingPosition": "Error deleting position",
+  "confirmDeletePosition": "Are you sure you want to delete",
+  "deletePosition": "Delete Position",
+  "clearFilters": "Clear Filters",
+  "addPosition": "Add Position",
+  "editPosition": "Edit Position",
+  "salaryRange": "Salary Range"
 }
 
