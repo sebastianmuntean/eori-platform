@@ -124,6 +124,15 @@ export const LEAVE_REQUEST_STATUS_COLORS: Record<string, string> = {
 } as const;
 
 /**
+ * Evaluation status color mapping
+ */
+export const EVALUATION_STATUS_COLORS: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  completed: 'bg-blue-100 text-blue-800',
+  acknowledged: 'bg-green-100 text-green-800',
+} as const;
+
+/**
  * Format salary period for display
  * @param period - Date string in ISO format
  * @returns Formatted period string (e.g., "January 2024")

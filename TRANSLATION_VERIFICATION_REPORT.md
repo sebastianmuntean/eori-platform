@@ -1,14 +1,14 @@
 # Translation Verification Report
 
-Generated: 2026-01-05T00:39:33.778Z
+Generated: 2026-01-13T15:16:44.385Z
 
 ## Executive Summary
 
 ### Key Findings
 
-1. **Critical Issues**: 327 keys used in code but missing in ALL locales
-2. **Missing Keys**: 0 keys missing in some locales
-3. **Inconsistent Keys**: 0 keys inconsistent between locales
+1. **Critical Issues**: 306 keys used in code but missing in ALL locales
+2. **Missing Keys**: 17 keys missing in some locales
+3. **Inconsistent Keys**: 19 keys inconsistent between locales
 
 ---
 
@@ -16,887 +16,15 @@ Generated: 2026-01-05T00:39:33.778Z
 
 ⚠️ **These keys are used in code but do not exist in any locale file. The application will show missing translation errors.**
 
-### common.person
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-- `src/app/[locale]/dashboard/accounting/clients/page.tsx`
-- `src/components/accounting/ClientForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.company
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-- `src/app/[locale]/dashboard/accounting/clients/page.tsx`
-- `src/components/accounting/ClientForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.organization
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-- `src/app/[locale]/dashboard/accounting/clients/page.tsx`
-- `src/components/accounting/ClientForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.noClients
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.updating
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-- `src/app/[locale]/dashboard/accounting/clients/page.tsx`
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteClient
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/clients/page.refactored.tsx`
-- `src/app/[locale]/dashboard/accounting/clients/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.T
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/contracts/page.tsx`
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-- `src/app/[locale]/dashboard/accounting/invoices/page.tsx`
-- `src/app/[locale]/dashboard/accounting/payments/page.tsx`
-- `src/app/[locale]/dashboard/accounting/stock-movements/page.tsx`
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/classes/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-- `src/app/[locale]/dashboard/pangare/inventar/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
-- `src/app/[locale]/dashboard/pilgrimages/[id]/payments/page.tsx`
-- `src/components/events/EventCalendar.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.donationCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorCreatingDonation
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.donationUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorUpdatingDonation
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.donationDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingDonation
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/donations/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.quick
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/payments/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.supplierCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorCreatingSupplier
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.supplierUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorUpdatingSupplier
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.supplierDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingSupplier
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteSupplier
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/accounting/suppliers/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.markAsReadSuccess
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.markAllAsReadSuccess
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.warning
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-- `src/components/notifications/NotificationsList.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.info
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-- `src/components/notifications/NotificationsList.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.message
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.unread
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/notifications/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.parohii
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/parishes/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.selectAtLeastOneRecipient
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.titleRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-- `src/components/hr/PositionForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.messageRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.notificationsSentSuccessfully
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.sendNotification
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.recipients
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.searchUsers
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.enterTitle
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.enterMessage
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.module
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.enterModule
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.moduleHelperText
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.link
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.enterLink
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.linkHelperText
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.send
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/send-notification/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.Te rugăm să selectezi un fișier Excel pentru import.
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/users/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common..
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/users/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.Te rugăm să selectezi un fișier Excel (.xlsx sau .xls).
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/users/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.utilizatori
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/administration/users/page.tsx`
-- `src/app/[locale]/dashboard/pangare/utilizatori/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.retry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.createReport
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.apply
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.totalDocuments
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.netAmount
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.userActivity
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.documentCreation
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.documentsByType
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.eventsByType
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.financialSummary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.incomeVsExpenses
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.parishionerGrowth
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.reportBuilderComingSoon
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/analytics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.classId
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.created
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorOccurred
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.updated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.deleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.county
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/cemeteries/page.tsx`
-- `src/components/accounting/ClientForm.tsx`
-- `src/components/hr/EmployeeForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
 ### common.cemeteries
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
 - `src/app/[locale]/dashboard/cemeteries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.totalArea
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/cemeteries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.totalPlots
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/cemeteries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteCemetery
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/cemeteries/page.tsx`
+- `src/components/cemeteries/CemeteriesFiltersCard.tsx`
+- `src/components/cemeteries/CemeteryAddModal.tsx`
+- `src/components/cemeteries/CemeteryEditModal.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -915,556 +43,19 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.Numărul trebuie să fie mai mare decât 0
+### common.T
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/data-statistics/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.emailFetcher
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/events/email-fetcher/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.Eroare la declanșarea email fetcher-ului
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/events/email-fetcher/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.Email procesat cu succes! Eveniment creat.
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/events/email-fetcher/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.Eroare la procesarea email-ului
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/events/email-fetcher/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.renewContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.terminateContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.addContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.deleteContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.employeeUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.employeeCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.employeeDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingEmployee
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteEmployee
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/employees/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.positionUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.positionCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.positionDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingPosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.addPosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-- `src/components/hr/PositionForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.deletePosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeletePosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/positions/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.salaryApproved
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorApprovingSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.salaryPaid
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorPayingSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.salaryUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.salaryCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.salaryDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.addSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-- `src/components/hr/SalaryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.deleteSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/salaries/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.timeEntryApproved
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorApprovingTimeEntry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.timeEntryUpdated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.timeEntryCreated
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.timeEntryDeleted
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.errorDeletingTimeEntry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.addTimeEntry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-- `src/components/hr/TimeEntryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.deleteTimeEntry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.confirmDeleteTimeEntry
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/hr/time-tracking/page.tsx`
+- `src/app/[locale]/dashboard/pangare/inventar/page.tsx`
+- `src/app/[locale]/dashboard/pilgrimages/[id]/payments/page.tsx`
+- `src/components/accounting/stock-movements/StockMovementsPageContent.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+- `src/components/events/EventCalendar.tsx`
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1567,6 +158,19 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
+### common.utilizatori
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/app/[locale]/dashboard/pangare/utilizatori/page.tsx`
+- `src/components/administration/users/UsersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
 ### common.pageUnderConstruction
 
 **Status**: Missing in all locales (ro, en, it)
@@ -1579,37 +183,14 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.birthday
+### common.birthdays
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
 - `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.age
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.daysUntil
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+- `src/components/parishioners/ParishionersPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1621,40 +202,15 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/contracts/page.tsx`
 - `src/app/[locale]/dashboard/parishioners/contracts/[id]/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
 - `src/app/[locale]/dashboard/parishioners/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/search/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/types/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.birthdays
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.daysAhead
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/birthdays/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+- `src/components/parishioners/contracts/ParishionerContractsPageContent.tsx`
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
+- `src/components/parishioners/ParishionersPageContent.tsx`
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+- `src/components/parishioners/search/ParishionerSearchPageContent.tsx`
+- `src/components/parishioners/types/ParishionerTypesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1666,61 +222,9 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/parishioners/contracts/page.tsx`
 - `src/app/[locale]/dashboard/parishioners/contracts/[id]/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.selectParishioner
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/contracts/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractType
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/contracts/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/contracts/[id]/page.tsx`
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/ContractsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.service
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/contracts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.nameDay
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
+- `src/components/parishioners/contracts/ParishionerContractsPageContent.tsx`
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1733,7 +237,8 @@ Generated: 2026-01-05T00:39:33.778Z
 
 **Used in files**:
 - `src/app/[locale]/dashboard/parishioners/name-days/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
+- `src/components/parishioners/ParishionersPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1745,32 +250,9 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
 - `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.receiptsDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractsDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
+- `src/components/parishioners/ParishionersPageContent.tsx`
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1782,141 +264,9 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
 - `src/app/[locale]/dashboard/parishioners/types/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.parishionerTypesDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.birthdaysDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.nameDaysDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.complexSearch
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-- `src/app/[locale]/dashboard/parishioners/search/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.complexSearchDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.parishionersDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.receiptNumber
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.receipt
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.purpose
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/receipts/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.birthDateFrom
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/search/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.birthDateTo
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/parishioners/search/page.tsx`
+- `src/components/parishioners/ParishionersPageContent.tsx`
+- `src/components/parishioners/types/ParishionerTypesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -1984,18 +334,6 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.manage
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/pilgrimages/[id]/page.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
 ### common.selectParticipant
 
 **Status**: Missing in all locales (ro, en, it)
@@ -2020,6 +358,19 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
+### common.registerId
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/app/[locale]/dashboard/registry/general-register/new/page.tsx`
+- `src/app/[locale]/dashboard/registry/registratura/registrul-general/new/page.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
 ### common.copyFrom
 
 **Status**: Missing in all locales (ro, en, it)
@@ -2032,12 +383,39 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.textarea
+### common.person
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/registry/online-forms/page.tsx`
+- `src/components/accounting/ClientForm.tsx`
+- `src/components/accounting/ClientsFiltersCard.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.company
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/ClientForm.tsx`
+- `src/components/accounting/ClientsFiltersCard.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.organization
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/ClientForm.tsx`
+- `src/components/accounting/ClientsFiltersCard.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -2068,26 +446,342 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.postalCode
+### common.updating
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/components/accounting/ClientForm.tsx`
-- `src/components/hr/EmployeeForm.tsx`
+- `src/components/accounting/clients/ClientsPageContent.tsx`
+- `src/components/accounting/SupplierEditModal.tsx`
+- `src/components/accounting/suppliers/SupplierEditModal.tsx`
+- `src/components/administration/DeaneryEditModal.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.bankName
+### common.dateRangeInvalid
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/components/accounting/ClientForm.tsx`
-- `src/components/hr/EmployeeForm.tsx`
+- `src/components/accounting/clients/ClientStatementPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingContract
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+- `src/components/parishioners/contracts/ParishionerContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingContract
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+- `src/components/parishioners/contracts/ParishionerContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorRenewingContract
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorLoadingInvoices
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.invoiceGenerated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorGeneratingInvoice
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/contracts/ContractsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteClient
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/DeleteClientDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteSupplier
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/DeleteSupplierDialog.tsx`
+- `src/components/accounting/suppliers/DeleteSupplierDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.donationCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingDonation
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.donationUpdated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingDonation
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.donationDeleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingDonation
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/donations/DonationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingInvoice
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/invoices/InvoicesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingInvoice
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/invoices/InvoicesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingInvoice
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/invoices/InvoicesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.quick
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/payments/PaymentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.updateProductError
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/products/ProductsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.destinationWarehouseRequired
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/stock-movements/StockMovementsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.supplierCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingSupplier
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.supplierUpdated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingSupplier
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.supplierDeleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingSupplier
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/accounting/suppliers/SuppliersPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -2100,6 +794,757 @@ Generated: 2026-01-05T00:39:33.778Z
 
 **Used in files**:
 - `src/components/accounting/TablePageLayout.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.createError
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/deaneries/DeaneriesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.updateError
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/deaneries/DeaneriesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.allDioceses
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeaneriesFiltersCard.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.diocese
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeaneryFormFields.tsx`
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.selectDiocese
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeaneryFormFields.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.deanName
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeaneryFormFields.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteDeanery
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeleteDeaneryDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteDepartment
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeleteDepartmentDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteTemplate
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/DeleteEmailTemplateDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentCreationFailed
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentUpdated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentUpdateFailed
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentDeleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.departmentDeletionFailed
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/departments/DepartmentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.dioceses
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.country
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.website
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.bishopName
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteDiocese
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/dioceses/DiocesesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.noVariables
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/email-templates/EmailTemplatesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.updated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/email-templates/EmailTemplatesPageContent.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+- `src/hooks/useCatechesisCRUD.ts`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.markAsReadSuccess
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.markAllAsReadSuccess
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.warning
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+- `src/components/notifications/NotificationsList.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.info
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+- `src/components/notifications/NotificationsList.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.message
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.unread
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/notifications/NotificationsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.parohii
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/parishes/ParishesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.selectAtLeastOneRecipient
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.titleRequired
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+- `src/components/hr/PositionForm.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.messageRequired
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.notificationsSentSuccessfully
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.sendNotification
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.recipients
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.searchUsers
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.enterTitle
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.enterMessage
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.module
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.enterModule
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.moduleHelperText
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.link
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.enterLink
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.linkHelperText
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.send
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/send-notification/SendNotificationPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.Te rugăm să selectezi un fișier Excel pentru import.
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/users/UsersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common..
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/users/UsersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.Te rugăm să selectezi un fișier Excel (.xlsx sau .xls).
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/administration/users/UsersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.created
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+- `src/hooks/useCatechesisCRUD.ts`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorOccurred
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+- `src/components/hr/ContractsPageContent.tsx`
+- `src/components/hr/PositionsPageContent.tsx`
+- `src/components/hr/SalariesPageContent.tsx`
+- `src/components/hr/TimeTrackingPageContent.tsx`
+- `src/components/pilgrimages/PilgrimageParticipantsPageContent.tsx`
+- `src/components/pilgrimages/PilgrimagesPageContent.tsx`
+- `src/hooks/useCatechesisCRUD.ts`
+- `src/hooks/useHRCrudOperations.ts`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.deleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+- `src/hooks/useCatechesisCRUD.ts`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.classId
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.totalArea
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/cemeteries/CemeteryAddModal.tsx`
+- `src/components/cemeteries/CemeteryEditModal.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.totalPlots
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/cemeteries/CemeteryAddModal.tsx`
+- `src/components/cemeteries/CemeteryEditModal.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteCemetery
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/cemeteries/DeleteCemeteryDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingEvent
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/events/EventsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingEvent
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/events/EventsPageContent.tsx`
+- `src/components/events/FuneralsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorConfirmingEvent
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/events/FuneralsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCancellingEvent
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/events/FuneralsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingEvent
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/events/FuneralsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -2154,337 +1599,7 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.employeeRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/LeaveRequestForm.tsx`
-- `src/components/hr/SalaryForm.tsx`
-- `src/components/hr/TimeEntryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.contractNumberRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.startDateRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/LeaveRequestForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.baseSalaryRequired
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/SalaryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.invalidWorkingHours
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.endDateMustBeAfterStartDate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/LeaveRequestForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.probationEndDateMustBeAfterStartDate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.indeterminate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.determinate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.partTime
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.internship
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.consultant
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.suspended
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/ContractsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.editContract
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.employee
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/ContractsTable.tsx`
-- `src/components/hr/HRReports.tsx`
-- `src/components/hr/LeaveRequestForm.tsx`
-- `src/components/hr/LeaveRequestsTable.tsx`
-- `src/components/hr/SalariesTable.tsx`
-- `src/components/hr/SalaryForm.tsx`
-- `src/components/hr/TimeEntriesTable.tsx`
-- `src/components/hr/TimeEntryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.selectEmployee
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/LeaveRequestForm.tsx`
-- `src/components/hr/SalaryForm.tsx`
-- `src/components/hr/TimeEntryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.probationEndDate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.baseSalary
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-- `src/components/hr/ContractsTable.tsx`
-- `src/components/hr/SalariesTable.tsx`
-- `src/components/hr/SalaryForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.workingHoursPerWeek
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.workLocation
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.jobDescription
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
 ### common.terminate
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.searchContracts
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.allEmployees
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractsTable.tsx`
-- `src/components/hr/HRReports.tsx`
-- `src/components/hr/LeaveRequestsTable.tsx`
-- `src/components/hr/SalariesTable.tsx`
-- `src/components/hr/TimeEntriesTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.clearFilters
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/ContractsTable.tsx`
-- `src/components/hr/EmployeesTable.tsx`
-- `src/components/hr/LeaveRequestsTable.tsx`
-- `src/components/hr/PositionsTable.tsx`
-- `src/components/hr/SalariesTable.tsx`
-- `src/components/hr/TimeEntriesTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.noContracts
 
 **Status**: Missing in all locales (ro, en, it)
 
@@ -2532,136 +1647,7 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.selectGender
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.department
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-- `src/components/hr/EmployeesTable.tsx`
-- `src/components/hr/PositionForm.tsx`
-- `src/components/hr/PositionsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.selectDepartment
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-- `src/components/hr/PositionForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.position
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-- `src/components/hr/EmployeesTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.selectPosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.iban
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.isActive
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeeForm.tsx`
-- `src/components/hr/EmployeesTable.tsx`
-- `src/components/hr/PositionForm.tsx`
-- `src/components/hr/PositionsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.searchEmployees
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeesTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.allDepartments
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeesTable.tsx`
-- `src/components/hr/PositionsTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
 ### common.allPositions
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/EmployeesTable.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
-### common.noEmployees
 
 **Status**: Missing in all locales (ro, en, it)
 
@@ -3249,18 +2235,6 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.editPosition
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/hr/PositionForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/common.json`
-- `src/locales/en/common.json`
-- `src/locales/it/common.json`
-
 ### common.minSalary
 
 **Status**: Missing in all locales (ro, en, it)
@@ -3285,36 +2259,133 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.salaryRange
+### common.salaryApproved
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/components/hr/PositionsTable.tsx`
+- `src/components/hr/SalariesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.searchPositions
+### common.errorApprovingSalary
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/components/hr/PositionsTable.tsx`
+- `src/components/hr/SalariesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
-### common.noPositions
+### common.salaryPaid
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/components/hr/PositionsTable.tsx`
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorPayingSalary
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.salaryUpdated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.salaryCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.salaryDeleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingSalary
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteSalary
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.addSalary
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
+- `src/components/hr/SalaryForm.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.deleteSalary
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/SalariesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -3695,6 +2766,19 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
+### common.addTimeEntry
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeEntryForm.tsx`
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
 ### common.entryDate
 
 **Status**: Missing in all locales (ro, en, it)
@@ -3719,12 +2803,570 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/common.json`
 - `src/locales/it/common.json`
 
+### common.timeEntryApproved
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorApprovingTimeEntry
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.timeEntryUpdated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.timeEntryCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.timeEntryDeleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingTimeEntry
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.deleteTimeEntry
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmDeleteTimeEntry
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/hr/TimeTrackingPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.confirmCompleteMessage
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/inventory/CompleteSessionDialog.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
 ### common.invalidDate
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
 - `src/components/notifications/NotificationsList.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.vatAndOther
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/pangare/ProductAddModal.tsx`
+- `src/components/pangare/ProductEditModal.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.stock
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/pangare/ProductAddModal.tsx`
+- `src/components/pangare/ProductEditModal.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.birthday
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.age
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.daysUntil
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.daysAhead
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/birthdays/BirthdaysPageContent.tsx`
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.selectParishioner
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/contracts/ParishionerContractsPageContent.tsx`
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.nameDay
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/name-days/NameDaysPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.receiptsDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.contractsDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.parishionerTypesDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.birthdaysDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.nameDaysDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.complexSearch
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+- `src/components/parishioners/search/ParishionerSearchPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.complexSearchDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.parishionersDescription
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/ParishionersPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingReceipt
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingReceipt
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingReceipt
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.receiptNumber
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.receipt
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.purpose
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/receipts/ReceiptsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.birthDateFrom
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/search/ParishionerSearchPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.birthDateTo
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/search/ParishionerSearchPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorCreatingType
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/types/ParishionerTypesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorUpdatingType
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/types/ParishionerTypesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.errorDeletingType
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/parishioners/types/ParishionerTypesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.manage
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/pilgrimages/PilgrimageDetailsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.textarea
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/registry/online-forms/OnlineFormsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.rolePermissions
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/role-permissions/RolePermissionsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.configureRolePermissions
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/role-permissions/RolePermissionsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.configurePermissions
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/role-permissions/RolePermissionsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.selectAllPermissions
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/role-permissions/RolePermissionsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.userRoles
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/user-roles/UserRolesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.assignUserRoles
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/user-roles/UserRolesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.selectRole
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/user-roles/UserRolesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/common.json`
+- `src/locales/en/common.json`
+- `src/locales/it/common.json`
+
+### common.assign
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/superadmin/user-roles/UserRolesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/common.json`
@@ -3815,89 +3457,6 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/online-forms.json`
 - `src/locales/it/online-forms.json`
 
-### registratura.loading
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/registry/general-register/new/page.tsx`
-- `src/app/[locale]/dashboard/registry/general-register/[id]/page.tsx`
-- `src/app/[locale]/dashboard/registry/registratura/registrul-general/[id]/page.tsx`
-- `src/components/registratura/RegisterConfigurationList.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/registratura.json`
-- `src/locales/en/registratura.json`
-- `src/locales/it/registratura.json`
-
-### registratura.registerConfigurations.cancel
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/registratura/RegisterConfigurationForm.tsx`
-- `src/components/registratura/RegisterConfigurationList.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/registratura.json`
-- `src/locales/en/registratura.json`
-- `src/locales/it/registratura.json`
-
-### registratura.registerConfigurations.save
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/registratura/RegisterConfigurationForm.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/registratura.json`
-- `src/locales/en/registratura.json`
-- `src/locales/it/registratura.json`
-
-### registratura.registerConfigurations.delete
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/components/registratura/RegisterConfigurationList.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/registratura.json`
-- `src/locales/en/registratura.json`
-- `src/locales/it/registratura.json`
-
-### catechesis.actions.create
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/classes/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/lessons/new/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-- `src/components/catechesis/LessonEditor.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/catechesis.json`
-- `src/locales/en/catechesis.json`
-- `src/locales/it/catechesis.json`
-
-### catechesis.actions.edit
-
-**Status**: Missing in all locales (ro, en, it)
-
-**Used in files**:
-- `src/app/[locale]/dashboard/catechesis/classes/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
-- `src/components/catechesis/LessonEditor.tsx`
-
-**Recommended fix**: Add this key to all locale files:
-- `src/locales/ro/catechesis.json`
-- `src/locales/en/catechesis.json`
-- `src/locales/it/catechesis.json`
-
 ### catechesis.validations.titleRequired
 
 **Status**: Missing in all locales (ro, en, it)
@@ -3922,6 +3481,24 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
+### catechesis.actions.create
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/app/[locale]/dashboard/catechesis/lessons/new/page.tsx`
+- `src/components/catechesis/ClassAddModal.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+- `src/components/catechesis/LessonEditor.tsx`
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+- `src/components/catechesis/StudentAddModal.tsx`
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
 ### catechesis.lessons.createDescription
 
 **Status**: Missing in all locales (ro, en, it)
@@ -3934,84 +3511,99 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.actions.delete
+### catechesis.actions.edit
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
+- `src/components/catechesis/ClassEditModal.tsx`
+- `src/components/catechesis/LessonEditor.tsx`
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+- `src/components/catechesis/StudentEditModal.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.filters.allClasses
+### catechesis.classes.enrolledStudents
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
+- `src/components/catechesis/classes/ClassDetailsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.filters.allStatus
+### catechesis.classes.assignedLessons
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
+- `src/components/catechesis/classes/ClassDetailsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.confirmations.deleteLesson
+### catechesis.classes.noProgressData
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/lessons/page.tsx`
+- `src/components/catechesis/classes/ClassDetailsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.students.created
+### catechesis.classes.created
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.students.updated
+### catechesis.classes.updated
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### catechesis.students.deleted
+### catechesis.classes.deleted
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
+- `src/components/catechesis/classes/ClassesPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.classes.confirmDelete
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/DeleteClassDialog.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
@@ -4023,7 +3615,7 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/catechesis/students/page.tsx`
+- `src/components/catechesis/DeleteStudentDialog.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/catechesis.json`
@@ -4054,12 +3646,132 @@ Generated: 2026-01-05T00:39:33.778Z
 - `src/locales/en/catechesis.json`
 - `src/locales/it/catechesis.json`
 
-### pilgrimages.cancel
+### catechesis.actions.delete
 
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/pilgrimages/page.tsx`
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.filters.allClasses
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.filters.allStatus
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.confirmations.deleteLesson
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/lessons/LessonsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.born
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentDetailsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.classEnrollments
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentDetailsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.completedLessons
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentDetailsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.created
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.updated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### catechesis.students.deleted
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/catechesis/students/StudentsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/catechesis.json`
+- `src/locales/en/catechesis.json`
+- `src/locales/it/catechesis.json`
+
+### pilgrimages.participantCreated
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/pilgrimages/PilgrimageParticipantsPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/pilgrimages.json`
@@ -4071,7 +3783,19 @@ Generated: 2026-01-05T00:39:33.778Z
 **Status**: Missing in all locales (ro, en, it)
 
 **Used in files**:
-- `src/app/[locale]/dashboard/pilgrimages/[id]/participants/page.tsx`
+- `src/components/pilgrimages/PilgrimageParticipantsPageContent.tsx`
+
+**Recommended fix**: Add this key to all locale files:
+- `src/locales/ro/pilgrimages.json`
+- `src/locales/en/pilgrimages.json`
+- `src/locales/it/pilgrimages.json`
+
+### pilgrimages.cancel
+
+**Status**: Missing in all locales (ro, en, it)
+
+**Used in files**:
+- `src/components/pilgrimages/PilgrimagesPageContent.tsx`
 
 **Recommended fix**: Add this key to all locale files:
 - `src/locales/ro/pilgrimages.json`
@@ -4080,31 +3804,167 @@ Generated: 2026-01-05T00:39:33.778Z
 
 ---
 
-## 2. Missing Keys
+## 2. Missing Keys (Per Locale)
 
-✅ No missing keys found.
+⚠️ **These keys are used in code but missing in specific locales.**
+
+### common Namespace
+
+#### Missing in EN (17 keys)
+
+- **`county`** (present in: ro)
+  - Used in: `page.tsx`, `ClientForm.tsx`, `DeaneriesPageContent.tsx`...
+- **`postalCode`** (present in: ro)
+  - Used in: `ClientForm.tsx`, `EmployeeForm.tsx`
+- **`bankName`** (present in: ro)
+  - Used in: `ClientForm.tsx`, `EmployeeForm.tsx`
+- **`selectGender`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`department`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`, `PositionForm.tsx`...
+- **`selectDepartment`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `PositionForm.tsx`
+- **`position`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`
+- **`selectPosition`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`iban`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`isActive`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`, `PositionForm.tsx`...
+- **`confirmDeleteEmployee`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`employeeImportSuccess`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`employeeImportFailed`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`downloadEmployeeTemplate`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`searchEmploy`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
+- **`searchEmployees`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
+- **`noEmployees`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
+
+#### Missing in IT (17 keys)
+
+- **`county`** (present in: ro)
+  - Used in: `page.tsx`, `ClientForm.tsx`, `DeaneriesPageContent.tsx`...
+- **`postalCode`** (present in: ro)
+  - Used in: `ClientForm.tsx`, `EmployeeForm.tsx`
+- **`bankName`** (present in: ro)
+  - Used in: `ClientForm.tsx`, `EmployeeForm.tsx`
+- **`selectGender`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`department`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`, `PositionForm.tsx`...
+- **`selectDepartment`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `PositionForm.tsx`
+- **`position`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`
+- **`selectPosition`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`iban`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`
+- **`isActive`** (present in: ro)
+  - Used in: `EmployeeForm.tsx`, `EmployeesTable.tsx`, `PositionForm.tsx`...
+- **`confirmDeleteEmployee`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`employeeImportSuccess`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`employeeImportFailed`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`downloadEmployeeTemplate`** (present in: ro)
+  - Used in: `EmployeesPageContent.tsx`
+- **`searchEmploy`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
+- **`searchEmployees`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
+- **`noEmployees`** (present in: ro)
+  - Used in: `EmployeesTable.tsx`
 
 ---
 
-## 3. Inconsistent Keys
+## 3. Inconsistent Keys (Between Locales)
 
-✅ All keys are consistent across locales.
+⚠️ **These keys exist in some locales but not all. Consider adding them to all locales for consistency.**
+
+### common Namespace
+
+- **`position`**
+  - Present in: ro
+  - Missing in: en, it
+- **`selectGender`**
+  - Present in: ro
+  - Missing in: en, it
+- **`selectPosition`**
+  - Present in: ro
+  - Missing in: en, it
+- **`selectDepartment`**
+  - Present in: ro
+  - Missing in: en, it
+- **`postalCode`**
+  - Present in: ro
+  - Missing in: en, it
+- **`county`**
+  - Present in: ro
+  - Missing in: en, it
+- **`department`**
+  - Present in: ro
+  - Missing in: en, it
+- **`bankName`**
+  - Present in: ro
+  - Missing in: en, it
+- **`iban`**
+  - Present in: ro
+  - Missing in: en, it
+- **`isActive`**
+  - Present in: ro
+  - Missing in: en, it
+- **`confirmDeleteEmployee`**
+  - Present in: ro
+  - Missing in: en, it
+- **`noEmployees`**
+  - Present in: ro
+  - Missing in: en, it
+- **`importEmployees`**
+  - Present in: ro
+  - Missing in: en, it
+- **`downloadEmployeeTemplate`**
+  - Present in: ro
+  - Missing in: en, it
+- **`importEmployeesDescription`**
+  - Present in: ro
+  - Missing in: en, it
+- **`employeeImportSuccess`**
+  - Present in: ro
+  - Missing in: en, it
+- **`employeeImportFailed`**
+  - Present in: ro
+  - Missing in: en, it
+- **`searchEmploy`**
+  - Present in: ro
+  - Missing in: en, it
+- **`searchEmployees`**
+  - Present in: ro
+  - Missing in: en, it
 
 ---
 
 ## 4. Summary Statistics
 
 ### common
-- Keys used in code: 822
-- Keys defined in EN: 596
-- Keys defined in RO: 596
-- Keys defined in IT: 596
+- Keys used in code: 859
+- Keys defined in EN: 693
+- Keys defined in RO: 712
+- Keys defined in IT: 693
 
 ### menu
-- Keys used in code: 100
-- Keys defined in EN: 110
-- Keys defined in RO: 110
-- Keys defined in IT: 110
+- Keys used in code: 96
+- Keys defined in EN: 114
+- Keys defined in RO: 114
+- Keys defined in IT: 114
 
 ### auth
 - Keys used in code: 20
@@ -4114,15 +3974,15 @@ Generated: 2026-01-05T00:39:33.778Z
 
 ### online-forms
 - Keys used in code: 94
-- Keys defined in EN: 146
-- Keys defined in RO: 146
-- Keys defined in IT: 146
+- Keys defined in EN: 147
+- Keys defined in RO: 147
+- Keys defined in IT: 147
 
 ### registratura
 - Keys used in code: 47
-- Keys defined in EN: 188
-- Keys defined in RO: 188
-- Keys defined in IT: 188
+- Keys defined in EN: 192
+- Keys defined in RO: 192
+- Keys defined in IT: 192
 
 ### hr
 - Keys used in code: 0
@@ -4131,13 +3991,13 @@ Generated: 2026-01-05T00:39:33.778Z
 - Keys defined in IT: 301
 
 ### catechesis
-- Keys used in code: 80
+- Keys used in code: 92
 - Keys defined in EN: 181
 - Keys defined in RO: 181
 - Keys defined in IT: 181
 
 ### pilgrimages
-- Keys used in code: 139
+- Keys used in code: 140
 - Keys defined in EN: 226
 - Keys defined in RO: 226
 - Keys defined in IT: 226

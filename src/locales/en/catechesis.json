@@ -154,7 +154,8 @@
     "clearFilters": "Clear Filters",
     "export": "Export",
     "import": "Import",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "create": "Create"
   },
   "errors": {
     "classNotFound": "Class not found",

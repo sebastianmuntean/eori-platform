@@ -51,6 +51,10 @@ export const ADMINISTRATION_PERMISSIONS = {
   NOTIFICATIONS_CREATE: 'administration.notifications.create',
   NOTIFICATIONS_SEND: 'administration.notifications.send',
   NOTIFICATIONS_DELETE: 'administration.notifications.delete',
+
+  // Global Settings
+  GLOBAL_SETTINGS_VIEW: 'administration.globalSettings.view',
+  GLOBAL_SETTINGS_UPDATE: 'administration.globalSettings.update',
 } as const;
 
 export type AdministrationPermission = typeof ADMINISTRATION_PERMISSIONS[keyof typeof ADMINISTRATION_PERMISSIONS];
@@ -118,6 +122,10 @@ export const ADMINISTRATION_PERMISSION_GROUPS = {
     ADMINISTRATION_PERMISSIONS.NOTIFICATIONS_CREATE,
     ADMINISTRATION_PERMISSIONS.NOTIFICATIONS_SEND,
     ADMINISTRATION_PERMISSIONS.NOTIFICATIONS_DELETE,
+  ],
+  globalSettings: [
+    ADMINISTRATION_PERMISSIONS.GLOBAL_SETTINGS_VIEW,
+    ADMINISTRATION_PERMISSIONS.GLOBAL_SETTINGS_UPDATE,
   ],
 } as const;
 

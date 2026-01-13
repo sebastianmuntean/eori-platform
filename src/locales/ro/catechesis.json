@@ -154,7 +154,8 @@
     "clearFilters": "Șterge filtre",
     "export": "Exportă",
     "import": "Importă",
-    "refresh": "Reîncarcă"
+    "refresh": "Reîncarcă",
+    "create": "Creează"
   },
   "errors": {
     "classNotFound": "Clasa nu a fost găsită",

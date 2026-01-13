@@ -154,7 +154,8 @@
     "clearFilters": "Rimuovi Filtri",
     "export": "Esporta",
     "import": "Importa",
-    "refresh": "Aggiorna"
+    "refresh": "Aggiorna",
+    "create": "Crea"
   },
   "errors": {
     "classNotFound": "Classe non trovata",

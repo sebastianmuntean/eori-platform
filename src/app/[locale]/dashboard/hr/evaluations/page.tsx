@@ -4,21 +4,23 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { ADMINISTRATION_PERMISSIONS } from '@/lib/permissions/administration';
+import { HR_PERMISSIONS } from '@/lib/permissions/hr';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { GlobalSettingsPageContent } from '@/components/administration/global-settings/GlobalSettingsPageContent';
+import { EvaluationsPageContent } from '@/components/hr/EvaluationsPageContent';
 
 /**
- * Global Settings page
+ * Evaluations page - thin container component
+ * Handles only routing, permissions, and page title
+ * All business logic and JSX is in EvaluationsPageContent
  */
-export default function GlobalSettingsPage() {
+export default function EvaluationsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  usePageTitle(`${t('globalSettings') || 'Global Settings'} - EORI`);
+  usePageTitle(`${t('evaluations')} - EORI`);
 
-  // Check permission to access global settings
-  const { loading: permissionLoading } = useRequirePermission(ADMINISTRATION_PERMISSIONS.GLOBAL_SETTINGS_VIEW);
+  // Check permission to access evaluations
+  const { loading: permissionLoading } = useRequirePermission(HR_PERMISSIONS.EVALUATIONS_VIEW);
 
   // Don't render content while checking permissions
   if (permissionLoading) {
@@ -29,6 +31,6 @@ export default function GlobalSettingsPage() {
     );
   }
 
-  return <GlobalSettingsPageContent locale={locale} />;
+  return <EvaluationsPageContent locale={locale} />;
 }
 
