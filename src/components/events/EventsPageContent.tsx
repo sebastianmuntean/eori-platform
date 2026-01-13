@@ -27,6 +27,8 @@ interface EventFormData {
   type: EventType;
   status: EventStatus;
   eventDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   priestName: string;
   notes: string;
@@ -50,6 +52,8 @@ const INITIAL_FORM_DATA: EventFormData = {
   type: EVENT_TYPES.WEDDING,
   status: 'pending',
   eventDate: '',
+  startTime: '',
+  endTime: '',
   location: '',
   priestName: '',
   notes: '',
@@ -122,6 +126,8 @@ export function EventsPageContent({ locale }: EventsPageContentProps) {
   const normalizeFormData = useCallback((data: EventFormData) => ({
     ...data,
     eventDate: data.eventDate || null,
+    startTime: data.startTime || null,
+    endTime: data.endTime || null,
     location: data.location || null,
     priestName: data.priestName || null,
     notes: data.notes || null,
@@ -196,6 +202,8 @@ export function EventsPageContent({ locale }: EventsPageContentProps) {
       type: event.type,
       status: event.status,
       eventDate: event.eventDate || '',
+      startTime: event.startTime || '',
+      endTime: event.endTime || '',
       location: event.location || '',
       priestName: event.priestName || '',
       notes: event.notes || '',

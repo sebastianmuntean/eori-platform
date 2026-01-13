@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { useProducts, Product } from '@/hooks/useProducts';
-import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { PANGARE_PERMISSIONS } from '@/lib/permissions/pangare';
@@ -37,10 +36,7 @@ export default function ProdusePangarPage() {
     deleteProduct,
   } = useProducts();
 
-  const { parishes, fetchParishes } = useParishes();
-
   const [searchTerm, setSearchTerm] = useState('');
-  const [parishFilter, setParishFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,22 +46,17 @@ export default function ProdusePangarPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(createEmptyProductFormData());
 
-  useEffect(() => {
-    if (permissionLoading) return;
-    fetchParishes({ all: true });
-  }, [permissionLoading, fetchParishes]);
 
   const refreshProducts = useCallback(() => {
     const params: any = {
       page: currentPage,
       pageSize: 10,
       search: searchTerm || undefined,
-      parishId: parishFilter || undefined,
       category: categoryFilter || undefined,
       isActive: isActiveFilter === '' ? undefined : isActiveFilter === 'true',
     };
     fetchProducts(params);
-  }, [currentPage, searchTerm, parishFilter, categoryFilter, isActiveFilter, fetchProducts]);
+  }, [currentPage, searchTerm, categoryFilter, isActiveFilter, fetchProducts]);
 
   useEffect(() => {
     refreshProducts();
@@ -79,14 +70,11 @@ export default function ProdusePangarPage() {
   const handleEdit = useCallback((product: Product) => {
     setSelectedProduct(product);
     setFormData({
-      parishId: product.parishId,
       code: product.code,
       name: product.name,
       description: product.description || '',
       category: product.category || '',
       unit: product.unit,
-      purchasePrice: product.purchasePrice || '',
-      salePrice: product.salePrice || '',
       vatRate: product.vatRate,
       barcode: product.barcode || '',
       trackStock: product.trackStock,
@@ -134,12 +122,6 @@ export default function ProdusePangarPage() {
     { key: 'category' as keyof Product, label: t('category') || 'Category', sortable: true },
     { key: 'unit' as keyof Product, label: t('unit') || 'Unit', sortable: false },
     {
-      key: 'salePrice' as keyof Product,
-      label: t('salePrice') || 'Sale Price',
-      sortable: true,
-      render: (value: string) => value ? `${parseFloat(value).toFixed(2)} RON` : '-',
-    },
-    {
       key: 'trackStock' as keyof Product,
       label: t('trackStock') || 'Track Stock',
       sortable: false,
@@ -183,7 +165,6 @@ export default function ProdusePangarPage() {
 
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
-    setParishFilter('');
     setCategoryFilter('');
     setIsActiveFilter('');
     setCurrentPage(1);
@@ -209,16 +190,10 @@ export default function ProdusePangarPage() {
       {/* Filters */}
       <ProductsFiltersCard
         searchTerm={searchTerm}
-        parishFilter={parishFilter}
         categoryFilter={categoryFilter}
         isActiveFilter={isActiveFilter}
-        parishes={parishes}
         onSearchChange={(value) => {
           setSearchTerm(value);
-          setCurrentPage(1);
-        }}
-        onParishFilterChange={(value) => {
-          setParishFilter(value);
           setCurrentPage(1);
         }}
         onCategoryFilterChange={(value) => {
@@ -257,7 +232,6 @@ export default function ProdusePangarPage() {
         }}
         formData={formData}
         onFormDataChange={setFormData}
-        parishes={parishes}
         onSubmit={handleCreate}
         isSubmitting={loading}
       />
@@ -275,7 +249,6 @@ export default function ProdusePangarPage() {
         }}
         formData={formData}
         onFormDataChange={setFormData}
-        parishes={parishes}
         onSubmit={handleUpdate}
         isSubmitting={loading}
       />

@@ -15,6 +15,7 @@
     "db:migrate": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx database/seed.ts",
+    "migrate:to-neon": "tsx scripts/migrate-to-neon.ts",
     "verify-translations": "node verify_translations.js",
     "postinstall": "node scripts/postinstall.js"
   },

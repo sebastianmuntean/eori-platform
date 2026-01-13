@@ -293,7 +293,7 @@ export function EmployeesTable({ onEdit, onDelete, onView }: EmployeesTableProps
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder={t('searchEmployees') || 'Search employees...'}
+              placeholder={t('searchEmploy') || t('searchEmployees') || 'Search employees...'}
             />
             <Select
               label={t('parish')}

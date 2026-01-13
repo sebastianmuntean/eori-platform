@@ -8,8 +8,6 @@ interface ProductFormData {
   description: string;
   category: string;
   unit: string;
-  purchasePrice: string;
-  salePrice: string;
   vatRate: string;
   barcode: string;
   trackStock: boolean;
@@ -109,30 +107,21 @@ export function AddProductModal({
           </div>
         </div>
 
-        {/* Prețuri și TVA */}
+        {/* TVA și alte informații */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">{t('pricing') || 'Prețuri și TVA'}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              type="number"
-              step="0.01"
-              label={t('purchasePrice')}
-              value={formData.purchasePrice}
-              onChange={(e) => onFormDataChange({ purchasePrice: e.target.value })}
-            />
-            <Input
-              type="number"
-              step="0.01"
-              label={t('salePrice')}
-              value={formData.salePrice}
-              onChange={(e) => onFormDataChange({ salePrice: e.target.value })}
-            />
+          <h3 className="text-lg font-semibold mb-4">{t('vatAndOther') || 'TVA și Alte Informații'}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               type="number"
               step="0.01"
               label={`${t('vatRate')} (%)`}
               value={formData.vatRate}
               onChange={(e) => onFormDataChange({ vatRate: e.target.value })}
+            />
+            <Input
+              label={t('barcode')}
+              value={formData.barcode}
+              onChange={(e) => onFormDataChange({ barcode: e.target.value })}
             />
           </div>
         </div>

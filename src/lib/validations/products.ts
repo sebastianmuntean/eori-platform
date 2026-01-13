@@ -14,10 +14,6 @@ export function validateProductForm(
   const errors: ValidationErrors = {};
 
   // Required fields
-  if (!formData.parishId?.trim()) {
-    errors.parishId = `${t('parish') || 'Parish'} ${t('required') || 'is required'}`;
-  }
-
   if (!formData.code?.trim()) {
     errors.code = `${t('code') || 'Code'} ${t('required') || 'is required'}`;
   }
@@ -31,14 +27,6 @@ export function validateProductForm(
   }
 
   // Numeric validations
-  if (formData.purchasePrice && isNaN(parseFloat(formData.purchasePrice))) {
-    errors.purchasePrice = t('invalidNumber') || 'Invalid number';
-  }
-
-  if (formData.salePrice && isNaN(parseFloat(formData.salePrice))) {
-    errors.salePrice = t('invalidNumber') || 'Invalid number';
-  }
-
   if (formData.vatRate && isNaN(parseFloat(formData.vatRate))) {
     errors.vatRate = t('invalidNumber') || 'Invalid number';
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -16,10 +16,14 @@ import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
 export default function CreateDocumentPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
   const tReg = useTranslations('registratura');
   const { toasts, success, error: showError, removeToast } = useToast();
+
+  // Get registerId from URL
+  const registerIdFromUrl = searchParams.get('registerId');
 
   // Check permission to view general register
   const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
@@ -83,6 +87,7 @@ export default function CreateDocumentPage() {
             onSave={handleSave}
             onCancel={handleCancel}
             loading={loading}
+            initialData={registerIdFromUrl ? { registerConfigurationId: registerIdFromUrl } : undefined}
           />
         </CardBody>
       </Card>

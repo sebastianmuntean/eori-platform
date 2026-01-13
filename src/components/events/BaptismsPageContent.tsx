@@ -15,6 +15,7 @@ import { BaptismEditModal } from '@/components/events/BaptismEditModal';
 import { DeleteEventDialog } from '@/components/events/DeleteEventDialog';
 import { BaptismsFiltersCard } from '@/components/events/BaptismsFiltersCard';
 import { BaptismsTableCard } from '@/components/events/BaptismsTableCard';
+import { mapEventToFormData, getInitialEventFormData } from '@/lib/utils/events';
 
 interface BaptismsPageContentProps {
   locale: string;
@@ -57,6 +58,8 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
     parishId: '',
     status: 'pending' as EventStatus,
     eventDate: '',
+    startTime: '',
+    endTime: '',
     location: '',
     priestName: '',
     notes: '',
@@ -133,14 +136,7 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
 
   const handleEdit = useCallback((event: ChurchEvent) => {
     setSelectedEvent(event);
-    setFormData({
-      parishId: event.parishId,
-      status: event.status,
-      eventDate: event.eventDate || '',
-      location: event.location || '',
-      priestName: event.priestName || '',
-      notes: event.notes || '',
-    });
+    setFormData(mapEventToFormData(event));
     setShowEditModal(true);
   }, []);
 
@@ -161,14 +157,7 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
   }, [cancelEvent]);
 
   const resetForm = useCallback(() => {
-    setFormData({
-      parishId: '',
-      status: 'pending',
-      eventDate: '',
-      location: '',
-      priestName: '',
-      notes: '',
-    });
+    setFormData(getInitialEventFormData());
   }, []);
 
   const formatDate = useCallback((date: string | null) => {

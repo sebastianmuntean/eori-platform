@@ -21,8 +21,6 @@ const initialProductFormData = {
   description: '',
   category: '',
   unit: 'buc',
-  purchasePrice: '',
-  salePrice: '',
   vatRate: '19',
   barcode: '',
   trackStock: true,
@@ -72,16 +70,8 @@ export function useInvoiceProductSelection({
         return;
       }
 
-      if (!formData.parishId) {
-        alert(t('pleaseSelectParish') || 'Vă rugăm să selectați o parohie pentru factură înainte de a adăuga produse');
-        return;
-      }
-
       const newProduct = await createProduct({
         ...productFormData,
-        parishId: formData.parishId,
-        purchasePrice: productFormData.purchasePrice || null,
-        salePrice: productFormData.salePrice || null,
         minStock: productFormData.minStock || null,
       });
 

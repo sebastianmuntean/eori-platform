@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { InvoiceItem } from '@/hooks/useInvoices';
 import { Product } from '@/hooks/useProducts';
 import { ExtendedInvoiceItem, calculateItemTotal } from '@/lib/utils/invoiceUtils';
+import { getDefaultVatRate } from '@/lib/utils/globalSettings';
 
 export interface InvoiceFormState {
   parishId: string;
@@ -39,6 +40,12 @@ export function useInvoiceForm(defaultType: 'issued' | 'received' = 'issued') {
   const [formData, setFormData] = useState<InvoiceFormState>(getInitialFormData(defaultType));
   const [newProductInput, setNewProductInput] = useState('');
   const previousItemsCountRef = useRef(0);
+  const [defaultVatRate, setDefaultVatRate] = useState<number>(19);
+
+  // Fetch default VAT rate on mount
+  useEffect(() => {
+    getDefaultVatRate().then(setDefaultVatRate);
+  }, []);
 
   // Reset product input when a new product is added
   useEffect(() => {
@@ -85,17 +92,15 @@ export function useInvoiceForm(defaultType: 'issued' | 'received' = 'issued') {
   };
 
   const addProductItem = (product: Product, warehouseId?: string | null) => {
-    const purchasePrice = parseFloat(product.purchasePrice || '0');
-    const salePrice = parseFloat(product.salePrice || '0');
-    const vatRate = parseFloat(product.vatRate || '19');
+    const vatRate = parseFloat(product.vatRate || defaultVatRate.toString());
 
     const newItem: ExtendedInvoiceItem = {
       description: product.name,
       quantity: 1,
-      unitPrice: salePrice,
-      unitCost: purchasePrice,
-      vat: (salePrice * vatRate) / 100,
-      total: salePrice + (salePrice * vatRate) / 100,
+      unitPrice: 0, // Price must be set manually in invoice
+      unitCost: 0, // Cost must be set manually in invoice
+      vat: 0, // Will be calculated when price is set
+      total: 0,
       productId: product.id,
       warehouseId: warehouseId || null,
     };
@@ -123,10 +128,20 @@ export function useInvoiceForm(defaultType: 'issued' | 'received' = 'issued') {
       const product = products.find((p) => p.id === value);
       if (product) {
         newItems[index].description = product.name;
-        newItems[index].unitPrice = parseFloat(product.salePrice || '0');
-        newItems[index].unitCost = parseFloat(product.purchasePrice || '0');
-        const vatRate = parseFloat(product.vatRate || '19');
-        newItems[index].vat = (newItems[index].unitPrice * vatRate) / 100;
+        // Prices must be set manually - product no longer has default prices
+        // Keep existing prices if already set, otherwise leave at 0
+        if (!newItems[index].unitPrice) {
+          newItems[index].unitPrice = 0;
+        }
+        if (!newItems[index].unitCost) {
+          newItems[index].unitCost = 0;
+        }
+        // Recalculate VAT if price is set
+        if (newItems[index].unitPrice > 0) {
+          const vatRate = parseFloat(product.vatRate || defaultVatRate.toString());
+          newItems[index].vat = (newItems[index].unitPrice * newItems[index].quantity * vatRate) / 100;
+          newItems[index].total = (newItems[index].unitPrice * newItems[index].quantity) + newItems[index].vat;
+        }
       }
     }
 

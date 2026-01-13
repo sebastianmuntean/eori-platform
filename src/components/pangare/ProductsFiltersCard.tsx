@@ -3,18 +3,14 @@
 import { Card, CardBody } from '@/components/ui/Card';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Input } from '@/components/ui/Input';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
-import { Parish } from '@/hooks/useParishes';
+import { FilterGrid, FilterClear, FilterSelect } from '@/components/ui/FilterGrid';
 import { useTranslations } from 'next-intl';
 
 interface ProductsFiltersCardProps {
   searchTerm: string;
-  parishFilter: string;
   categoryFilter: string;
   isActiveFilter: string;
-  parishes: Parish[];
   onSearchChange: (value: string) => void;
-  onParishFilterChange: (value: string) => void;
   onCategoryFilterChange: (value: string) => void;
   onIsActiveFilterChange: (value: string) => void;
   onClearFilters: () => void;
@@ -26,12 +22,9 @@ interface ProductsFiltersCardProps {
  */
 export function ProductsFiltersCard({
   searchTerm,
-  parishFilter,
   categoryFilter,
   isActiveFilter,
-  parishes,
   onSearchChange,
-  onParishFilterChange,
   onCategoryFilterChange,
   onIsActiveFilterChange,
   onClearFilters,
@@ -41,27 +34,24 @@ export function ProductsFiltersCard({
   return (
     <Card variant="outlined" className="mb-6">
       <CardBody>
-        <div className="space-y-4">
-          <div className="flex gap-4">
+        <FilterGrid>
+          <div className="min-w-[200px] max-w-[250px]">
             <SearchInput
               value={searchTerm}
               onChange={onSearchChange}
               placeholder={t('search') || 'Căutare...'}
+              className="w-full"
             />
           </div>
-
-          <FilterGrid>
-            <ParishFilter
-              value={parishFilter}
-              onChange={onParishFilterChange}
-              parishes={parishes}
-            />
+          <div className="min-w-[180px] max-w-[220px]">
             <Input
               label={t('category') || 'Categorie'}
               value={categoryFilter}
               onChange={(e) => onCategoryFilterChange(e.target.value)}
               placeholder={t('filterByCategory') || 'Filtrează după categorie...'}
             />
+          </div>
+          <div className="min-w-[150px] max-w-[180px]">
             <FilterSelect
               label={t('status') || 'Status'}
               value={isActiveFilter}
@@ -72,9 +62,9 @@ export function ProductsFiltersCard({
                 { value: 'false', label: t('inactive') || 'Inactive' },
               ]}
             />
-            <FilterClear onClear={onClearFilters} />
-          </FilterGrid>
-        </div>
+          </div>
+          <FilterClear onClear={onClearFilters} />
+        </FilterGrid>
       </CardBody>
     </Card>
   );

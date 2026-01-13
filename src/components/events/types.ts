@@ -13,6 +13,8 @@ export interface EventFormData {
   parishId: string;
   status: EventStatus;
   eventDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   priestName: string;
   notes: string;

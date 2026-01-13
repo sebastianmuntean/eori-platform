@@ -34,6 +34,13 @@ export interface Employee {
   updatedBy: string | null;
 }
 
+export interface ImportResult {
+  total: number;
+  successful: number;
+  failed: number;
+  errors: Array<{ row: number; employeeNumber: string; error: string }>;
+}
+
 interface UseEmployeesReturn {
   employees: Employee[];
   loading: boolean;
@@ -60,6 +67,8 @@ interface UseEmployeesReturn {
   updateEmployee: (id: string, data: Partial<Employee>) => Promise<Employee | null>;
   deleteEmployee: (id: string) => Promise<boolean>;
   getEmployee: (id: string) => Promise<Employee | null>;
+  importEmployees: (file: File) => Promise<ImportResult | null>;
+  downloadTemplate: () => Promise<void>;
 }
 
 export function useEmployees(): UseEmployeesReturn {
@@ -217,6 +226,61 @@ export function useEmployees(): UseEmployeesReturn {
     }
   }, []);
 
+  const importEmployees = useCallback(async (file: File): Promise<ImportResult | null> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/hr/employees/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to import employees');
+      }
+
+      // Refresh employees list
+      await fetchEmployees();
+      return result.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to import employees';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchEmployees]);
+
+  const downloadTemplate = useCallback(async (): Promise<void> => {
+    try {
+      const response = await fetch('/api/hr/employees/template');
+      
+      if (!response.ok) {
+        throw new Error('Failed to download template');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `template-import-angajati-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to download template';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+
   return {
     employees,
     loading,
@@ -227,6 +291,8 @@ export function useEmployees(): UseEmployeesReturn {
     updateEmployee,
     deleteEmployee,
     getEmployee,
+    importEmployees,
+    downloadTemplate,
   };
 }
 

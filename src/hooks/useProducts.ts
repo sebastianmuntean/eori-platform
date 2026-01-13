@@ -4,14 +4,11 @@ import { useState, useCallback } from 'react';
 
 export interface Product {
   id: string;
-  parishId: string;
   code: string;
   name: string;
   description: string | null;
   category: string | null;
   unit: string;
-  purchasePrice: string | null;
-  salePrice: string | null;
   vatRate: string;
   barcode: string | null;
   trackStock: boolean;
@@ -37,7 +34,6 @@ interface UseProductsReturn {
     page?: number;
     pageSize?: number;
     search?: string;
-    parishId?: string;
     category?: string;
     isActive?: boolean;
     trackStock?: boolean;
@@ -59,7 +55,6 @@ export function useProducts(): UseProductsReturn {
     page?: number;
     pageSize?: number;
     search?: string;
-    parishId?: string;
     category?: string;
     isActive?: boolean;
     trackStock?: boolean;
@@ -74,7 +69,6 @@ export function useProducts(): UseProductsReturn {
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
       if (params.search) queryParams.append('search', params.search);
-      if (params.parishId) queryParams.append('parishId', params.parishId);
       if (params.category) queryParams.append('category', params.category);
       if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
       if (params.trackStock !== undefined) queryParams.append('trackStock', params.trackStock.toString());

@@ -351,3 +351,92 @@ export async function canResolveGeneralRegisterDocument(documentId: string): Pro
   }
 }
 
+interface UseGeneralRegisterDocumentsReturn {
+  documents: GeneralRegisterDocument[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  } | null;
+  fetchDocuments: (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    registerConfigurationId?: string;
+    documentType?: GeneralRegisterDocumentType;
+    status?: GeneralRegisterDocumentStatus;
+    year?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => Promise<void>;
+}
+
+/**
+ * Hook for fetching list of general register documents
+ */
+export function useGeneralRegisterDocuments(): UseGeneralRegisterDocumentsReturn {
+  const [documents, setDocuments] = useState<GeneralRegisterDocument[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<UseGeneralRegisterDocumentsReturn['pagination']>(null);
+
+  const fetchDocuments = useCallback(async (params?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    registerConfigurationId?: string;
+    documentType?: GeneralRegisterDocumentType;
+    status?: GeneralRegisterDocumentStatus;
+    year?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.registerConfigurationId) queryParams.append('registerConfigurationId', params.registerConfigurationId);
+      if (params?.documentType) queryParams.append('documentType', params.documentType);
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.year) queryParams.append('year', params.year.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await fetch(`/api/registratura/general-register?${queryParams.toString()}`, {
+        credentials: 'include',
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch documents');
+      }
+
+      if (result.success) {
+        setDocuments(result.data || []);
+        setPagination(result.pagination || null);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch documents';
+      setError(errorMessage);
+      console.error('Error fetching general register documents:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    documents,
+    loading,
+    error,
+    pagination,
+    fetchDocuments,
+  };
+}
+

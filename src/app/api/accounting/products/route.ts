@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
-import { products, parishes } from '@/database/schema';
+import { products } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
 import { eq, like, or, desc, asc, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 const createProductSchema = z.object({
-  parishId: z.string().uuid('Invalid parish ID'),
   code: z.string().min(1, 'Code is required').max(50),
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional().nullable(),
   category: z.string().max(100).optional().nullable(),
   unit: z.string().max(20).optional().default('buc'),
-  purchasePrice: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Purchase price must be a valid number').optional().nullable(),
-  salePrice: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Sale price must be a valid number').optional().nullable(),
   vatRate: z.string().regex(/^\d+(\.\d{1,2})?$/, 'VAT rate must be a valid number').optional().default('19'),
   barcode: z.string().max(100).optional().nullable(),
   trackStock: z.boolean().optional().default(true),
@@ -31,7 +28,6 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
     const search = searchParams.get('search') || '';
-    const parishId = searchParams.get('parishId');
     const category = searchParams.get('category');
     const isActive = searchParams.get('isActive');
     const trackStock = searchParams.get('trackStock');
@@ -50,10 +46,6 @@ export async function GET(request: Request) {
           like(products.barcode || '', `%${search}%`)
         )!
       );
-    }
-
-    if (parishId) {
-      conditions.push(eq(products.parishId, parishId));
     }
 
     if (category) {
@@ -144,35 +136,16 @@ export async function POST(request: Request) {
 
     const data = validation.data;
 
-    // Check if parish exists
-    const [existingParish] = await db
-      .select()
-      .from(parishes)
-      .where(eq(parishes.id, data.parishId))
-      .limit(1);
-
-    if (!existingParish) {
-      return NextResponse.json(
-        { success: false, error: 'Parish not found' },
-        { status: 400 }
-      );
-    }
-
-    // Check if code already exists for this parish
+    // Check if code already exists (products are global, code must be unique)
     const [existingProduct] = await db
       .select()
       .from(products)
-      .where(
-        and(
-          eq(products.parishId, data.parishId),
-          eq(products.code, data.code)
-        )
-      )
+      .where(eq(products.code, data.code))
       .limit(1);
 
     if (existingProduct) {
       return NextResponse.json(
-        { success: false, error: 'Product code already exists for this parish' },
+        { success: false, error: 'Product code already exists' },
         { status: 400 }
       );
     }

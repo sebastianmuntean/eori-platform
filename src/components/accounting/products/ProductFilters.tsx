@@ -1,33 +1,26 @@
 import { SearchInput } from '@/components/ui/SearchInput';
-import { FilterGrid, FilterClear, ParishFilter, FilterSelect } from '@/components/ui/FilterGrid';
+import { FilterGrid, FilterClear, FilterSelect } from '@/components/ui/FilterGrid';
 import { Input } from '@/components/ui/Input';
-import { Parish } from '@/hooks/useParishes';
 
 interface ProductFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  parishFilter: string;
-  onParishFilterChange: (value: string) => void;
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
   isActiveFilter: string;
   onIsActiveFilterChange: (value: string) => void;
   onClear: () => void;
-  parishes: Parish[];
   t: (key: string) => string;
 }
 
 export function ProductFilters({
   searchTerm,
   onSearchChange,
-  parishFilter,
-  onParishFilterChange,
   categoryFilter,
   onCategoryFilterChange,
   isActiveFilter,
   onIsActiveFilterChange,
   onClear,
-  parishes,
   t,
 }: ProductFiltersProps) {
   return (
@@ -40,7 +33,6 @@ export function ProductFilters({
         />
       </div>
       <FilterGrid>
-        <ParishFilter value={parishFilter} onChange={onParishFilterChange} parishes={parishes} />
         <Input
           label={t('category') || 'Category'}
           value={categoryFilter}

@@ -12,8 +12,6 @@ const updateProductSchema = z.object({
   description: z.string().optional().nullable(),
   category: z.string().max(100).optional().nullable(),
   unit: z.string().max(20).optional(),
-  purchasePrice: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Purchase price must be a valid number').optional().nullable(),
-  salePrice: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Sale price must be a valid number').optional().nullable(),
   vatRate: z.string().regex(/^\d+(\.\d{1,2})?$/, 'VAT rate must be a valid number').optional(),
   barcode: z.string().max(100).optional().nullable(),
   trackStock: z.boolean().optional(),
@@ -107,7 +105,6 @@ export async function PUT(
         .from(products)
         .where(
           and(
-            eq(products.parishId, existingProduct.parishId),
             eq(products.code, data.code),
             ne(products.id, id)
           )
@@ -116,7 +113,7 @@ export async function PUT(
 
       if (conflictingProduct) {
         return NextResponse.json(
-          { success: false, error: 'Product code already exists for this parish' },
+          { success: false, error: 'Product code already exists' },
           { status: 400 }
         );
       }

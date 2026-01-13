@@ -13,6 +13,8 @@ const updateEventSchema = z.object({
   type: z.enum(['wedding', 'baptism', 'funeral']).optional(),
   status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).optional(),
   eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format').optional().nullable(),
+  startTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Time must be in HH:MM or HH:MM:SS format').optional().nullable(),
+  endTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Time must be in HH:MM or HH:MM:SS format').optional().nullable(),
   location: z.string().max(255).optional().nullable(),
   priestName: z.string().max(255).optional().nullable(),
   notes: z.string().optional().nullable(),

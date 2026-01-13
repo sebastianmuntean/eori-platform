@@ -235,26 +235,25 @@ export function GeneralRegisterForm({ onSave, onCancel, loading: externalLoading
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Register Configuration - Required */}
+      {/* Register Configuration - Display as label (read-only) */}
       <div>
-        <Select
-          label="Registru *"
-          value={selectedRegisterId}
-          onChange={(e) => {
-            setSelectedRegisterId(e.target.value);
-          }}
-          options={registerConfigurations.map(r => ({
-            value: r.id,
-            label: `${r.name}${r.parish ? ` (${r.parish.name})` : ' (Episcopie)'}`
-          }))}
-          placeholder="Selectează registrul"
-          error={errors.registerConfigurationId}
-          required
-        />
-        {selectedRegister && (
+        <label className="block text-sm font-medium mb-1">Registru *</label>
+        {selectedRegister ? (
+          <div className="px-3 py-2 border rounded-md bg-gray-50 text-gray-900 font-medium">
+            {selectedRegister.name}{selectedRegister.parish ? ` (${selectedRegister.parish.name})` : ' (Episcopie)'}
+          </div>
+        ) : (
+          <div className="px-3 py-2 border rounded-md bg-gray-50 text-gray-500">
+            Selectați un registru din filtrarea listei
+          </div>
+        )}
+        {selectedRegister && selectedRegister.parish && (
           <p className="text-sm text-gray-500 mt-1">
-            Parohie: {selectedRegister.parish ? `${selectedRegister.parish.name} (${selectedRegister.parish.code})` : 'Niciuna (Episcopie)'}
+            Parohie: {selectedRegister.parish.name} ({selectedRegister.parish.code})
           </p>
+        )}
+        {errors.registerConfigurationId && (
+          <p className="mt-1 text-sm text-danger">{errors.registerConfigurationId}</p>
         )}
       </div>
 

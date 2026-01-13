@@ -256,7 +256,7 @@ export function EmployeeForm({
       isOpen={isOpen}
       onClose={onClose}
       title={employee ? t('editEmployee') || 'Edit Employee' : t('addEmployee') || 'Add Employee'}
-      size="xl"
+      size="full"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

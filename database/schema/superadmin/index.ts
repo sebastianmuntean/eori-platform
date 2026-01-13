@@ -6,6 +6,7 @@ export * from './permissions';
 export * from './role_permissions';
 export * from './user_roles';
 export * from './email_templates';
+export * from './global_settings';
 
 
 

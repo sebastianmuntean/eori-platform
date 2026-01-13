@@ -71,10 +71,17 @@ export function Header() {
   /**
    * Fetches the unread notification count from the API
    * Validates response status before parsing to prevent errors
+   * Gracefully handles 401 errors (unauthorized) which are expected when not authenticated
    */
   const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await fetch('/api/notifications/unread-count');
+      
+      // Handle 401 (Unauthorized) gracefully - expected when user is not authenticated
+      if (response.status === 401) {
+        setUnreadCount(0);
+        return;
+      }
       
       // Validate response status before parsing
       if (!response.ok) {
@@ -87,7 +94,10 @@ export function Header() {
         setUnreadCount(result.count || 0);
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      // Only log non-401 errors to avoid console noise
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to fetch unread count:', error);
+      }
       // Don't update state on error to avoid showing incorrect count
     }
   }, []);

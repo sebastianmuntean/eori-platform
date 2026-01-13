@@ -25,6 +25,12 @@
   "createdAt": "Creation Date",
   "updatedAt": "Update Date",
   "settings": "Settings",
+  "globalSettings": "Global Settings",
+  "defaultVatRate": "Default VAT Rate",
+  "defaultVatRateDescription": "Default VAT rate used in the system (in percentage)",
+  "settingsSaved": "Settings saved successfully",
+  "invalidVatRate": "Invalid VAT rate. Must be between 0 and 100.",
+  "saving": "Saving...",
   "emailTemplates": "Email Templates",
   "emailTemplate": "Email Template",
   "templateName": "Template Name",
@@ -271,6 +277,8 @@
   "notes": "Notes",
   "confirmed": "Confirmed",
   "eventDate": "Event date",
+  "startTime": "Start time",
+  "endTime": "End time",
   "totalEvents": "Total Events",
   "upcoming": "Upcoming",
   "confirm": "Confirm",
@@ -453,6 +461,7 @@
   "basicInformation": "Basic Information",
   "datesAndFinancial": "Dates and Financial",
   "additionalInformation": "Additional Information",
+  "additionalInfo": "Additional Information",
   "partnerName": "Partner Name",
   "periodMonth": "Period Month",
   "periodYear": "Period Year",
@@ -657,6 +666,8 @@
   "organizationalInfo": "Organizational Information",
   "datesAndClient": "Dates and Client",
   "service": "Service",
-  "selectProduct": "Select Product"
+  "selectProduct": "Select Product",
+  "noProducts": "No products",
+  "noProductsFound": "No products found"
 }
 

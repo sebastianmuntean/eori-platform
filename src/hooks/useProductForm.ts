@@ -2,14 +2,11 @@ import { useState, useCallback } from 'react';
 import { Product } from '@/hooks/useProducts';
 
 export interface ProductFormState {
-  parishId: string;
   code: string;
   name: string;
   description: string;
   category: string;
   unit: string;
-  purchasePrice: string;
-  salePrice: string;
   vatRate: string;
   barcode: string;
   trackStock: boolean;
@@ -18,14 +15,11 @@ export interface ProductFormState {
 }
 
 const getInitialFormData = (): ProductFormState => ({
-  parishId: '',
   code: '',
   name: '',
   description: '',
   category: '',
   unit: 'buc',
-  purchasePrice: '',
-  salePrice: '',
   vatRate: '19',
   barcode: '',
   trackStock: true,
@@ -46,14 +40,11 @@ export function useProductForm() {
 
   const loadProduct = useCallback((product: Product) => {
     setFormData({
-      parishId: product.parishId,
       code: product.code,
       name: product.name,
       description: product.description || '',
       category: product.category || '',
       unit: product.unit,
-      purchasePrice: product.purchasePrice || '',
-      salePrice: product.salePrice || '',
       vatRate: product.vatRate,
       barcode: product.barcode || '',
       trackStock: product.trackStock,
@@ -64,7 +55,7 @@ export function useProductForm() {
 
   const validateForm = useCallback(
     (t: (key: string) => string): { valid: boolean; error?: string } => {
-      if (!formData.parishId || !formData.code || !formData.name || !formData.unit) {
+      if (!formData.code || !formData.name || !formData.unit) {
         return { valid: false, error: t('fillRequiredFields') || 'Please fill all required fields' };
       }
       return { valid: true };
@@ -75,8 +66,6 @@ export function useProductForm() {
   const toApiData = useCallback(() => {
     return {
       ...formData,
-      purchasePrice: formData.purchasePrice || null,
-      salePrice: formData.salePrice || null,
       minStock: formData.minStock || null,
       description: formData.description || null,
       category: formData.category || null,

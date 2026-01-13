@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, date, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, date, time, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { parishes } from '../core/parishes';
 import { users } from '../superadmin/users';
 
@@ -14,6 +14,8 @@ export const churchEvents = pgTable('church_events', {
   type: eventTypeEnum('type').notNull(),
   status: eventStatusEnum('status').notNull().default('pending'),
   eventDate: date('event_date'),
+  startTime: time('start_time'),
+  endTime: time('end_time'),
   location: varchar('location', { length: 255 }),
   priestName: varchar('priest_name', { length: 255 }),
   notes: text('notes'),

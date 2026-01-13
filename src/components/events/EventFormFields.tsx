@@ -11,6 +11,8 @@ interface EventFormData {
   type: EventType;
   status: EventStatus;
   eventDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   priestName: string;
   notes: string;
@@ -121,6 +123,29 @@ export function EventFormFields({
           value={formData.eventDate}
           onChange={(e) => handleFieldChange('eventDate', e.target.value)}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            {t('startTime') || 'Ora de început'}
+          </label>
+          <Input
+            type="time"
+            value={formData.startTime}
+            onChange={(e) => handleFieldChange('startTime', e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            {t('endTime') || 'Ora de sfârșit'}
+          </label>
+          <Input
+            type="time"
+            value={formData.endTime}
+            onChange={(e) => handleFieldChange('endTime', e.target.value)}
+          />
+        </div>
       </div>
 
       <div>

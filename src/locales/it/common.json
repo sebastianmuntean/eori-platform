@@ -30,6 +30,7 @@
   "addUser": "Aggiungi Utente",
   "addWarehouse": "Aggiungi Magazzino",
   "additionalInformation": "Informazioni Aggiuntive",
+  "additionalInfo": "Informazioni Aggiuntive",
   "address": "Indirizzo",
   "administration": "Amministrazione",
   "all": "Tutti",
@@ -210,6 +211,8 @@
   "evaluations": "Valutazioni",
   "event": "Evento",
   "eventDate": "Data evento",
+  "startTime": "Ora di inizio",
+  "endTime": "Ora di fine",
   "eventDetails": "Dettagli evento",
   "eventEvents": "evento",
   "eventEventsPlural": "eventi",
@@ -501,6 +504,12 @@
   "series": "Serie",
   "servicePayment": "Pagamento Servizio",
   "settings": "Impostazioni",
+  "globalSettings": "Impostazioni Globali",
+  "defaultVatRate": "Aliquota IVA Predefinita",
+  "defaultVatRateDescription": "Aliquota IVA predefinita utilizzata nel sistema (in percentuale)",
+  "settingsSaved": "Impostazioni salvate con successo",
+  "invalidVatRate": "Aliquota IVA non valida. Deve essere compresa tra 0 e 100.",
+  "saving": "Salvataggio...",
   "shoppingCart": "Carrello",
   "showLowStock": "Mostra solo scorta bassa",
   "showing": "Visualizzazione",
@@ -635,5 +644,7 @@
   "organizationalInfo": "Informazioni Organizzative",
   "datesAndClient": "Date e Cliente",
   "service": "Servizio",
-  "selectProduct": "Seleziona Prodotto"
+  "selectProduct": "Seleziona Prodotto",
+  "noProducts": "Nessun prodotto",
+  "noProductsFound": "Nessun prodotto trovato"
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
-import { documentRegistry, parishes, clients, departments, users } from '@/database/schema';
+import { documentRegistry, generalRegister, parishes, clients, departments, users } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
 import { eq, and, isNull } from 'drizzle-orm';
@@ -48,6 +48,22 @@ export async function GET(
       .limit(1);
 
     if (!document) {
+      // Check if it's a general register document to provide better error message
+      const [generalRegisterDoc] = await db
+        .select()
+        .from(generalRegister)
+        .where(eq(generalRegister.id, id))
+        .limit(1);
+
+      if (generalRegisterDoc) {
+        // This is a general register document, should use /api/registratura/general-register/[id]
+        // Return 404 silently to avoid console noise
+        return NextResponse.json(
+          { success: false, error: 'Document not found' },
+          { status: 404 }
+        );
+      }
+
       console.log(`❌ Document ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Document not found' },

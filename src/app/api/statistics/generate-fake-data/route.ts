@@ -1025,6 +1025,7 @@ export async function POST(request: Request) {
           results.errors.push('No warehouses available. Cannot generate products.');
         } else {
           const productsToCreate = [];
+          const productParishMap = new Map<string, string>(); // Map product index to parishId
           let skippedProducts = 0;
 
           for (let i = 0; i < productsCount; i++) {
@@ -1040,20 +1041,19 @@ export async function POST(request: Request) {
             const productName = randomElement(PRODUCT_NAMES);
             const category = randomElement(PRODUCT_CATEGORIES);
             const unit = randomElement(PRODUCT_UNITS);
-            const purchasePrice = randomInt(10, 500);
-            const salePrice = Math.round(purchasePrice * (1 + randomInt(10, 50) / 100));
             const vatRate = randomElement(VAT_RATES);
             const minStock = randomInt(5, 50);
+            const productCode = generateUniqueProductCode(i);
+
+            // Store parishId for this product code
+            productParishMap.set(productCode, parishId);
 
             productsToCreate.push({
-              parishId,
-              code: generateUniqueProductCode(i),
+              code: productCode,
               name: `${productName} ${i + 1}`,
               description: `Produs ${category}`,
               category: category as ProductCategory,
               unit,
-              purchasePrice: purchasePrice.toString(),
-              salePrice: salePrice.toString(),
               vatRate: vatRate,
               trackStock: true,
               minStock: minStock.toString(),
@@ -1066,7 +1066,7 @@ export async function POST(request: Request) {
             const insertedProducts = await db
               .insert(products)
               .values(productsToCreate)
-              .returning({ id: products.id, parishId: products.parishId });
+              .returning({ id: products.id, code: products.code });
             
             results.products = insertedProducts.length;
 
@@ -1075,7 +1075,9 @@ export async function POST(request: Request) {
             const movementsToCreate = [];
 
             for (const product of insertedProducts.slice(0, productsWithStock)) {
-              const parishId = product.parishId as string;
+              const parishId = productParishMap.get(product.code as string);
+              if (!parishId) continue;
+              
               const warehouseId = warehousesByParish.get(parishId);
               
               if (!warehouseId) continue;
@@ -1128,6 +1130,7 @@ export async function POST(request: Request) {
           results.errors.push('No warehouses available. Cannot generate pangar products.');
         } else {
           const pangarProductsToCreate = [];
+          const pangarProductParishMap = new Map<string, string>(); // Map product code to parishId
           let skippedProducts = 0;
 
           // Pangar-specific product names
@@ -1149,20 +1152,19 @@ export async function POST(request: Request) {
 
             const productName = randomElement(pangarProductNames);
             const unit = randomElement(PRODUCT_UNITS);
-            const purchasePrice = randomInt(10, 500);
-            const salePrice = Math.round(purchasePrice * (1 + randomInt(10, 50) / 100));
             const vatRate = randomElement(VAT_RATES);
             const minStock = randomInt(5, 50);
+            const productCode = generateUniqueProductCode(i + 100000); // Use offset to avoid conflicts
+
+            // Store parishId for this product code
+            pangarProductParishMap.set(productCode, parishId);
 
             pangarProductsToCreate.push({
-              parishId,
-              code: generateUniqueProductCode(i + 100000), // Use offset to avoid conflicts
+              code: productCode,
               name: `${productName} ${i + 1}`,
               description: `Produs pangar`,
               category: 'pangar' as ProductCategory,
               unit,
-              purchasePrice: purchasePrice.toString(),
-              salePrice: salePrice.toString(),
               vatRate: vatRate,
               trackStock: true,
               minStock: minStock.toString(),
@@ -1175,7 +1177,7 @@ export async function POST(request: Request) {
             const insertedProducts = await db
               .insert(products)
               .values(pangarProductsToCreate)
-              .returning({ id: products.id, parishId: products.parishId });
+              .returning({ id: products.id, code: products.code });
             
             results.pangarProducts = insertedProducts.length;
 
@@ -1184,7 +1186,9 @@ export async function POST(request: Request) {
             const movementsToCreate = [];
 
             for (const product of insertedProducts.slice(0, productsWithStock)) {
-              const parishId = product.parishId as string;
+              const parishId = pangarProductParishMap.get(product.code as string);
+              if (!parishId) continue;
+              
               const warehouseId = warehousesByParish.get(parishId);
               
               if (!warehouseId) continue;
@@ -1275,7 +1279,7 @@ export async function POST(request: Request) {
         // Get existing products and fixed assets (with reasonable limit)
         const [existingProducts, existingFixedAssets] = await Promise.all([
           db
-            .select({ id: products.id, parishId: products.parishId })
+            .select({ id: products.id })
             .from(products)
             .where(eq(products.isActive, true))
             .limit(INVENTARY_ITEM_LIMIT),
@@ -1317,10 +1321,9 @@ export async function POST(request: Request) {
           for (const session of insertedSessions) {
             const parishId = session.parishId as string;
             
-            // Add products for this parish
-            const sessionProducts = existingProducts
-              .filter(p => p.parishId === parishId)
-              .slice(0, randomInt(3, 10));
+            // Add random products (products are now global, not parish-specific)
+            const shuffledProducts = [...existingProducts].sort(() => Math.random() - 0.5);
+            const sessionProducts = shuffledProducts.slice(0, randomInt(3, 10));
             
             for (const product of sessionProducts) {
               const bookQuantity = randomInt(10, 100);

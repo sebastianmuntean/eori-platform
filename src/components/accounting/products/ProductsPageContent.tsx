@@ -10,7 +10,6 @@ import { DeleteProductDialog } from '@/components/accounting/DeleteProductDialog
 import { ProductsFiltersCard } from '@/components/accounting/ProductsFiltersCard';
 import { ProductsTableCard } from '@/components/accounting/ProductsTableCard';
 import { useProducts, Product } from '@/hooks/useProducts';
-import { useParishes } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 import { useProductForm } from '@/hooks/useProductForm';
 import { useProductsTableColumns } from './ProductsTableColumns';
@@ -46,10 +45,7 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
     deleteProduct,
   } = useProducts();
 
-  const { parishes, fetchParishes } = useParishes();
-
   const [searchTerm, setSearchTerm] = useState('');
-  const [parishFilter, setParishFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,10 +65,6 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
     toApiData,
   } = useProductForm();
 
-  useEffect(() => {
-    fetchParishes({ all: true });
-  }, [fetchParishes]);
-
   // Build fetch parameters, converting empty strings to undefined
   // to avoid sending empty query parameters
   const fetchParams = useMemo(
@@ -80,11 +72,10 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
       page: currentPage,
       pageSize: PAGE_SIZE,
       search: searchTerm || undefined,
-      parishId: parishFilter || undefined,
       category: categoryFilter || undefined,
       isActive: parseBooleanFilter(isActiveFilter),
     }),
-    [currentPage, searchTerm, parishFilter, categoryFilter, isActiveFilter]
+    [currentPage, searchTerm, categoryFilter, isActiveFilter]
   );
 
   // Refresh products list
@@ -188,11 +179,6 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
     setCurrentPage(1);
   }, []);
 
-  const handleParishFilterChange = useCallback((value: string) => {
-    setParishFilter(value);
-    setCurrentPage(1);
-  }, []);
-
   const handleCategoryFilterChange = useCallback((value: string) => {
     setCategoryFilter(value);
     setCurrentPage(1);
@@ -205,7 +191,6 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
 
   const handleFilterClear = useCallback(() => {
     setSearchTerm('');
-    setParishFilter('');
     setCategoryFilter('');
     setIsActiveFilter('');
     setCurrentPage(1);
@@ -247,14 +232,11 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
       <ProductsFiltersCard
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        parishFilter={parishFilter}
-        onParishFilterChange={handleParishFilterChange}
         categoryFilter={categoryFilter}
         onCategoryFilterChange={handleCategoryFilterChange}
         isActiveFilter={isActiveFilter}
         onIsActiveFilterChange={handleIsActiveFilterChange}
         onClear={handleFilterClear}
-        parishes={parishes}
       />
 
       {/* Products Table */}
@@ -276,7 +258,6 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
         onCancel={handleAddModalClose}
         formData={formData}
         onFormDataChange={updateFormData}
-        parishes={parishes}
         onSubmit={handleCreate}
         isSubmitting={isSubmitting}
         error={submitError}
@@ -289,7 +270,6 @@ export function ProductsPageContent({ locale }: ProductsPageContentProps) {
         onCancel={handleEditModalClose}
         formData={formData}
         onFormDataChange={updateFormData}
-        parishes={parishes}
         onSubmit={handleUpdate}
         isSubmitting={isSubmitting}
         error={submitError}

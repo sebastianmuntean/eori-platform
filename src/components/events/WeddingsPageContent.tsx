@@ -14,6 +14,7 @@ import { WeddingEditModal } from '@/components/events/WeddingEditModal';
 import { DeleteEventDialog } from '@/components/events/DeleteEventDialog';
 import { WeddingsFiltersCard } from '@/components/events/WeddingsFiltersCard';
 import { WeddingsTableCard } from '@/components/events/WeddingsTableCard';
+import { mapEventToFormData, getInitialEventFormData } from '@/lib/utils/events';
 
 interface WeddingsPageContentProps {
   locale: string;
@@ -56,6 +57,8 @@ export function WeddingsPageContent({ locale }: WeddingsPageContentProps) {
     parishId: '',
     status: 'pending' as EventStatus,
     eventDate: '',
+    startTime: '',
+    endTime: '',
     location: '',
     priestName: '',
     notes: '',
@@ -132,14 +135,7 @@ export function WeddingsPageContent({ locale }: WeddingsPageContentProps) {
 
   const handleEdit = useCallback((event: ChurchEvent) => {
     setSelectedEvent(event);
-    setFormData({
-      parishId: event.parishId,
-      status: event.status,
-      eventDate: event.eventDate || '',
-      location: event.location || '',
-      priestName: event.priestName || '',
-      notes: event.notes || '',
-    });
+    setFormData(mapEventToFormData(event));
     setShowEditModal(true);
   }, []);
 
@@ -160,14 +156,7 @@ export function WeddingsPageContent({ locale }: WeddingsPageContentProps) {
   }, [cancelEvent]);
 
   const resetForm = useCallback(() => {
-    setFormData({
-      parishId: '',
-      status: 'pending' as EventStatus,
-      eventDate: '',
-      location: '',
-      priestName: '',
-      notes: '',
-    });
+    setFormData(getInitialEventFormData());
   }, []);
 
   const formatDate = useCallback((date: string | null) => {

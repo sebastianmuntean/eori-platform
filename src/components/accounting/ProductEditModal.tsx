@@ -2,7 +2,6 @@
 
 import { FormModal } from '@/components/accounting/FormModal';
 import { ProductFormFields, ProductFormData } from '@/components/accounting/products/ProductFormFields';
-import { Parish } from '@/hooks/useParishes';
 import { useTranslations } from 'next-intl';
 
 interface ProductEditModalProps {
@@ -11,7 +10,6 @@ interface ProductEditModalProps {
   onCancel: () => void;
   formData: ProductFormData;
   onFormDataChange: (data: Partial<ProductFormData>) => void;
-  parishes: Parish[];
   onSubmit: () => void;
   isSubmitting?: boolean;
   error?: string | null;
@@ -27,7 +25,6 @@ export function ProductEditModal({
   onCancel,
   formData,
   onFormDataChange,
-  parishes,
   onSubmit,
   isSubmitting = false,
   error,
@@ -50,7 +47,6 @@ export function ProductEditModal({
       <ProductFormFields
         formData={formData}
         onFormDataChange={onFormDataChange}
-        parishes={parishes}
         t={t}
       />
     </FormModal>

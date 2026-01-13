@@ -3,10 +3,11 @@
 import { useParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { DocumentList } from '@/components/registratura/DocumentList';
+import { GeneralRegisterList } from '@/components/registratura/GeneralRegisterList';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 
 export default function RegistraturaGeneralPage() {
   const params = useParams();
@@ -23,11 +24,12 @@ export default function RegistraturaGeneralPage() {
     return null;
   }
 
-  const handleDocumentClick = (document: any) => {
+  const handleDocumentClick = (document: GeneralRegisterDocument) => {
     router.push(`/${locale}/dashboard/registry/registratura/registrul-general/${document.id}`);
   };
 
   const handleCreateNew = () => {
+    // The GeneralRegisterList component will handle adding registerId to URL
     router.push(`/${locale}/dashboard/registry/registratura/registrul-general/new`);
   };
 
@@ -43,7 +45,7 @@ export default function RegistraturaGeneralPage() {
         className="mb-6"
       />
 
-      <DocumentList
+      <GeneralRegisterList
         onDocumentClick={handleDocumentClick}
         onCreateNew={handleCreateNew}
       />

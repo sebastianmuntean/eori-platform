@@ -3,7 +3,7 @@ import { db } from '@/database/client';
 import { generalRegister, registerConfigurations } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { getCurrentUser } from '@/lib/auth';
-import { eq, and, desc, like, or, sql } from 'drizzle-orm';
+import { eq, and, desc, like, or, sql, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import { generateRegistrationNumber } from '@/lib/services/register-number-service';
 
@@ -39,16 +39,21 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     
+    // registerConfigurationId is required
+    if (!registerConfigId) {
+      return NextResponse.json(
+        { success: false, error: 'registerConfigurationId is required' },
+        { status: 400 }
+      );
+    }
+    
     // Pagination parameters
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20')));
     const offset = (page - 1) * pageSize;
 
     // Build query conditions
-    const conditions = [];
-    if (registerConfigId) {
-      conditions.push(eq(generalRegister.registerConfigurationId, registerConfigId));
-    }
+    const conditions = [eq(generalRegister.registerConfigurationId, registerConfigId)];
     if (year) {
       conditions.push(eq(generalRegister.year, parseInt(year)));
     }
@@ -68,9 +73,9 @@ export async function GET(request: Request) {
       conditions.push(
         or(
           like(generalRegister.subject, `%${search}%`),
-          like(generalRegister.from, `%${search}%`),
-          like(generalRegister.to, `%${search}%`)
-        )
+          like(generalRegister.from || '', `%${search}%`),
+          like(generalRegister.to || '', `%${search}%`)
+        )!
       );
     }
 

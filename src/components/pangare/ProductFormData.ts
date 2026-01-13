@@ -2,14 +2,11 @@
  * Form data type for product forms in pangare module
  */
 export interface ProductFormData {
-  parishId: string;
   code: string;
   name: string;
   description: string;
   category: string;
   unit: string;
-  purchasePrice: string;
-  salePrice: string;
   vatRate: string;
   barcode: string;
   trackStock: boolean;
@@ -22,14 +19,11 @@ export interface ProductFormData {
  */
 export function createEmptyProductFormData(): ProductFormData {
   return {
-    parishId: '',
     code: '',
     name: '',
     description: '',
     category: '',
     unit: 'buc',
-    purchasePrice: '',
-    salePrice: '',
     vatRate: '19',
     barcode: '',
     trackStock: true,

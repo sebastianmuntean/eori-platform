@@ -11,6 +11,8 @@ export interface ChurchEvent {
   type: EventType;
   status: EventStatus;
   eventDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
   location: string | null;
   priestName: string | null;
   notes: string | null;
@@ -57,6 +59,8 @@ interface UseEventsReturn {
     type: EventType;
     status?: EventStatus;
     eventDate?: string | null;
+    startTime?: string | null;
+    endTime?: string | null;
     location?: string | null;
     priestName?: string | null;
     notes?: string | null;
@@ -66,6 +70,8 @@ interface UseEventsReturn {
     type?: EventType;
     status?: EventStatus;
     eventDate?: string | null;
+    startTime?: string | null;
+    endTime?: string | null;
     location?: string | null;
     priestName?: string | null;
     notes?: string | null;
@@ -131,6 +137,8 @@ export function useEvents(): UseEventsReturn {
     type: EventType;
     status?: EventStatus;
     eventDate?: string | null;
+    startTime?: string | null;
+    endTime?: string | null;
     location?: string | null;
     priestName?: string | null;
     notes?: string | null;

@@ -6,14 +6,11 @@ import { ProductFormData } from '@/components/accounting/products/ProductFormFie
  */
 export function createEmptyProductFormData(): ProductFormData {
   return {
-    parishId: '',
     code: '',
     name: '',
     description: '',
     category: '',
     unit: 'buc',
-    purchasePrice: '',
-    salePrice: '',
     vatRate: '19',
     barcode: '',
     trackStock: true,
@@ -27,14 +24,11 @@ export function createEmptyProductFormData(): ProductFormData {
  */
 export function productToFormData(product: Product): ProductFormData {
   return {
-    parishId: product.parishId,
     code: product.code,
     name: product.name,
     description: product.description || '',
     category: product.category || '',
     unit: product.unit,
-    purchasePrice: product.purchasePrice || '',
-    salePrice: product.salePrice || '',
     vatRate: product.vatRate,
     barcode: product.barcode || '',
     trackStock: product.trackStock,
@@ -49,8 +43,6 @@ export function productToFormData(product: Product): ProductFormData {
 export function productFormDataToCreateData(formData: ProductFormData): Partial<Product> {
   return {
     ...formData,
-    purchasePrice: formData.purchasePrice || null,
-    salePrice: formData.salePrice || null,
     minStock: formData.minStock || null,
     description: formData.description || null,
     category: formData.category || null,

@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { DocumentList } from '@/components/registratura/DocumentList';
+import { GeneralRegisterList } from '@/components/registratura/GeneralRegisterList';
 import { useTranslations } from 'next-intl';
-import { Document } from '@/hooks/useDocuments';
+import { GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 
 interface GeneralRegisterPageContentProps {
   locale: string;
@@ -23,7 +23,7 @@ export function GeneralRegisterPageContent({ locale }: GeneralRegisterPageConten
   const tReg = useTranslations('registratura');
 
   const handleDocumentClick = useCallback(
-    (document: Document) => {
+    (document: GeneralRegisterDocument) => {
       router.push(`/${locale}/dashboard/registry/general-register/${document.id}`);
     },
     [router, locale]
@@ -44,7 +44,7 @@ export function GeneralRegisterPageContent({ locale }: GeneralRegisterPageConten
         title={tReg('generalRegister') || 'General Register'}
       />
 
-      <DocumentList
+      <GeneralRegisterList
         onDocumentClick={handleDocumentClick}
         onCreateNew={handleCreateNew}
       />

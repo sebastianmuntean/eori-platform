@@ -39,8 +39,21 @@ export default function CreateDocumentPage() {
   const [loadingCopy, setLoadingCopy] = useState(false);
   const { toasts, success, error: showError, removeToast } = useToast();
 
+  // Get registerId from URL
+  const registerIdFromUrl = searchParams.get('registerId');
+  
   // Memoize copyFromId to avoid unnecessary effect re-runs
   const copyFromId = useMemo(() => searchParams.get('copyFrom'), [searchParams]);
+
+  // Set initial registerId from URL if not already set
+  useEffect(() => {
+    if (registerIdFromUrl && !initialData?.registerConfigurationId) {
+      setInitialData(prev => ({
+        ...prev,
+        registerConfigurationId: registerIdFromUrl,
+      }));
+    }
+  }, [registerIdFromUrl, initialData?.registerConfigurationId]);
 
   // Handle copyFrom query parameter
   useEffect(() => {
