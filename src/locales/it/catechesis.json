@@ -34,6 +34,13 @@
     "classCreated": "Classe creata con successo",
     "classUpdated": "Classe aggiornata con successo",
     "classDeleted": "Classe eliminata con successo",
+    "assignedLessons": "Lezioni assegnate",
+    "confirmDelete": "Sei sicuro di voler eliminare?",
+    "created": "Creato",
+    "deleted": "Eliminato",
+    "enrolledStudents": "Studenti iscritti",
+    "noProgressData": "Nessun dato di progresso",
+    "updated": "Aggiornato",
     "grades": {
       "preparation": "Preparazione",
       "I": "I",
@@ -69,7 +76,14 @@
     "noStudents": "Nessuno studente trovato",
     "studentCreated": "Studente creato con successo",
     "studentUpdated": "Studente aggiornato con successo",
-    "studentDeleted": "Studente eliminato con successo"
+    "studentDeleted": "Studente eliminato con successo",
+    "born": "Nato",
+    "classEnrollments": "Iscrizioni alle classi",
+    "completedLessons": "Lezioni completate",
+    "confirmDelete": "Sei sicuro di voler eliminare questo studente?",
+    "created": "Creato",
+    "deleted": "Eliminato",
+    "updated": "Aggiornato"
   },
   "lessons": {
     "title": "Lezioni",
@@ -86,6 +100,7 @@
     "editLesson": "Modifica Lezione",
     "deleteLesson": "Elimina Lezione",
     "confirmDeleteLesson": "Sei sicuro di voler eliminare questa lezione?",
+    "createDescription": "Crea una nuova lezione per la catechesi",
     "lessonDetails": "Dettagli Lezione",
     "lessonList": "Elenco Lezioni",
     "addLesson": "Aggiungi Lezione",
@@ -155,7 +170,11 @@
     "export": "Esporta",
     "import": "Importa",
     "refresh": "Aggiorna",
-    "create": "Crea"
+    "create": "Crea",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "save": "Salva"
   },
   "errors": {
     "classNotFound": "Classe non trovata",
@@ -169,7 +188,8 @@
     "failedToDelete": "Errore nell'eliminazione dei dati",
     "failedToLoad": "Errore nel caricamento",
     "invalidData": "Dati non validi",
-    "requiredFields": "Si prega di compilare tutti i campi obbligatori"
+    "requiredFields": "Si prega di compilare tutti i campi obbligatori",
+    "parishRequired": "La parrocchia è obbligatoria"
   },
   "status": {
     "active": "Attiva",
@@ -192,7 +212,15 @@
     "selectParish": "Seleziona Parrocchia",
     "selectTeacher": "Seleziona Catechista",
     "selectClass": "Seleziona Classe",
-    "selectStudent": "Seleziona Studente"
+    "selectStudent": "Seleziona Studente",
+    "allClasses": "Tutte le classi",
+    "allStatus": "Tutti gli stati"
+  },
+  "confirmations": {
+    "deleteLesson": "Sei sicuro di voler eliminare questa lezione?"
+  },
+  "validations": {
+    "titleRequired": "Il titolo è obbligatorio"
   },
   "table": {
     "noData": "Nessun dato disponibile",

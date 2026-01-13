@@ -34,6 +34,13 @@
     "classCreated": "Clasă creată cu succes",
     "classUpdated": "Clasă actualizată cu succes",
     "classDeleted": "Clasă ștearsă cu succes",
+    "assignedLessons": "Lecții atribuite",
+    "confirmDelete": "Ești sigur că vrei să ștergi?",
+    "created": "Creat",
+    "deleted": "Șters",
+    "enrolledStudents": "Elevi înscriși",
+    "noProgressData": "Nu există date de progres",
+    "updated": "Actualizat",
     "grades": {
       "preparation": "Pregătire",
       "I": "I",
@@ -69,7 +76,14 @@
     "noStudents": "Nu există elevi",
     "studentCreated": "Elev creat cu succes",
     "studentUpdated": "Elev actualizat cu succes",
-    "studentDeleted": "Elev șters cu succes"
+    "studentDeleted": "Elev șters cu succes",
+    "born": "Născut",
+    "classEnrollments": "Înscrieri în clase",
+    "completedLessons": "Lecții completate",
+    "confirmDelete": "Ești sigur că vrei să ștergi acest elev?",
+    "created": "Creat",
+    "deleted": "Șters",
+    "updated": "Actualizat"
   },
   "lessons": {
     "title": "Lecții",
@@ -86,6 +100,7 @@
     "editLesson": "Editează lecție",
     "deleteLesson": "Șterge lecție",
     "confirmDeleteLesson": "Ești sigur că vrei să ștergi această lecție?",
+    "createDescription": "Creează o nouă lecție pentru cateheza",
     "lessonDetails": "Detalii lecție",
     "lessonList": "Listă lecții",
     "addLesson": "Adaugă lecție",
@@ -155,7 +170,11 @@
     "export": "Exportă",
     "import": "Importă",
     "refresh": "Reîncarcă",
-    "create": "Creează"
+    "create": "Creează",
+    "cancel": "Anulează",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "save": "Salvează"
   },
   "errors": {
     "classNotFound": "Clasa nu a fost găsită",
@@ -169,7 +188,8 @@
     "failedToDelete": "Eroare la ștergerea datelor",
     "failedToLoad": "Eroare la încărcare",
     "invalidData": "Date invalide",
-    "requiredFields": "Te rugăm să completezi toate câmpurile obligatorii"
+    "requiredFields": "Te rugăm să completezi toate câmpurile obligatorii",
+    "parishRequired": "Parohia este obligatorie"
   },
   "status": {
     "active": "Activă",
@@ -192,7 +212,15 @@
     "selectParish": "Selectează parohie",
     "selectTeacher": "Selectează catehet",
     "selectClass": "Selectează clasă",
-    "selectStudent": "Selectează elev"
+    "selectStudent": "Selectează elev",
+    "allClasses": "Toate clasele",
+    "allStatus": "Toate statusurile"
+  },
+  "confirmations": {
+    "deleteLesson": "Ești sigur că vrei să ștergi această lecție?"
+  },
+  "validations": {
+    "titleRequired": "Titlul este obligatoriu"
   },
   "table": {
     "noData": "Nu există date",

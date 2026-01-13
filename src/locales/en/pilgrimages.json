@@ -250,6 +250,9 @@
     "failedToUpload": "Error uploading document",
     "fileTooLarge": "File exceeds 10MB limit",
     "invalidFileType": "Invalid file type"
-  }
+  },
+  "cancel": "Cancel",
+  "confirmDeleteParticipant": "Are you sure you want to delete this participant?",
+  "participantCreated": "Participant created successfully"
 }
 

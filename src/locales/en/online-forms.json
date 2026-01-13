@@ -145,7 +145,10 @@
   "globalTemplate": "Global Template",
   "parishTemplate": "Parish Template",
   "noDatasets": "No datasets",
-  "mappingsCount": "Mappings"
+  "mappingsCount": "Mappings",
+  "invalidJsonFormat": "Invalid JSON format",
+  "pleaseEnterSqlQueryAndSelectColumn": "Please enter SQL query and select column",
+  "pleaseSelectTableAndColumn": "Please select table and column"
 }
 
 

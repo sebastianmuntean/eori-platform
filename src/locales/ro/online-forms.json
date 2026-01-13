@@ -148,6 +148,9 @@
   "pleaseEnterSqlQuery": "Te rugăm să introduci un query SQL",
   "failedToTestQuery": "Eroare la testarea query-ului",
   "noDatasets": "Nu există dataset-uri",
-  "mappingsCount": "Mapări"
+  "mappingsCount": "Mapări",
+  "invalidJsonFormat": "Format JSON invalid",
+  "pleaseEnterSqlQueryAndSelectColumn": "Te rugăm să introduci un query SQL și să selectezi coloana",
+  "pleaseSelectTableAndColumn": "Te rugăm să selectezi tabelul și coloana"
 }
 

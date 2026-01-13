@@ -250,6 +250,9 @@
     "failedToUpload": "Eroare la încărcarea documentului",
     "fileTooLarge": "Fișierul depășește limita de 10MB",
     "invalidFileType": "Tip de fișier nevalid"
-  }
+  },
+  "cancel": "Anulează",
+  "confirmDeleteParticipant": "Ești sigur că vrei să ștergi acest participant?",
+  "participantCreated": "Participant creat cu succes"
 }
 

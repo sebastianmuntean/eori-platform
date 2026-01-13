@@ -145,7 +145,10 @@
   "globalTemplate": "Template Globale",
   "parishTemplate": "Template Parrocchia",
   "noDatasets": "Nessun dataset",
-  "mappingsCount": "Mappature"
+  "mappingsCount": "Mappature",
+  "invalidJsonFormat": "Formato JSON non valido",
+  "pleaseEnterSqlQueryAndSelectColumn": "Si prega di inserire una query SQL e selezionare la colonna",
+  "pleaseSelectTableAndColumn": "Si prega di selezionare la tabella e la colonna"
 }
 
 

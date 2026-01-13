@@ -250,6 +250,9 @@
     "failedToUpload": "Errore nel caricamento del documento",
     "fileTooLarge": "Il file supera il limite di 10MB",
     "invalidFileType": "Tipo di file non valido"
-  }
+  },
+  "cancel": "Annulla",
+  "confirmDeleteParticipant": "Sei sicuro di voler eliminare questo partecipante?",
+  "participantCreated": "Partecipante creato con successo"
 }
 
