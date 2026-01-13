@@ -29,8 +29,9 @@
 - Permisiuni folosite: `CATECHESIS_PERMISSIONS.*`
 
 ### Cemeteries (1 pagină)
-- ✅ **ARE permisiuni**: `CEMETERY_PERMISSIONS.CEMETERIES_READ`
-- Notă: Pagina `cemeteries/page.tsx` are permisiuni implementate corect
+- ✅ **ARE permisiuni în cod**: `CEMETERY_PERMISSIONS.CEMETERIES_READ`
+- ⚠️ **PROBLEMĂ IDENTIFICATĂ**: Permisiunile pentru cemeteries NU există în baza de date
+- ✅ **SOLUȚIE**: Migrație creată `0058_add_cemeteries_permissions.sql` pentru a adăuga toate permisiunile
 
 ### Chat (1 pagină)
 - ✅ Are permisiuni: `CHAT_PERMISSIONS.VIEW`
@@ -78,10 +79,10 @@
 
 ## Observații
 
-1. **Pagina Cemeteries**: Are permisiuni implementate corect (`CEMETERY_PERMISSIONS.CEMETERIES_READ`). Dacă există probleme, acestea pot fi:
-   - Permisiunea nu există în baza de date
-   - Utilizatorul nu are permisiunea atribuită
-   - Există o problemă cu hook-ul `useRequirePermission`
+1. **Pagina Cemeteries**: 
+   - ✅ Are permisiuni implementate corect în cod (`CEMETERY_PERMISSIONS.CEMETERIES_READ`)
+   - ❌ **PROBLEMĂ**: Permisiunile pentru cemeteries NU există în baza de date
+   - ✅ **REZOLVAT**: Migrație creată `0058_add_cemeteries_permissions.sql` care adaugă toate cele 22 de permisiuni pentru modulul Cemeteries
 
 2. **Fișier refactored**: Există un fișier `catechesis/classes/page.refactored.tsx` care nu este o pagină activă (nu este `page.tsx`).
 
@@ -94,18 +95,27 @@ Toate paginile care necesită verificări de permisiuni au implementări corecte
 1. ✅ Verificare sistematică a tuturor paginilor - completă
 2. ✅ Creare raport CSV detaliat - `permissions_report.csv`
 3. ✅ Identificare permisiuni lipsă în baza de date
-4. ✅ Creare migrație pentru permisiuni lipsă:
-   - **Migrație creată**: `database/migrations/0057_add_global_settings_permissions.sql`
-   - **Permisiuni adăugate**:
+4. ✅ Creare migrații pentru permisiuni lipsă:
+   - **Migrație 1**: `database/migrations/0057_add_global_settings_permissions.sql`
      - `administration.globalSettings.view`
      - `administration.globalSettings.update`
+   - **Migrație 2**: `database/migrations/0058_add_cemeteries_permissions.sql`
+     - Toate permisiunile pentru modulul Cemeteries (22 permisiuni):
+       - `cemeteries.create`, `cemeteries.read`, `cemeteries.update`, `cemeteries.delete`
+       - `cemeteries.parcels.*`, `cemeteries.rows.*`, `cemeteries.graves.*`
+       - `cemeteries.burials.*`, `cemeteries.concessions.*`, `cemeteries.concessions.payments.*`
 
 ## Recomandări
 
-1. **Rulează migrația SQL**: `database/migrations/0057_add_global_settings_permissions.sql`
-   - Această migrație adaugă permisiunile pentru Global Settings care lipsesc din baza de date
+1. **Rulează migrațiile SQL** (în ordine):
+   - `database/migrations/0057_add_global_settings_permissions.sql` - Adaugă permisiunile pentru Global Settings
+   - `database/migrations/0058_add_cemeteries_permissions.sql` - Adaugă toate permisiunile pentru Cemeteries (22 permisiuni)
    - Rulează manual folosind clientul PostgreSQL preferat (psql, pgAdmin, etc.)
 
-2. Verificare că utilizatorii au permisiunile necesare atribuite
-3. Testare funcțională a verificărilor de permisiuni pentru a confirma că funcționează corect
+2. **Asignează permisiunile la roluri**:
+   - După ce rulezi migrațiile, asigură-te că permisiunile sunt atribuite rolurilor corespunzătoare
+   - Poți folosi scriptul `database/migrations/assign_all_permissions_to_superadmin.sql` pentru a asigna toate permisiunile la rolul superadmin
+
+3. Verificare că utilizatorii au permisiunile necesare atribuite
+4. Testare funcțională a verificărilor de permisiuni pentru a confirma că funcționează corect
 

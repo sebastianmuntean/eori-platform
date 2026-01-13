@@ -439,4 +439,3 @@ export function useGeneralRegisterDocuments(): UseGeneralRegisterDocumentsReturn
     fetchDocuments,
   };
 }
-

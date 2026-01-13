@@ -54,4 +54,3 @@ export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> =
   BAPTISM: 'baptism',
   WEDDING: 'wedding',
 } as const;
-
