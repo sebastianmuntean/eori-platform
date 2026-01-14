@@ -45,9 +45,7 @@ export const EVENT_PAGE_SIZE = 10;
 
 /**
  * Event type constants
- */
-
-export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> = {
+ */export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> = {
   FUNERAL: 'funeral',
   BAPTISM: 'baptism',
   WEDDING: 'wedding',

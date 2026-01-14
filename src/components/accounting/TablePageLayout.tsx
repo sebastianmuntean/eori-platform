@@ -137,12 +137,12 @@ export function TablePageLayout<T extends Record<string, any> = Record<string, a
 
   return (
     <PageContainer>
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex-1 min-w-0">
           <Breadcrumbs items={breadcrumbs} className="mb-2" />
-          <h1 className="text-3xl font-bold text-text-primary">{title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">{title}</h1>
         </div>
-        <Button onClick={onAdd}>{addButtonLabel}</Button>
+        <Button onClick={onAdd} className="w-full md:w-auto">{addButtonLabel}</Button>
       </div>
 
       <Card>

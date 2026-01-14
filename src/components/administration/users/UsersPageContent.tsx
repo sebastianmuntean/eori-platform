@@ -294,21 +294,22 @@ export function UsersPageContent({ locale }: UsersPageContentProps) {
         ]}
         title={t('utilizatori') || 'Users'}
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
             <Button
               variant="outline"
               onClick={() => setShowImportSection(!showImportSection)}
+              className="w-full sm:w-auto"
             >
               {showImportSection ? t('hideImport') : t('importFromExcel')}
             </Button>
-            <Button variant="outline" onClick={handleExport} disabled={loading}>
+            <Button variant="outline" onClick={handleExport} disabled={loading} className="w-full sm:w-auto">
               {t('exportToExcel')}
             </Button>
             <Button onClick={() => {
               setShowAddUserModal(true);
               setNewUserData({ name: '', email: '', role: 'paroh', address: '', city: '', phone: '' });
               setNewUserErrors({});
-            }}>
+            }} className="w-full sm:w-auto">
               {t('addUser')}
             </Button>
           </div>

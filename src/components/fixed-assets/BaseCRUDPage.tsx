@@ -211,9 +211,9 @@ export function BaseCRUDPage({
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{pageTitle}</h1>
-            <Button onClick={handleAdd} disabled={loading}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-xl md:text-2xl font-bold">{pageTitle}</h1>
+            <Button onClick={handleAdd} disabled={loading} className="w-full md:w-auto">
               {t('add') || 'Add'}
             </Button>
           </div>

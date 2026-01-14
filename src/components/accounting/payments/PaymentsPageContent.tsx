@@ -388,11 +388,11 @@ export function PaymentsPageContent({ locale }: PaymentsPageContentProps) {
         ]}
         title={t('payments')}
         action={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowQuickPaymentModal(true)}>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setShowQuickPaymentModal(true)} className="w-full sm:w-auto">
               {t('quickPayment') || 'Incasare rapida'}
             </Button>
-            <Button onClick={() => setShowAddModal(true)}>
+            <Button onClick={() => setShowAddModal(true)} className="w-full sm:w-auto">
               {t('add')} {t('payment')}
             </Button>
           </div>

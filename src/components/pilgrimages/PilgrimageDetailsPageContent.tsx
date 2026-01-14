@@ -106,14 +106,15 @@ export function PilgrimageDetailsPageContent({ locale, id }: PilgrimageDetailsPa
         breadcrumbs={breadcrumbs}
         title={pilgrimage.title}
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               onClick={() => router.push(`/${locale}/dashboard/pilgrimages/${id}/edit`)}
+              className="w-full sm:w-auto"
             >
               {t('edit')}
             </Button>
-            <Button onClick={() => router.push(`/${locale}/dashboard/pilgrimages`)}>
+            <Button onClick={() => router.push(`/${locale}/dashboard/pilgrimages`)} className="w-full sm:w-auto">
               {t('back')}
             </Button>
           </div>
