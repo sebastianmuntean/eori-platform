@@ -190,15 +190,15 @@ export default function DocumentDetailPage() {
     return statusMap[status] || status;
   };
 
-  const getStatusVariant = (status: string): 'default' | 'success' | 'warning' | 'danger' => {
-    const variantMap: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
-      draft: 'default',
+  const getStatusVariant = (status: string): 'secondary' | 'success' | 'warning' | 'danger' => {
+    const variantMap: Record<string, 'secondary' | 'success' | 'warning' | 'danger'> = {
+      draft: 'secondary',
       in_work: 'warning',
       distributed: 'warning',
       resolved: 'success',
       cancelled: 'danger',
     };
-    return variantMap[status] || 'default';
+    return variantMap[status] || 'secondary';
   };
 
   return (
