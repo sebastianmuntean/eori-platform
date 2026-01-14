@@ -56,6 +56,10 @@ export async function GET(
         .limit(1);
 
       if (generalRegisterDoc) {
+        // #region agent log
+        const logData = {location:'api/registratura/documents/[id]/route.ts:58',message:'General register document found in wrong table',data:{documentId:id,foundInGeneralRegister:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'};
+        await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+        // #endregion
         // This is a general register document, should use /api/registratura/general-register/[id]
         // Return 404 silently to avoid console noise
         return NextResponse.json(
@@ -64,6 +68,10 @@ export async function GET(
         );
       }
 
+      // #region agent log
+      const logData2 = {location:'api/registratura/documents/[id]/route.ts:67',message:'Document not found in either table',data:{documentId:id,foundInDocumentRegistry:false,foundInGeneralRegister:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'};
+      await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+      // #endregion
       console.log(`❌ Document ${id} not found`);
       return NextResponse.json(
         { success: false, error: 'Document not found' },

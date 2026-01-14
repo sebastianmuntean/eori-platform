@@ -1,6 +1,6 @@
 'use client';
 
-import { useSidebar } from '@/hooks/useSidebar';
+import { useSidebar } from '@/contexts/SidebarContext';
 import { useUser } from '@/hooks/useUser';
 import { Input } from '@/components/ui/Input';
 import { Dropdown } from '@/components/ui/Dropdown';
@@ -208,14 +208,7 @@ export function Header() {
       label: tAuth('profile'),
       onClick: () => {
         console.log('Step 5: Profile menu item clicked');
-        // Navigate to profile
-      },
-    },
-    {
-      label: t('settings'),
-      onClick: () => {
-        console.log('Step 6: Settings menu item clicked');
-        // Navigate to settings
+        router.push(`/${locale}/dashboard/profile`);
       },
     },
     {

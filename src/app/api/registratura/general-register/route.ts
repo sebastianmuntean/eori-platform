@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/database/client';
 import { generalRegister, registerConfigurations } from '@/database/schema';
 import { formatErrorResponse, logError } from '@/lib/errors';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { eq, and, desc, like, or, sql, SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import { generateRegistrationNumber } from '@/lib/services/register-number-service';
@@ -21,6 +21,10 @@ const createDocumentSchema = z.object({
 
 /**
  * GET /api/registratura/general-register - List documents
+ * 
+ * Security:
+ * - Requires authentication
+ * - Validates user has 'registratura.generalRegister.view' permission
  */
 export async function GET(request: Request) {
   try {
@@ -29,6 +33,15 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Authorization check: Verify user has permission to view general register documents
+    const hasViewPermission = await checkPermission('registratura.generalRegister.view');
+    if (!hasViewPermission) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to view general register documents' },
+        { status: 403 }
       );
     }
 
@@ -138,6 +151,10 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/registratura/general-register - Create new document
+ * 
+ * Security:
+ * - Requires authentication
+ * - Validates user has 'registratura.generalRegister.create' permission
  */
 export async function POST(request: Request) {
   console.log('[API POST /api/registratura/general-register] Request received');
@@ -151,6 +168,16 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
+      );
+    }
+
+    // Authorization check: Verify user has permission to create general register documents
+    const hasCreatePermission = await checkPermission('registratura.generalRegister.create');
+    if (!hasCreatePermission) {
+      console.log('[API POST /api/registratura/general-register] ❌ User does not have create permission');
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to create general register documents' },
+        { status: 403 }
       );
     }
 

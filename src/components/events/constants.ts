@@ -38,9 +38,7 @@ export const STATUS_VARIANT_MAP: Record<EventStatus, 'warning' | 'success' | 'da
   confirmed: 'success',
   completed: 'success',
   cancelled: 'danger',
-};
-
-/**
+};/**
  * Default page size for event tables
  */
 export const EVENT_PAGE_SIZE = 10;

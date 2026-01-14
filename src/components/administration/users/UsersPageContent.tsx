@@ -96,14 +96,14 @@ export function UsersPageContent({ locale }: UsersPageContentProps) {
 
   const handleImport = async () => {
     if (!importFile) {
-      alert('Te rugăm să selectezi un fișier Excel pentru import.');
+      alert(t('selectExcelFileForImport'));
       return;
     }
 
     // Validate file type
     const fileExtension = importFile.name.split('.').pop()?.toLowerCase();
     if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-      alert('Te rugăm să selectezi un fișier Excel (.xlsx sau .xls).');
+      alert(t('selectExcelFileWithExtensions'));
       setImportFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

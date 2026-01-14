@@ -32,6 +32,7 @@ const NOTIFICATION_MESSAGES = {
  * Security:
  * - Requires authentication
  * - Validates UUID format for document ID
+ * - Validates user has 'registratura.generalRegister.view' permission
  * - Validates user has access to document's parish
  */
 export async function GET(
@@ -59,6 +60,15 @@ export async function GET(
       );
     }
 
+    // Authorization check: Verify user has permission to view general register documents
+    const hasViewPermission = await checkPermission('registratura.generalRegister.view');
+    if (!hasViewPermission) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to view general register documents' },
+        { status: 403 }
+      );
+    }
+
     const [document] = await db
       .select()
       .from(generalRegister)
@@ -73,11 +83,34 @@ export async function GET(
       );
     }
 
-    // Authorization check: Verify user has access to the document's parish
-    if (document.parishId) {
+    // Authorization check: Allow access if user created the document OR has access to the document's parish
+    // Users should always be able to view documents they created, even if their parish assignment changes
+    const isCreator = document.createdBy === userId;
+    
+    // #region agent log
+    const logData = {location:'api/registratura/general-register/[id]/route.ts:88',message:'Checking document access',data:{documentId:id,documentParishId:document.parishId,userId,isCreator,documentCreatedBy:document.createdBy},timestamp:Date.now(),sessionId:'debug-session',runId:'auth-fix',hypothesisId:'auth'};
+    await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+    // #endregion
+    
+    if (isCreator) {
+      // #region agent log
+      const logData2 = {location:'api/registratura/general-register/[id]/route.ts:95',message:'Access granted - user is creator',data:{documentId:id,userId},timestamp:Date.now(),sessionId:'debug-session',runId:'auth-fix',hypothesisId:'auth'};
+      await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+      // #endregion
+      // User created the document - allow access
+    } else if (document.parishId) {
+      // User didn't create the document - check parish access
       try {
-        await requireParishAccess(document.parishId, false);
+        const accessResult = await requireParishAccess(document.parishId, false);
+        // #region agent log
+        const logData3 = {location:'api/registratura/general-register/[id]/route.ts:100',message:'Parish access granted',data:{documentId:id,userParishId:accessResult.userParishId},timestamp:Date.now(),sessionId:'debug-session',runId:'auth-fix',hypothesisId:'auth'};
+        await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
+        // #endregion
       } catch (error) {
+        // #region agent log
+        const logData4 = {location:'api/registratura/general-register/[id]/route.ts:104',message:'Parish access denied',data:{documentId:id,documentParishId:document.parishId,error:error instanceof Error ? error.message : 'Unknown error'},timestamp:Date.now(),sessionId:'debug-session',runId:'auth-fix',hypothesisId:'auth'};
+        await fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData4)}).catch(()=>{});
+        // #endregion
         if (error instanceof AuthorizationError) {
           return NextResponse.json(
             { success: false, error: 'You do not have access to this document' },
@@ -87,6 +120,7 @@ export async function GET(
         throw error;
       }
     }
+    // If document has no parishId, allow access (global document)
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`✓ Document ${id} found`);

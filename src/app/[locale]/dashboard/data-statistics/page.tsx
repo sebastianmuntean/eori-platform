@@ -377,10 +377,10 @@ export default function DataStatisticsPage() {
         await fetchStatistics();
         alert(data.message || 'Fake data generated successfully');
       } else {
-        alert(data.error || 'Failed to generate fake data');
+        alert(data.error || t('failedToGenerateFakeData'));
       }
     } catch (err) {
-      alert('Failed to generate fake data');
+      alert(t('failedToGenerateFakeData'));
       console.error('Error generating fake data:', err);
     } finally {
       setGenerating(false);

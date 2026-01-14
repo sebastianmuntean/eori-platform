@@ -372,9 +372,7 @@ interface UseGeneralRegisterDocumentsReturn {
     sortBy?: string;
     sortOrder?: string;
   }) => Promise<void>;
-}
-
-/**
+}/**
  * Hook for fetching list of general register documents
  */
 export function useGeneralRegisterDocuments(): UseGeneralRegisterDocumentsReturn {

@@ -43,7 +43,13 @@ export default function CreateDocumentPage() {
   }) => {
     setLoading(true);
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'registrul-general/new/page.tsx:44',message:'Creating general register document',data:{registerConfigurationId:data.registerConfigurationId,documentType:data.documentType},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       const document = await createGeneralRegisterDocument(data);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'registrul-general/new/page.tsx:47',message:'Document created, redirecting',data:{documentId:document?.id,redirectUrl:`/${locale}/dashboard/registry/registratura/registrul-general/${document?.id}`},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       if (document) {
         success(tReg('documentCreated'));
         router.push(`/${locale}/dashboard/registry/registratura/registrul-general/${document.id}`);

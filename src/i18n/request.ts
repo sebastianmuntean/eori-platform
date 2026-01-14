@@ -21,6 +21,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       hr: (await import(`../locales/${locale}/hr.json`)).default,
       catechesis: (await import(`../locales/${locale}/catechesis.json`)).default,
       pilgrimages: (await import(`../locales/${locale}/pilgrimages.json`)).default,
+      profile: (await import(`../locales/${locale}/profile.json`)).default,
     },
   };
 });

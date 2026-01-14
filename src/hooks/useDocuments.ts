@@ -326,8 +326,14 @@ export function useDocument(id?: string): UseDocumentReturn {
     setError(null);
 
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:329',message:'Fetching document from API',data:{documentId,apiEndpoint:'/api/registratura/documents/'+documentId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       const response = await fetch(`/api/registratura/documents/${documentId}`);
       const result = await response.json();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:331',message:'API response received',data:{documentId,status:response.status,success:result.success,error:result.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch document');
@@ -335,6 +341,9 @@ export function useDocument(id?: string): UseDocumentReturn {
 
       setDocument(result.data);
     } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:338',message:'Error fetching document',data:{documentId,error:err instanceof Error ? err.message : 'Unknown error'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch document';
       setError(errorMessage);
     } finally {
