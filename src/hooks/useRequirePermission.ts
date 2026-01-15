@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useUser } from '@/hooks/useUser';
 import { isValidInternalPath } from '@/lib/utils/permission-validation';
 
 /**
@@ -23,12 +24,30 @@ export function useRequirePermission(permission: string, redirectTo?: string): {
   const router = useRouter();
   const params = useParams();
   const locale = (params.locale as string) || 'ro';
-  const { hasPermission, loading, permissions } = useUserPermissions();
+  const { user, loading: userLoading } = useUser();
+  const { hasPermission, loading: permissionsLoading, permissions } = useUserPermissions();
   const hasRedirectedRef = useRef(false); // Prevent multiple redirects
 
+  // Combined loading state: loading if user or permissions are loading
+  const loading = userLoading || permissionsLoading;
+
   useEffect(() => {
-    // Don't redirect while loading, if permissions are not loaded yet, or if already redirected
-    if (loading || hasRedirectedRef.current || permissions.length === 0) {
+    // Don't redirect while loading or if already redirected
+    if (loading || hasRedirectedRef.current) {
+      return;
+    }
+
+    // First check: If user is not authenticated, redirect to login
+    if (!user) {
+      const currentPath = window.location.pathname;
+      const loginUrl = `/${locale}/login?redirect=${encodeURIComponent(currentPath)}`;
+      hasRedirectedRef.current = true;
+      router.replace(loginUrl);
+      return;
+    }
+
+    // Second check: If permissions are not loaded yet, wait
+    if (permissions.length === 0) {
       return;
     }
 
@@ -40,7 +59,7 @@ export function useRequirePermission(permission: string, redirectTo?: string): {
       return;
     }
 
-    // Check permission AFTER loading is complete
+    // Third check: Verify permission AFTER authentication and permissions are loaded
     const userHasPermission = hasPermission(permission);
 
     // If user doesn't have permission, redirect to unauthorized page
@@ -74,7 +93,7 @@ export function useRequirePermission(permission: string, redirectTo?: string): {
       // Perform redirect
       router.replace(redirectPath);
     }
-  }, [loading, hasPermission, permission, permissions, locale, router, redirectTo]);
+  }, [loading, hasPermission, permission, permissions, locale, router, redirectTo, user]);
 
   // Reset redirect flag when permission changes
   useEffect(() => {
