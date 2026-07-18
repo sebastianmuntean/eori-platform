@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { generateContractInvoiceItems, generateContractInvoiceDescription } from '@/lib/invoice-templates';
+import { extractIdFromDbResult } from '@/lib/utils/db-result';
 
 const generateInvoiceSchema = z.object({
   periodYear: z.number().int().min(2000).max(2100),
@@ -197,24 +198,7 @@ export async function POST(
       ) RETURNING id
     `);
     
-    // Handle different return formats from db.execute
-    // postgres-js returns { rows: [...] } format
-    let invoiceId: string;
-    if (result && typeof result === 'object') {
-      if ('rows' in result && Array.isArray(result.rows) && result.rows.length > 0) {
-        invoiceId = result.rows[0].id;
-      } else if (Array.isArray(result) && result.length > 0) {
-        invoiceId = (result[0] as { id: string }).id;
-      } else if ('id' in result) {
-        invoiceId = (result as any).id;
-      } else {
-        console.error('❌ Unexpected result format from db.execute:', JSON.stringify(result, null, 2));
-        throw new Error('Failed to get invoice ID from insert result');
-      }
-    } else {
-      console.error('❌ Unexpected result type from db.execute:', typeof result, result);
-      throw new Error('Failed to get invoice ID from insert result');
-    }
+    const invoiceId = extractIdFromDbResult(result);
     
     // Fetch the created invoice using Drizzle
     const [newInvoice] = await db

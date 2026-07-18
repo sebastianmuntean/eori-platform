@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { eq, like, or, desc, asc, and, gte, lte, sql, max, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { generateStockMovementsFromInvoice } from '@/lib/stock-movements';
+import { extractIdFromDbResult } from '@/lib/utils/db-result';
 
 const invoiceItemSchema = z.object({
   description: z.string(),
@@ -341,21 +342,7 @@ export async function POST(request: Request) {
       ) RETURNING id
     `);
     
-    // Extract invoice ID from result
-    let invoiceId: string;
-    if (result && typeof result === 'object') {
-      if ('rows' in result && Array.isArray(result.rows) && result.rows.length > 0) {
-        invoiceId = result.rows[0].id;
-      } else if (Array.isArray(result) && result.length > 0) {
-        invoiceId = (result[0] as { id: string }).id;
-      } else if ('id' in result) {
-        invoiceId = (result as any).id;
-      } else {
-        throw new Error('Failed to get invoice ID from insert result');
-      }
-    } else {
-      throw new Error('Failed to get invoice ID from insert result');
-    }
+    const invoiceId = extractIdFromDbResult(result);
     
     // Fetch the created invoice using Drizzle
     const [newInvoice] = await db
