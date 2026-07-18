@@ -17,11 +17,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
       menu: (await import(`../locales/${locale}/menu.json`)).default,
       auth: (await import(`../locales/${locale}/auth.json`)).default,
       'online-forms': (await import(`../locales/${locale}/online-forms.json`)).default,
-      registratura: (await import(`../locales/${locale}/registratura.json`)).default,
+      registry: (await import(`../locales/${locale}/registry.json`)).default,
       hr: (await import(`../locales/${locale}/hr.json`)).default,
       catechesis: (await import(`../locales/${locale}/catechesis.json`)).default,
       pilgrimages: (await import(`../locales/${locale}/pilgrimages.json`)).default,
       profile: (await import(`../locales/${locale}/profile.json`)).default,
+      accounting: (await import(`../locales/${locale}/accounting.json`)).default,
+      events: (await import(`../locales/${locale}/events.json`)).default,
+      parishioners: (await import(`../locales/${locale}/parishioners.json`)).default,
+      cemeteries: (await import(`../locales/${locale}/cemeteries.json`)).default,
+      administration: (await import(`../locales/${locale}/administration.json`)).default,
     },
   };
 });

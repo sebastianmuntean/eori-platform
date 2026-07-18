@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { GeneralRegisterList } from '@/components/registratura/GeneralRegisterList';
+import { GeneralRegisterList } from '@/components/registry/GeneralRegisterList';
 import { useTranslations } from 'next-intl';
 import { GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 
@@ -20,7 +20,7 @@ interface GeneralRegisterPageContentProps {
 export function GeneralRegisterPageContent({ locale }: GeneralRegisterPageContentProps) {
   const router = useRouter();
   const t = useTranslations('common');
-  const tReg = useTranslations('registratura');
+  const tReg = useTranslations('registry');
 
   const handleDocumentClick = useCallback(
     (document: GeneralRegisterDocument) => {
@@ -38,7 +38,7 @@ export function GeneralRegisterPageContent({ locale }: GeneralRegisterPageConten
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+          { label: tReg('registry'), href: `/${locale}/dashboard/registry` },
           { label: tReg('generalRegister') },
         ]}
         title={tReg('generalRegister') || 'General Register'}

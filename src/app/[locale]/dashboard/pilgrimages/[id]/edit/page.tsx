@@ -57,11 +57,6 @@ export default function EditPilgrimagePage() {
     fetchParishes({ all: true });
   }, [permissionLoading, fetchParishes]);
 
-  // Don't render content while checking permissions (after all hooks are called)
-  if (permissionLoading) {
-    return <div>{t('loading')}</div>;
-  }
-
   useEffect(() => {
     if (id) {
       fetchPilgrimage(id);
@@ -89,6 +84,11 @@ export default function EditPilgrimagePage() {
       });
     }
   }, [pilgrimage]);
+
+  // Don't render content while checking permissions (after all hooks are called)
+  if (permissionLoading) {
+    return <div>{t('loading')}</div>;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

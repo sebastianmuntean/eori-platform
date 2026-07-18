@@ -162,10 +162,11 @@ describe('PermissionsPageContent', () => {
     it('should open add modal when add button is clicked', () => {
       render(<PermissionsPageContent locale="ro" />);
 
-      const addButton = screen.getByText('Add Permission');
+      const addButton = screen.getByRole('button', { name: 'Add Permission' });
       fireEvent.click(addButton);
 
-      expect(screen.getByText('Add Permission')).toBeInTheDocument();
+      // Modal title and button both say "Add Permission"
+      expect(screen.getAllByText('Add Permission').length).toBeGreaterThan(1);
     });
 
     it('should open edit modal when edit button is clicked', () => {

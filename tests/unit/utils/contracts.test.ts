@@ -102,7 +102,7 @@ describe('contracts utilities', () => {
   });
 
   describe('getClientNameById', () => {
-    const mockClients: Client[] = [
+    const mockClients = [
       {
         id: 'client-1',
         code: 'CLI001',
@@ -133,7 +133,7 @@ describe('contracts utilities', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-    ];
+    ] as Client[];
 
     it('should return client name for person client', () => {
       const name = getClientNameById('client-1', mockClients);

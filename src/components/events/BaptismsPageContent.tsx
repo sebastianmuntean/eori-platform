@@ -85,6 +85,10 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
     fetchEvents(params);
   }, [currentPage, searchTerm, parishFilter, statusFilter, dateFrom, dateTo, fetchEvents]);
 
+  const resetForm = useCallback(() => {
+    setFormData(getInitialEventFormData());
+  }, []);
+
   const handleCreate = useCallback(async () => {
     if (!formData.parishId) {
       // Validation error is handled by required field in modal
@@ -105,7 +109,7 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
       resetForm();
     }
     // Error handling is done by the hook - error state is displayed in table card
-  }, [formData, createEvent]);
+  }, [formData, createEvent, resetForm]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedEvent) return;
@@ -155,10 +159,6 @@ export function BaptismsPageContent({ locale }: BaptismsPageContentProps) {
       console.error('Failed to cancel baptism event');
     }
   }, [cancelEvent]);
-
-  const resetForm = useCallback(() => {
-    setFormData(getInitialEventFormData());
-  }, []);
 
   const formatDate = useCallback((date: string | null) => {
     if (!date) return '-';

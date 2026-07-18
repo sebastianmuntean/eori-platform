@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     // Get paginated results
     const offset = (page - 1) * pageSize;
     // Explicitly select columns to avoid warehouse_id issue until migration 0022 is applied
-    let query = db.select({
+    const query = db.select({
       id: invoices.id,
       parishId: invoices.parishId,
       series: invoices.series,

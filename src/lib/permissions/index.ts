@@ -59,7 +59,7 @@ export * from './onlineForms';
 export * from './pangare';
 export * from './parishioners';
 export * from './pilgrimages';
-export * from './registratura';
+export * from './registry';
 export * from './superadmin';
 
 // Import permission types for union type
@@ -76,7 +76,7 @@ import type { OnlineFormsPermission } from './onlineForms';
 import type { PangarePermission } from './pangare';
 import type { ParishionersPermission } from './parishioners';
 import type { PilgrimagesPermission } from './pilgrimages';
-import type { RegistraturaPermission } from './registratura';
+import type { RegistraturaPermission } from './registry';
 import type { SuperadminPermission } from './superadmin';
 
 /**

@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registry';
 
 export default function CreateMappingDatasetPage() {
   const params = useParams();

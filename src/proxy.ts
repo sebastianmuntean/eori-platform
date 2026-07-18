@@ -16,6 +16,50 @@ const intlMiddleware = createMiddleware(routing);
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || 'session';
 
+/**
+ * Permanent redirects from legacy registry / online-forms UI paths.
+ * Returns a redirect response, or null when no rewrite applies.
+ */
+function legacyRegistryRedirect(
+  request: NextRequest,
+  pathname: string,
+  locale: string
+): NextResponse | null {
+  const localePrefix = `/${locale}`;
+
+  const rules: Array<{ pattern: RegExp; to: (match: RegExpMatchArray) => string }> = [
+    // Orphan dashboard/online-forms → registry/online-forms
+    {
+      pattern: new RegExp(`^${localePrefix}/dashboard/online-forms(/.*)?$`),
+      to: (m) => `${localePrefix}/dashboard/registry/online-forms${m[1] || ''}`,
+    },
+    // Legacy RO nest under registry/registratura
+    {
+      pattern: new RegExp(
+        `^${localePrefix}/dashboard/registry/registratura/registrul-general(/.*)?$`
+      ),
+      to: (m) => `${localePrefix}/dashboard/registry/general-register${m[1] || ''}`,
+    },
+    {
+      pattern: new RegExp(
+        `^${localePrefix}/dashboard/registry/registratura/configurari-registre(/.*)?$`
+      ),
+      to: () => `${localePrefix}/dashboard/registry/register-configurations`,
+    },
+  ];
+
+  for (const rule of rules) {
+    const match = pathname.match(rule.pattern);
+    if (match) {
+      const url = request.nextUrl.clone();
+      url.pathname = rule.to(match);
+      return NextResponse.redirect(url, 308);
+    }
+  }
+
+  return null;
+}
+
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -28,6 +72,11 @@ export default function proxy(request: NextRequest) {
   if (pathnameHasLocale) {
     const segments = pathname.split('/');
     locale = segments[1] as typeof routing.defaultLocale;
+  }
+
+  const legacyRedirect = legacyRegistryRedirect(request, pathname, locale);
+  if (legacyRedirect) {
+    return addSecurityHeaders(request, legacyRedirect);
   }
 
   // Check if this is a dashboard route that requires authentication

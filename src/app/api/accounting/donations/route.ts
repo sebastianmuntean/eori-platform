@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     const whereClause = and(...conditions as any[]);
 
     // Get total count
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(payments).where(whereClause);
+    const countQuery = db.select({ count: sql<number>`count(*)` }).from(payments).where(whereClause);
     const totalCountResult = await countQuery;
     const totalCount = Number(totalCountResult[0]?.count || 0);
 

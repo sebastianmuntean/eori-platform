@@ -45,12 +45,16 @@ export function Autocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const onSearchRef = useRef(onSearch);
+  const searchTermRef = useRef(searchTerm);
   const generatedId = useId();
   const inputId = `autocomplete-${generatedId}`;
   const hasError = !!error;
 
   // Keep onSearch ref up to date (without triggering re-renders)
   onSearchRef.current = onSearch;
+  
+  // Keep searchTerm ref up to date
+  searchTermRef.current = searchTerm;
 
   // Filter options based on search term
   const filteredOptions = options.filter((option) => {
@@ -61,12 +65,44 @@ export function Autocomplete({
   // Find selected option
   const selectedOption = options.find((opt) => getOptionLabel(opt) === value);
 
+  // Sync searchTerm with value when value changes externally or when dropdown closes
+  // This ensures the selected value remains visible after selection
+  useEffect(() => {
+    // Always sync searchTerm with value when dropdown is closed
+    // This ensures the selected value is displayed correctly
+    if (!isOpen) {
+      if (value) {
+        const option = options.find((opt) => getOptionLabel(opt) === value);
+        if (option) {
+          const optionLabel = getOptionLabel(option);
+          // Always update searchTerm to match the value when dropdown is closed
+          setSearchTerm(optionLabel);
+        } else {
+          // If value doesn't match any option, use value as-is
+          setSearchTerm(value);
+        }
+      } else if (searchTermRef.current) {
+        // Clear searchTerm if value is cleared and dropdown is closed
+        setSearchTerm('');
+      }
+    }
+  }, [value, options, isOpen, getOptionLabel]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setHighlightedIndex(-1);
+        // Sync searchTerm with value when closing dropdown
+        if (value) {
+          const option = options.find((opt) => getOptionLabel(opt) === value);
+          if (option) {
+            setSearchTerm(getOptionLabel(option));
+          } else {
+            setSearchTerm(value);
+          }
+        }
       }
     };
 
@@ -74,19 +110,26 @@ export function Autocomplete({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [value, options, getOptionLabel]);
 
   // Handle search with debouncing - only trigger when searchTerm actually changes
+  // IMPORTANT: Don't search if searchTerm matches the current value (selected option)
   const prevSearchTermRef = useRef<string>('');
   useEffect(() => {
+    // Don't search if searchTerm is exactly the same as value (it's a selected option, not a new search)
+    if (searchTerm === value && value) {
+      prevSearchTermRef.current = searchTerm;
+      return;
+    }
+    
     // Trim search term to handle spaces
     const trimmedSearch = searchTerm.trim();
     // Only trigger if searchTerm actually changed and is different from previous
     if (onSearchRef.current && trimmedSearch && trimmedSearch.length >= 3 && searchTerm !== prevSearchTermRef.current) {
       prevSearchTermRef.current = searchTerm;
       const timeoutId = setTimeout(() => {
-        // Double check that searchTerm hasn't changed during timeout
-        if (searchTerm === prevSearchTermRef.current) {
+        // Double check that searchTerm hasn't changed during timeout and it's still not the selected value
+        if (searchTerm === prevSearchTermRef.current && searchTerm !== value) {
           onSearchRef.current?.(searchTerm.trim());
         }
       }, 500); // Debounce search - increased to 500ms
@@ -94,7 +137,7 @@ export function Autocomplete({
     } else if (searchTerm !== prevSearchTermRef.current) {
       prevSearchTermRef.current = searchTerm;
     }
-  }, [searchTerm]); // Only depend on searchTerm to prevent infinite loop
+  }, [searchTerm, value]); // Added value to dependencies to check if it's a selected option
 
   // Scroll highlighted option into view
   useEffect(() => {
@@ -109,24 +152,40 @@ export function Autocomplete({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchTerm(newValue);
-    onChange(newValue);
+    // Only call onChange if the new value is different from the current value
+    // This prevents clearing the selection when user hasn't actually changed anything
+    if (newValue !== value) {
+      onChange(newValue);
+    }
     setIsOpen(true);
     setHighlightedIndex(-1);
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    if (!searchTerm && value && value !== searchTerm) {
-      setSearchTerm(value);
+    // If searchTerm is empty or doesn't match value, sync with value
+    if (value) {
+      const option = options.find((opt) => getOptionLabel(opt) === value);
+      if (option) {
+        const optionLabel = getOptionLabel(option);
+        if (searchTerm !== optionLabel) {
+          setSearchTerm(optionLabel);
+        }
+      } else if (!searchTerm || searchTerm !== value) {
+        setSearchTerm(value);
+      }
+    } else if (!searchTerm) {
+      setSearchTerm('');
     }
   };
 
   const handleSelectOption = (option: AutocompleteOption) => {
     const label = getOptionLabel(option);
     onChange(label);
-    if (label !== searchTerm) {
-      setSearchTerm(label);
-    }
+    // Always set searchTerm to the selected label to ensure it's visible
+    setSearchTerm(label);
+    // Update prevSearchTermRef to prevent search from triggering
+    prevSearchTermRef.current = label;
     setIsOpen(false);
     setHighlightedIndex(-1);
     inputRef.current?.blur();
@@ -163,7 +222,12 @@ export function Autocomplete({
     }
   };
 
-  const displayValue = isOpen ? searchTerm : (selectedOption ? getOptionLabel(selectedOption) : value);
+  // When dropdown is open, show searchTerm (what user is typing)
+  // When dropdown is closed, show value (the selected option label)
+  // If value doesn't match any option, use value directly (fallback)
+  const displayValue = isOpen 
+    ? searchTerm 
+    : (value || '');
 
   return (
     <div className={cn('w-full', className)} ref={containerRef}>

@@ -11,6 +11,54 @@ interface HtmlEditorProps {
   minHeight?: string;
 }
 
+const TOOLBAR_BUTTONS: Array<{
+  label: string;
+  icon: string;
+  title: string;
+  openTag?: string;
+  closeTag?: string;
+  insertText?: string;
+}> = [
+  { label: 'Bold', icon: 'B', openTag: '<strong>', closeTag: '</strong>', title: 'Bold (Ctrl+B)' },
+  { label: 'Italic', icon: 'I', openTag: '<em>', closeTag: '</em>', title: 'Italic (Ctrl+I)' },
+  { label: 'Underline', icon: 'U', openTag: '<u>', closeTag: '</u>', title: 'Underline' },
+  { label: 'Paragraph', icon: 'P', openTag: '<p>', closeTag: '</p>', title: 'Paragraph' },
+  { label: 'Heading 1', icon: 'H1', openTag: '<h1>', closeTag: '</h1>', title: 'Heading 1' },
+  { label: 'Heading 2', icon: 'H2', openTag: '<h2>', closeTag: '</h2>', title: 'Heading 2' },
+  { label: 'Heading 3', icon: 'H3', openTag: '<h3>', closeTag: '</h3>', title: 'Heading 3' },
+  { label: 'Div', icon: 'DIV', openTag: '<div>', closeTag: '</div>', title: 'Div' },
+  { label: 'Link', icon: '🔗', openTag: '<a href="">', closeTag: '</a>', title: 'Link' },
+  { label: 'Image', icon: '🖼️', openTag: '<img src="" alt="" />', closeTag: '', title: 'Image' },
+  {
+    label: 'Table',
+    icon: '📊',
+    title: 'Table',
+    insertText: `<table>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+</table>`,
+  },
+  { label: 'List', icon: '📋', openTag: '<ul>\n  <li>', closeTag: '</li>\n</ul>', title: 'Unordered List' },
+  { label: 'HR', icon: '─', openTag: '<hr />', closeTag: '', title: 'Horizontal Rule' },
+  { label: 'BR', icon: '↵', openTag: '<br />', closeTag: '', title: 'Line Break' },
+];
+
+const COMMON_VARIABLES = [
+  { label: 'User Name', value: 'user.name' },
+  { label: 'User Email', value: 'user.email' },
+  { label: 'App Name', value: 'app.name' },
+  { label: 'Confirmation Link', value: 'link.confirmation' },
+  { label: 'Reset Link', value: 'link.reset' },
+  { label: 'Form Name', value: 'form.name' },
+  { label: 'Code', value: 'code' },
+];
+
 export function HtmlEditor({
   value,
   onChange,
@@ -88,114 +136,15 @@ export function HtmlEditor({
     insertAtCursor(`{{${variable}}}`);
   };
 
-  const toolbarButtons = [
-    {
-      label: 'Bold',
-      icon: 'B',
-      onClick: () => insertTag('<strong>', '</strong>'),
-      title: 'Bold (Ctrl+B)',
-    },
-    {
-      label: 'Italic',
-      icon: 'I',
-      onClick: () => insertTag('<em>', '</em>'),
-      title: 'Italic (Ctrl+I)',
-    },
-    {
-      label: 'Underline',
-      icon: 'U',
-      onClick: () => insertTag('<u>', '</u>'),
-      title: 'Underline',
-    },
-    {
-      label: 'Paragraph',
-      icon: 'P',
-      onClick: () => insertTag('<p>', '</p>'),
-      title: 'Paragraph',
-    },
-    {
-      label: 'Heading 1',
-      icon: 'H1',
-      onClick: () => insertTag('<h1>', '</h1>'),
-      title: 'Heading 1',
-    },
-    {
-      label: 'Heading 2',
-      icon: 'H2',
-      onClick: () => insertTag('<h2>', '</h2>'),
-      title: 'Heading 2',
-    },
-    {
-      label: 'Heading 3',
-      icon: 'H3',
-      onClick: () => insertTag('<h3>', '</h3>'),
-      title: 'Heading 3',
-    },
-    {
-      label: 'Div',
-      icon: 'DIV',
-      onClick: () => insertTag('<div>', '</div>'),
-      title: 'Div',
-    },
-    {
-      label: 'Link',
-      icon: '🔗',
-      onClick: () => insertTag('<a href="">', '</a>'),
-      title: 'Link',
-    },
-    {
-      label: 'Image',
-      icon: '🖼️',
-      onClick: () => insertTag('<img src="" alt="" />', ''),
-      title: 'Image',
-    },
-    {
-      label: 'Table',
-      icon: '📊',
-      onClick: () => {
-        const table = `<table>
-  <tr>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-  </tr>
-</table>`;
-        insertAtCursor(table);
-      },
-      title: 'Table',
-    },
-    {
-      label: 'List',
-      icon: '📋',
-      onClick: () => insertTag('<ul>\n  <li>', '</li>\n</ul>'),
-      title: 'Unordered List',
-    },
-    {
-      label: 'HR',
-      icon: '─',
-      onClick: () => insertTag('<hr />', ''),
-      title: 'Horizontal Rule',
-    },
-    {
-      label: 'BR',
-      icon: '↵',
-      onClick: () => insertTag('<br />', ''),
-      title: 'Line Break',
-    },
-  ];
-
-  const commonVariables = [
-    { label: 'User Name', value: 'user.name' },
-    { label: 'User Email', value: 'user.email' },
-    { label: 'App Name', value: 'app.name' },
-    { label: 'Confirmation Link', value: 'link.confirmation' },
-    { label: 'Reset Link', value: 'link.reset' },
-    { label: 'Form Name', value: 'form.name' },
-    { label: 'Code', value: 'code' },
-  ];
+  const handleToolbarClick = (btn: (typeof TOOLBAR_BUTTONS)[number]) => {
+    if (btn.insertText) {
+      insertAtCursor(btn.insertText);
+      return;
+    }
+    if (btn.openTag !== undefined) {
+      insertTag(btn.openTag, btn.closeTag);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -205,11 +154,11 @@ export function HtmlEditor({
           {/* HTML Tags */}
           <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
             <span className="text-xs text-text-secondary font-medium mr-1">Taguri:</span>
-            {toolbarButtons.map((btn, idx) => (
+            {TOOLBAR_BUTTONS.map((btn, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={btn.onClick}
+                onClick={() => handleToolbarClick(btn)}
                 title={btn.title}
                 className="px-2 py-1 text-xs bg-bg-primary hover:bg-bg-tertiary border border-border rounded text-text-primary transition-colors"
               >
@@ -221,7 +170,7 @@ export function HtmlEditor({
           {/* Variables */}
           <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
             <span className="text-xs text-text-secondary font-medium mr-1">Variabile:</span>
-            {commonVariables.map((variable, idx) => (
+            {COMMON_VARIABLES.map((variable, idx) => (
               <button
                 key={idx}
                 type="button"

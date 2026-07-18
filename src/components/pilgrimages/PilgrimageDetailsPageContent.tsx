@@ -40,22 +40,6 @@ export function PilgrimageDetailsPageContent({ locale, id }: PilgrimageDetailsPa
     }
   }, [id, fetchPilgrimage, fetchStatistics]);
 
-  if (loading && !pilgrimage) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-text-secondary">{t('loading')}</div>
-      </div>
-    );
-  }
-
-  if (error || !pilgrimage) {
-    return (
-      <div className="p-4 bg-danger/10 text-danger rounded-md">
-        {error || tPilgrimages('errors.pilgrimageNotFound')}
-      </div>
-    );
-  }
-
   const formatDateLocalized = useCallback(
     (date: string | null) => formatDate(date, locale),
     [locale]
@@ -80,9 +64,9 @@ export function PilgrimageDetailsPageContent({ locale, id }: PilgrimageDetailsPa
     () => [
       { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
       { label: tPilgrimages('pilgrimages'), href: `/${locale}/dashboard/pilgrimages` },
-      { label: pilgrimage.title },
+      { label: pilgrimage?.title ?? '' },
     ],
-    [t, tPilgrimages, locale, pilgrimage.title]
+    [t, tPilgrimages, locale, pilgrimage?.title]
   );
 
   const tabs = useMemo(
@@ -99,6 +83,22 @@ export function PilgrimageDetailsPageContent({ locale, id }: PilgrimageDetailsPa
     ],
     [tPilgrimages]
   );
+
+  if (loading && !pilgrimage) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-text-secondary">{t('loading')}</div>
+      </div>
+    );
+  }
+
+  if (error || !pilgrimage) {
+    return (
+      <div className="p-4 bg-danger/10 text-danger rounded-md">
+        {error || tPilgrimages('errors.pilgrimageNotFound')}
+      </div>
+    );
+  }
 
   return (
     <PageContainer>

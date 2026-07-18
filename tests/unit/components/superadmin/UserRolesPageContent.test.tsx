@@ -20,6 +20,7 @@ vi.mock('next-intl', async () => {
         cancel: 'Cancel',
         assign: 'Assign',
         assignRole: 'Assign Role',
+        assignUserRoles: 'Assign User Roles',
         selectRole: 'Select Role',
         userRoles: 'User Roles',
         noRoles: 'No roles',
@@ -120,10 +121,10 @@ describe('UserRolesPageContent', () => {
     it('should open assign role modal when button is clicked', () => {
       render(<UserRolesPageContent locale="ro" />);
 
-      const assignButtons = screen.getAllByText('Assign Role');
+      const assignButtons = screen.getAllByRole('button', { name: 'Assign Role' });
       fireEvent.click(assignButtons[0]);
 
-      expect(screen.getByText('Assign Role')).toBeInTheDocument();
+      expect(screen.getAllByText('Assign Role').length).toBeGreaterThan(1);
     });
 
     it('should call assignRole when form is submitted', async () => {
@@ -131,18 +132,18 @@ describe('UserRolesPageContent', () => {
 
       render(<UserRolesPageContent locale="ro" />);
 
-      const assignButtons = screen.getAllByText('Assign Role');
+      const assignButtons = screen.getAllByRole('button', { name: 'Assign Role' });
       fireEvent.click(assignButtons[0]);
 
       await waitFor(() => {
-        const select = screen.getByLabelText('Select Role');
+        const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
       });
 
-      const select = screen.getByLabelText('Select Role');
+      const select = screen.getByRole('combobox');
       fireEvent.change(select, { target: { value: '1' } });
 
-      const submitButton = screen.getByText('Assign');
+      const submitButton = screen.getByRole('button', { name: 'Assign' });
       fireEvent.click(submitButton);
 
       await waitFor(() => {

@@ -81,7 +81,7 @@ export async function GET(request: Request) {
         const from = new Date(fromDate);
         const to = new Date(toDate);
         
-        let upcomingDate = thisYearNameDay >= from && thisYearNameDay <= to 
+        const upcomingDate = thisYearNameDay >= from && thisYearNameDay <= to 
           ? thisYearNameDay 
           : nextYearNameDay;
         

@@ -41,9 +41,7 @@ export const STATUS_VARIANT_MAP: Record<EventStatus, 'warning' | 'success' | 'da
 };/**
  * Default page size for event tables
  */
-export const EVENT_PAGE_SIZE = 10;
-
-/**
+export const EVENT_PAGE_SIZE = 10;/**
  * Event type constants
  */export const EVENT_TYPES: Record<'FUNERAL' | 'BAPTISM' | 'WEDDING', EventType> = {
   FUNERAL: 'funeral',

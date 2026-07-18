@@ -17,7 +17,7 @@ export const generalRegisterWorkflow = pgTable('general_register_workflow', {
   fromUserId: uuid('from_user_id').references(() => users.id),
   toUserId: uuid('to_user_id').references(() => users.id),
   action: generalRegisterWorkflowActionEnum('action').notNull(),
-  stepStatus: generalRegisterStepStatusEnum('step_status').notNull().default('pending'),
+  stepStatus: generalRegisterStepStatusEnum('step_status').notNull().default('in_work'),
   resolutionStatus: generalRegisterResolutionStatusEnum('resolution_status'),
   resolution: text('resolution'),
   notes: text('notes'),

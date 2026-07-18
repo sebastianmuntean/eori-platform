@@ -96,7 +96,7 @@ export function useRegisterConfigurations(): UseRegisterConfigurationsReturn {
         searchParams.append('parishId', params.parishId);
       }
 
-      const url = `/api/registratura/register-configurations${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+      const url = `/api/registry/register-configurations${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
@@ -139,7 +139,7 @@ export function useRegisterConfiguration(id?: string): UseRegisterConfigurationR
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/register-configurations/${configId}`, {
+      const response = await fetch(`/api/registry/register-configurations/${configId}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -186,7 +186,7 @@ export function useCreateRegisterConfiguration(): UseCreateRegisterConfiguration
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/registratura/register-configurations', {
+      const response = await fetch('/api/registry/register-configurations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +238,7 @@ export function useUpdateRegisterConfiguration(): UseUpdateRegisterConfiguration
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/register-configurations/${id}`, {
+      const response = await fetch(`/api/registry/register-configurations/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -284,7 +284,7 @@ export function useDeleteRegisterConfiguration(): UseDeleteRegisterConfiguration
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/register-configurations/${id}`, {
+      const response = await fetch(`/api/registry/register-configurations/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -323,7 +323,7 @@ export function useCreateRegistersForParishes(): UseCreateRegistersForParishesRe
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/registratura/register-configurations/create-for-parishes', {
+      const response = await fetch('/api/registry/register-configurations/create-for-parishes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

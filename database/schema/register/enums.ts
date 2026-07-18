@@ -25,9 +25,9 @@ export const workflowActionEnum = pgEnum('workflow_action', ['sent', 'received',
 // Used by general_register_workflow
 export const generalRegisterWorkflowActionEnum = pgEnum('general_register_workflow_action', ['sent', 'forwarded', 'returned', 'approved', 'rejected', 'cancelled']);
 
-// Step status enum: pending, completed
+// Step status enum: in_work, redirected, resolved
 // Used by general_register_workflow
-export const generalRegisterStepStatusEnum = pgEnum('general_register_step_status', ['pending', 'completed']);
+export const generalRegisterStepStatusEnum = pgEnum('general_register_step_status', ['in_work', 'redirected', 'resolved']);
 
 // Resolution status enum: approved, rejected
 // Used by general_register_workflow

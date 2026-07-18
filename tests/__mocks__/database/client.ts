@@ -50,7 +50,7 @@ export const db = new Proxy({} as MockDatabase, {
   get(_target, prop: string | symbol) {
     const mockDbInstance = getMockDatabase();
     if (typeof prop === 'string') {
-      return (mockDbInstance as Record<string, unknown>)[prop];
+      return (mockDbInstance as unknown as Record<string, unknown>)[prop];
     }
     return undefined;
   },

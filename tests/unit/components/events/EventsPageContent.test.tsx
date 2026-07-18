@@ -6,7 +6,7 @@ import { ChurchEvent, EventType, EventStatus } from '@/hooks/useEvents';
 import { Parish } from '@/hooks/useParishes';
 import { useEvents } from '@/hooks/useEvents';
 import { useParishes } from '@/hooks/useParishes';
-import { useEventStatistics } from '@/hooks/useEventStatistics';
+import { useEventStatistics, type EventStatistics } from '@/hooks/useEventStatistics';
 
 // Mock hooks
 const mockFetchEvents = vi.fn();
@@ -218,7 +218,7 @@ vi.mock('@/components/events/EventsFiltersCardWithType', () => ({
         onChange={(e) => onParishFilterChange(e.target.value)}
       >
         <option value="">All Parishes</option>
-        {parishes.map((parish) => (
+        {parishes.map((parish: Parish) => (
           <option key={parish.id} value={parish.id}>
             {parish.name}
           </option>
@@ -275,7 +275,7 @@ vi.mock('@/components/events/EventFormFields', () => ({
         required
       >
         <option value="">Select Parish</option>
-        {parishes.map((parish) => (
+        {parishes.map((parish: Parish) => (
           <option key={parish.id} value={parish.id}>
             {parish.name}
           </option>
@@ -311,12 +311,12 @@ vi.mock('@/components/events/EventFormFields', () => ({
 
 describe('EventsPageContent', () => {
   const locale = 'ro';
-  const mockParishes: Parish[] = [
+  const mockParishes = [
     { id: '1', name: 'Parish 1', dioceseId: '1', deaneryId: '1' },
     { id: '2', name: 'Parish 2', dioceseId: '1', deaneryId: '1' },
-  ];
+  ] as Parish[];
 
-  const mockEvents: ChurchEvent[] = [
+  const mockEvents = [
     {
       id: '1',
       parishId: '1',
@@ -341,7 +341,7 @@ describe('EventsPageContent', () => {
       createdAt: '2024-01-02',
       updatedAt: '2024-01-02',
     },
-  ];
+  ] as ChurchEvent[];
 
   const mockStatistics = {
     total: 10,
@@ -351,7 +351,7 @@ describe('EventsPageContent', () => {
       funeral: 2,
     },
     upcoming: 7,
-  };
+  } as EventStatistics;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -377,11 +377,19 @@ describe('EventsPageContent', () => {
 
     vi.mocked(useParishes).mockReturnValue({
       parishes: mockParishes,
+      loading: false,
+      error: null,
+      pagination: null,
       fetchParishes: mockFetchParishes,
+      createParish: vi.fn(),
+      updateParish: vi.fn(),
+      deleteParish: vi.fn(),
     });
 
     vi.mocked(useEventStatistics).mockReturnValue({
       statistics: mockStatistics,
+      loading: false,
+      error: null,
       fetchStatistics: mockFetchStatistics,
     });
   });
@@ -410,6 +418,8 @@ describe('EventsPageContent', () => {
     it('should not render statistics cards when statistics are null', () => {
       vi.mocked(useEventStatistics).mockReturnValue({
         statistics: null,
+        loading: false,
+        error: null,
         fetchStatistics: mockFetchStatistics,
       });
 

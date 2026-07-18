@@ -125,14 +125,14 @@ describe('StudentsPageContent', () => {
 
   it('should render the page container', () => {
     render(<StudentsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Students')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Students' })).toBeInTheDocument();
   });
 
   it('should render page header with correct title', () => {
     render(<StudentsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Students')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Students' })).toBeInTheDocument();
   });
 
   it('should render breadcrumbs correctly', () => {
@@ -187,19 +187,19 @@ describe('StudentsPageContent', () => {
 
   it('should display status badges correctly', async () => {
     render(<StudentsPageContent locale={locale} />);
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Active')).toBeInTheDocument();
-      expect(screen.getByText('Inactive')).toBeInTheDocument();
+      expect(screen.getAllByText('Active').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0);
     });
   });
 
   it('should use memoized columns', () => {
     const { rerender } = render(<StudentsPageContent locale={locale} />);
-    
+
     rerender(<StudentsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Students')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Students' })).toBeInTheDocument();
   });
 });
 

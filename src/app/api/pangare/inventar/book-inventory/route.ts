@@ -182,7 +182,7 @@ export async function GET(request: Request) {
       );
 
       // Get stock levels for products
-      let stockQuery = db
+      const stockQuery = db
         .select({
           warehouseId: stockMovements.warehouseId,
           productId: stockMovements.productId,
@@ -275,7 +275,7 @@ export async function GET(request: Request) {
         fixedAssets.parishId
       );
 
-      let assetsQuery = db
+      const assetsQuery = db
         .select()
         .from(fixedAssets)
         .where(

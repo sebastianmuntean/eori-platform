@@ -69,7 +69,7 @@ vi.mock('@/hooks/useClientStatement', () => ({
 }));
 
 describe('ClientStatementPageContent', () => {
-  const mockClient: Client = {
+  const mockClient = {
     id: 'client-1',
     code: 'CLI-001',
     firstName: 'John',
@@ -79,7 +79,7 @@ describe('ClientStatementPageContent', () => {
     address: '123 Main St',
     city: 'Bucharest',
     isActive: true,
-  };
+  } as Client;
 
   const mockSummary: ClientStatementSummary = {
     issuedInvoices: 10000.0,
@@ -273,9 +273,9 @@ describe('ClientStatementPageContent', () => {
   it('should not render optional client fields when they are missing', () => {
     const clientWithoutOptionalFields: Client = {
       ...mockClient,
-      phone: undefined,
-      email: undefined,
-      address: undefined,
+      phone: null,
+      email: null,
+      address: null,
     };
 
     const statementWithoutOptional: ClientStatement = {

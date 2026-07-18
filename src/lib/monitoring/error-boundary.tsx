@@ -77,7 +77,7 @@ function DefaultErrorFallback({ error, resetError }: { error: Error | null; rese
         <div className="mb-4 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
           <p className="mt-2 text-gray-600">
-            We're sorry, but something unexpected happened. Our team has been notified.
+            We&apos;re sorry, but something unexpected happened. Our team has been notified.
           </p>
         </div>
 

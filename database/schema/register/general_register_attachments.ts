@@ -6,7 +6,7 @@ import { users } from '../superadmin/users';
 export const generalRegisterAttachments = pgTable('general_register_attachments', {
   id: uuid('id').primaryKey().defaultRandom(),
   documentId: uuid('document_id').notNull().references(() => generalRegister.id, { onDelete: 'cascade' }),
-  workflowStepId: uuid('workflow_step_id').references(() => generalRegisterWorkflow.id, { onDelete: 'cascade' }), // Optional: if null, attachment is global to document; if set, attachment belongs to specific workflow step
+  workflowStepId: uuid('workflow_step_id').references(() => generalRegisterWorkflow.id, { onDelete: 'cascade' }), // Required at app level for new uploads: attachments are linked to a workflow step; null only for legacy data
   fileName: varchar('file_name', { length: 255 }).notNull(),
   storageName: varchar('storage_name', { length: 255 }).notNull(),
   storagePath: text('storage_path').notNull(),

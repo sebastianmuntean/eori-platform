@@ -5,13 +5,13 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Card, CardBody } from '@/components/ui/Card';
-import { GeneralRegisterForm } from '@/components/registratura/GeneralRegisterForm';
+import { GeneralRegisterForm } from '@/components/registry/GeneralRegisterForm';
 import { createGeneralRegisterDocument, getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useTranslations } from 'next-intl';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registry';
 
 export default function CreateDocumentPage() {
   const params = useParams();
@@ -19,7 +19,7 @@ export default function CreateDocumentPage() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tReg = useTranslations('registratura');
+  const tReg = useTranslations('registry');
 
   // Check permission to view general register
   const { loading: permissionLoading } = useRequirePermission(REGISTRATURA_PERMISSIONS.GENERAL_REGISTER_VIEW);
@@ -130,7 +130,7 @@ export default function CreateDocumentPage() {
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+          { label: tReg('registry'), href: `/${locale}/dashboard/registry` },
           { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/general-register` },
           { label: tReg('newDocument') },
         ]}

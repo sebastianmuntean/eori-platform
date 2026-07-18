@@ -31,7 +31,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '100');
 
     // Get time entries for this employee
-    let query = db
+    const query = db
       .select()
       .from(timeEntries)
       .where(eq(timeEntries.employeeId, id))

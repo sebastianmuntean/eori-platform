@@ -6,23 +6,26 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
-import { GeneralRegisterWorkflow } from '@/components/registratura/GeneralRegisterWorkflow';
-import { GeneralRegisterAttachments } from '@/components/registratura/GeneralRegisterAttachments';
-import { GeneralRegisterEditForm } from '@/components/registratura/GeneralRegisterEditForm';
+import { GeneralRegisterWorkflow } from '@/components/registry/GeneralRegisterWorkflow';
+import { GeneralRegisterAttachments } from '@/components/registry/GeneralRegisterAttachments';
+import { GeneralRegisterEditForm } from '@/components/registry/GeneralRegisterEditForm';
+import { SolutionDialog } from '@/components/registry/SolutionDialog';
 import { getGeneralRegisterDocument, GeneralRegisterDocument } from '@/hooks/useGeneralRegister';
+import { useGeneralRegisterWorkflow } from '@/hooks/useGeneralRegister';
+import { useUser } from '@/hooks/useUser';
 import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registry';
 
 export default function DocumentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tReg = useTranslations('registratura');
+  const tReg = useTranslations('registry');
   const id = params.id as string;
 
   // Check permission to view general register
@@ -33,6 +36,10 @@ export default function DocumentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [solutionDialogOpen, setSolutionDialogOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const { user } = useUser();
+  const { cancelDocument } = useGeneralRegisterWorkflow();
   const { toasts, success, error: showError, removeToast } = useToast();
 
   const fetchDocument = useCallback(async () => {
@@ -74,17 +81,66 @@ export default function DocumentDetailPage() {
     
     setSaving(true);
     try {
-      // TODO: Implement API endpoint for updating document
-      // For now, just show success and redirect to list
+      const response = await fetch(`/api/registry/general-register/${document.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          subject: data.subject,
+          description: data.description,
+          solutionStatus: data.solutionStatus,
+          distributedUserIds: data.distributedUserIds,
+          dueDate: data.dueDate,
+          notes: data.notes,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update document');
+      }
+
       success(tReg('documentUpdated') || 'Document actualizat cu succes');
-      // Redirect to list page after successful save
-      router.push(`/${locale}/dashboard/registry/general-register`);
+      // Refresh document data
+      await fetchDocument();
+      setRefreshKey(k => k + 1);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : tReg('errors.failedToUpdate') || 'Eroare la actualizarea documentului';
       showError(errorMessage);
+    } finally {
       setSaving(false);
     }
-  }, [document, router, locale, success, showError, tReg]);
+  }, [document, fetchDocument, success, showError, tReg]);
+
+  const handleSolutionSuccess = useCallback(() => {
+    fetchDocument();
+    setRefreshKey(k => k + 1);
+  }, [fetchDocument]);
+
+  const handleCancel = useCallback(async () => {
+    if (!document || !window.confirm(tReg('confirmCancelDocument') || 'Sigur doriți să anulați acest document?')) return;
+    setCancelling(true);
+    try {
+      const ok = await cancelDocument(document.id, { cancelAll: false });
+      if (ok) {
+        success(tReg('documentCancelled') || 'Document anulat cu succes');
+        await fetchDocument();
+        setRefreshKey(k => k + 1);
+      } else {
+        showError(tReg('errors.failedToCancel') || 'Eroare la anulare');
+      }
+    } catch (err) {
+      showError(err instanceof Error ? err.message : tReg('errors.failedToCancel') || 'Eroare la anulare');
+    } finally {
+      setCancelling(false);
+    }
+  }, [document, cancelDocument, fetchDocument, success, showError, tReg]);
+
+  const canResolve = document?.status === 'in_work' || document?.status === 'distributed';
+  const canCancel = document?.status !== 'resolved' && document?.status !== 'cancelled';
 
   // Don't render content while checking permissions (after all hooks are called)
   if (permissionLoading) {
@@ -105,7 +161,7 @@ export default function DocumentDetailPage() {
         <PageHeader
           breadcrumbs={[
             { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-            { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+            { label: tReg('registry'), href: `/${locale}/dashboard/registry` },
             { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/general-register` },
             { label: tReg('document') },
           ]}
@@ -124,12 +180,28 @@ export default function DocumentDetailPage() {
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+          { label: tReg('registry'), href: `/${locale}/dashboard/registry` },
           { label: tReg('generalRegister'), href: `/${locale}/dashboard/registry/general-register` },
           { label: document.subject },
         ]}
         title="Editare Document"
         className="mb-6"
+        action={
+          document ? (
+            <div className="flex gap-2">
+              {canResolve && (
+                <Button variant="primary" onClick={() => setSolutionDialogOpen(true)}>
+                  Solutionare
+                </Button>
+              )}
+              {canCancel && (
+                <Button variant="warning" onClick={handleCancel} disabled={cancelling}>
+                  {cancelling ? 'Se anulează...' : 'Anulare'}
+                </Button>
+              )}
+            </div>
+          ) : null
+        }
       />
 
       {/* Edit Form - Screen 2 */}
@@ -151,7 +223,7 @@ export default function DocumentDetailPage() {
             />
             
             {/* Attachments Section */}
-            <div className="border-t border-border pt-6">
+            <div id="attachments" className="border-t border-border pt-6 scroll-mt-4">
               <h3 className="text-lg font-semibold mb-4">Atașamente</h3>
               <GeneralRegisterAttachments
                 key={`attachments-${refreshKey}`}
@@ -185,11 +257,24 @@ export default function DocumentDetailPage() {
         </div>
       </Card>
 
-      <GeneralRegisterWorkflow
-        key={`workflow-${refreshKey}`}
-        documentId={document.id}
-        onWorkflowUpdate={handleWorkflowUpdate}
-      />
+      <div id="workflow" className="scroll-mt-4">
+        <GeneralRegisterWorkflow
+          key={`workflow-${refreshKey}`}
+          documentId={document.id}
+          onWorkflowUpdate={handleWorkflowUpdate}
+        />
+      </div>
+
+      {user && document && (
+        <SolutionDialog
+          isOpen={solutionDialogOpen}
+          onClose={() => setSolutionDialogOpen(false)}
+          documentId={document.id}
+          documentCreatedBy={document.createdBy}
+          currentUserId={user.id}
+          onSuccess={handleSolutionSuccess}
+        />
+      )}
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />

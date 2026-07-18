@@ -157,7 +157,7 @@ export async function PUT(
     }
 
     // Handle series and number updates
-    let updateData: any = { ...data, updatedAt: new Date(), updatedBy: userId };
+    const updateData: any = { ...data, updatedAt: new Date(), updatedBy: userId };
     delete updateData.invoiceNumber; // We'll regenerate it if series/number changes
     
     // If series or number is being updated, regenerate invoiceNumber

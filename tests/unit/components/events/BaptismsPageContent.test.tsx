@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '../../../setup/test-utils';
 import { BaptismsPageContent } from '@/components/events/BaptismsPageContent';
-import { useEvents } from '@/hooks/useEvents';
-import { useParishes } from '@/hooks/useParishes';
+import { useEvents, type ChurchEvent } from '@/hooks/useEvents';
+import { useParishes, type Parish } from '@/hooks/useParishes';
 
 // Mock hooks
 vi.mock('@/hooks/useEvents');
@@ -31,12 +31,12 @@ describe('BaptismsPageContent', () => {
       priestName: 'Father John',
       notes: 'Test notes',
     },
-  ];
+  ] as ChurchEvent[];
 
   const mockParishes = [
     { id: 'parish-1', name: 'Parish 1' },
     { id: 'parish-2', name: 'Parish 2' },
-  ];
+  ] as Parish[];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -58,6 +58,7 @@ describe('BaptismsPageContent', () => {
       parishes: mockParishes,
       loading: false,
       error: null,
+      pagination: null,
       fetchParishes: mockFetchParishes,
       createParish: vi.fn(),
       updateParish: vi.fn(),
@@ -69,7 +70,7 @@ describe('BaptismsPageContent', () => {
     it('should render page header with correct title', () => {
       render(<BaptismsPageContent locale="en" />);
 
-      expect(screen.getByText('Baptisms')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Baptisms' })).toBeInTheDocument();
     });
 
     it('should render filters section', () => {

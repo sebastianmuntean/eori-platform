@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '../../../setup/test-utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoginPage from '@/app/[locale]/(auth)/login/page';
@@ -31,11 +31,11 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
-    
+    vi.useRealTimers();
+
     (useRouter as ReturnType<typeof vi.fn>).mockReturnValue(mockRouter);
     (useSearchParams as ReturnType<typeof vi.fn>).mockReturnValue(mockSearchParams);
-    
+
     // Default search params
     mockSearchParams.get.mockImplementation((key: string) => {
       if (key === 'redirect') return null;
@@ -44,8 +44,9 @@ describe('LoginPage', () => {
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+  afterEach(async () => {
+    // Flush any pending redirect timeouts from successful logins
+    await new Promise((resolve) => setTimeout(resolve, 150));
   });
 
   describe('Initial Render', () => {
@@ -121,34 +122,36 @@ describe('LoginPage', () => {
 
     it('should disable inputs when loading', async () => {
       render(<LoginPage />);
-      
+
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
       const submitButton = screen.getByRole('button', { name: /login/i });
-      
+
       // Initially not disabled
       expect(emailInput).not.toBeDisabled();
       expect(passwordInput).not.toBeDisabled();
       expect(submitButton).not.toBeDisabled();
-      
-      // Mock a delayed response
-      mockFetch.mockImplementation(() => 
-        new Promise(resolve => 
-          setTimeout(() => resolve({
-            ok: true,
-            json: async () => ({ success: true }),
-          }), 100)
-        )
+
+      let resolveFetch: (value: unknown) => void;
+      mockFetch.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        })
       );
-      
+
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
+
       // Should be disabled during loading
       await waitFor(() => {
         expect(emailInput).toBeDisabled();
         expect(passwordInput).toBeDisabled();
-        expect(submitButton).toBeDisabled();
+        expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled();
+      });
+
+      resolveFetch!({
+        ok: false,
+        json: async () => ({ success: false, error: 'Stay put' }),
       });
     });
   });
@@ -168,15 +171,15 @@ describe('LoginPage', () => {
       });
 
       render(<LoginPage />);
-      
+
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
-      
+
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
+
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith('/api/auth/login', {
           method: 'POST',
@@ -189,10 +192,7 @@ describe('LoginPage', () => {
           }),
         });
       });
-      
-      // Wait for setTimeout
-      vi.advanceTimersByTime(100);
-      
+
       await waitFor(() => {
         expect(mockDispatchEvent).toHaveBeenCalledWith(expect.any(Event));
         expect(mockPush).toHaveBeenCalledWith('/dashboard');
@@ -219,21 +219,15 @@ describe('LoginPage', () => {
       });
 
       render(<LoginPage />);
-      
+
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
-      
+
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      });
-      
-      vi.advanceTimersByTime(100);
-      
+
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/custom-dashboard');
       });
@@ -253,18 +247,12 @@ describe('LoginPage', () => {
       });
 
       render(<LoginPage />);
-      
+
       fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
       fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      });
-      
-      vi.advanceTimersByTime(100);
-      
+
       await waitFor(() => {
         expect(mockDispatchEvent).toHaveBeenCalled();
         const event = mockDispatchEvent.mock.calls[0][0];
@@ -361,9 +349,6 @@ describe('LoginPage', () => {
     });
 
     it('should handle JSON parsing errors', async () => {
-      // Use real timers for this async test
-      vi.useRealTimers();
-      
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: async () => {
@@ -372,19 +357,16 @@ describe('LoginPage', () => {
       });
 
       render(<LoginPage />);
-      
+
       fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
       fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
+
       await waitFor(() => {
         // Should show connection error message
         expect(screen.getByText(/connection error. please try again/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
-      
-      // Restore fake timers for other tests
-      vi.useFakeTimers();
+      });
     });
   });
 
@@ -398,24 +380,24 @@ describe('LoginPage', () => {
       mockFetch.mockReturnValueOnce(fetchPromise);
 
       render(<LoginPage />);
-      
+
       fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
       fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
-      // Check loading state
+
+      // While loading, Button replaces children with "Loading..."
       await waitFor(() => {
-        const submitButton = screen.getByRole('button', { name: /login/i });
+        const submitButton = screen.getByRole('button', { name: /loading/i });
         expect(submitButton).toBeDisabled();
       });
-      
-      // Resolve the fetch
+
+      // Resolve the fetch with a non-success response to avoid scheduling redirect
       resolveFetch!({
-        ok: true,
-        json: async () => ({ success: true }),
+        ok: false,
+        json: async () => ({ success: false, error: 'Stay put' }),
       });
-      
+
       await waitFor(() => {
         const submitButton = screen.getByRole('button', { name: /login/i });
         expect(submitButton).not.toBeDisabled();
@@ -506,33 +488,32 @@ describe('LoginPage', () => {
 
   describe('Edge Cases', () => {
     it('should handle multiple rapid submissions', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          success: true,
-          user: {
-            id: '123',
-            email: 'test@example.com',
-            name: 'Test User',
-          },
-        }),
-      });
+      let resolveFetch: (value: unknown) => void;
+      mockFetch.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        })
+      );
 
       render(<LoginPage />);
-      
+
       fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
       fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-      
+
       // Submit multiple times rapidly
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
       fireEvent.submit(form);
       fireEvent.submit(form);
-      
-      // Should only call API once (or limited times due to loading state)
+
+      // Should disable the button after first submission enters loading state
       await waitFor(() => {
-        // The button should be disabled after first submission
-        expect(screen.getByRole('button', { name: /login/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled();
+      });
+
+      resolveFetch!({
+        ok: false,
+        json: async () => ({ success: false, error: 'Done' }),
       });
     });
 
@@ -560,12 +541,6 @@ describe('LoginPage', () => {
       fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
       const form = screen.getByLabelText(/email/i).closest('form')!;
       fireEvent.submit(form);
-      
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      });
-      
-      vi.advanceTimersByTime(100);
       
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/dashboard?param=value&other=test');

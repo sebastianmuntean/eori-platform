@@ -18,7 +18,7 @@
   "parishes": "Parishes",
   "partners": "Partners",
   "menu": "Menu",
-  "registratura": "Registry",
+  "registry": "Registry",
   "registrulGeneral": "General Register",
   "onlineForms": "Online Forms",
   "mappingDatasets": "Mapping Datasets",
@@ -114,5 +114,6 @@
   "notifications": "Notifications",
   "sendNotification": "Send Notification",
   "departments": "Departments",
-  "profile": "Profile"
+  "profile": "Profile",
+  "chat": "Chat"
 }

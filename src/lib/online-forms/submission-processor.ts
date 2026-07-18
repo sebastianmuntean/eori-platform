@@ -126,7 +126,7 @@ async function processRegistraturaSubmission(
   for (const mapping of mappings) {
     const fieldValue = formData[mapping.fieldKey];
     if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
-      let value = fieldValue;
+      const value = fieldValue;
 
       // Check if mapping has SQL query
       const transformation = mapping.transformation as any;

@@ -93,7 +93,8 @@ export async function POST(request: Request) {
       );
     }
 
-    let { type, participantIds, title } = validation.data;
+    const { type, participantIds, title: rawTitle } = validation.data;
+    let title = rawTitle;
 
     // Auto-generate title for group conversations if not provided
     if (type === 'group' && !title) {

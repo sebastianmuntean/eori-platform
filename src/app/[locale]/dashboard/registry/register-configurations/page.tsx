@@ -3,17 +3,17 @@
 import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { RegisterConfigurationList } from '@/components/registratura/RegisterConfigurationList';
+import { RegisterConfigurationList } from '@/components/registry/RegisterConfigurationList';
 import { useTranslations } from 'next-intl';
 import { Card, CardBody } from '@/components/ui/Card';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registry';
 
 export default function RegisterConfigurationsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('common');
-  const tReg = useTranslations('registratura');
+  const tReg = useTranslations('registry');
 
   // Check permission to view register configurations
   const { loading } = useRequirePermission(REGISTRATURA_PERMISSIONS.REGISTER_CONFIGURATIONS_VIEW);
@@ -28,7 +28,7 @@ export default function RegisterConfigurationsPage() {
       <PageHeader
         breadcrumbs={[
           { label: t('breadcrumbDashboard'), href: `/${locale}/dashboard` },
-          { label: tReg('registratura'), href: `/${locale}/dashboard/registry` },
+          { label: tReg('registry'), href: `/${locale}/dashboard/registry` },
           { label: tReg('registerConfigurations.title') },
         ]}
         title={tReg('registerConfigurations.title') || 'Register Configurations'}

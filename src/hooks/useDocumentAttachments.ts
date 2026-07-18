@@ -61,7 +61,7 @@ export function useDocumentAttachments(
     setError(null);
 
     try {
-      const response = await fetch(`/api/registratura/documents/${docId}/attachments`);
+      const response = await fetch(`/api/registry/documents/${docId}/attachments`);
       const result = await response.json();
 
       if (!result.success) {
@@ -87,7 +87,7 @@ export function useDocumentAttachments(
         formData.append('file', params.file);
 
         const response = await fetch(
-          `/api/registratura/documents/${params.documentId}/attachments`,
+          `/api/registry/documents/${params.documentId}/attachments`,
           {
             method: 'POST',
             body: formData,
@@ -125,7 +125,7 @@ export function useDocumentAttachments(
       }
 
       const response = await fetch(
-        `/api/registratura/documents/${attachment.documentId}/attachments/${attachmentId}`,
+        `/api/registry/documents/${attachment.documentId}/attachments/${attachmentId}`,
         {
           method: 'DELETE',
         }
@@ -160,7 +160,7 @@ export function useDocumentAttachments(
       }
 
       const response = await fetch(
-        `/api/registratura/documents/${attachment.documentId}/attachments/${attachmentId}/download`
+        `/api/registry/documents/${attachment.documentId}/attachments/${attachmentId}/download`
       );
 
       if (!response.ok) {
@@ -221,7 +221,7 @@ export function useUploadAttachment(): UseUploadAttachmentReturn {
         formData.append('file', params.file);
 
         const response = await fetch(
-          `/api/registratura/documents/${params.documentId}/attachments`,
+          `/api/registry/documents/${params.documentId}/attachments`,
           {
             method: 'POST',
             body: formData,
@@ -267,7 +267,7 @@ export function useDeleteAttachment(): UseDeleteAttachmentReturn {
 
       try {
         const response = await fetch(
-          `/api/registratura/documents/${documentId}/attachments/${attachmentId}`,
+          `/api/registry/documents/${documentId}/attachments/${attachmentId}`,
           {
             method: 'DELETE',
           }

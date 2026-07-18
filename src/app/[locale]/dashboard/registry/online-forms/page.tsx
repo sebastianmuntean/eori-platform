@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
-import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registratura';
+import { REGISTRATURA_PERMISSIONS } from '@/lib/permissions/registry';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { OnlineFormsPageContent } from '@/components/registry/online-forms/OnlineFormsPageContent';
 

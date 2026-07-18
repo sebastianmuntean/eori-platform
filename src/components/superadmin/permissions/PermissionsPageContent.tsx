@@ -57,10 +57,10 @@ export function PermissionsPageContent({ locale }: PermissionsPageContentProps) 
   }, [permissions]);
 
   // Check if all permissions in a resource are selected
-  const isResourceFullySelected = (resource: string): boolean => {
+  const isResourceFullySelected = useCallback((resource: string): boolean => {
     const resourcePerms = permissionsByResource[resource] || [];
     return resourcePerms.length > 0 && resourcePerms.every((perm) => selectedPermissions.has(perm.id));
-  };
+  }, [permissionsByResource, selectedPermissions]);
 
   // Check if some (but not all) permissions in a resource are selected
   const isResourcePartiallySelected = (resource: string): boolean => {
@@ -115,7 +115,7 @@ export function PermissionsPageContent({ locale }: PermissionsPageContentProps) 
       }
       return newSet;
     });
-  }, [permissionsByResource]);
+  }, [permissionsByResource, isResourceFullySelected]);
 
   // Ref for select all checkbox
   const selectAllCheckboxRef = useRef<HTMLInputElement>(null);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useHRCrudOperations } from '@/hooks/useHRCrudOperations';
 
@@ -28,16 +28,16 @@ interface TestEntity {
 }
 
 describe('useHRCrudOperations', () => {
-  let mockShowToast: ReturnType<typeof vi.fn>;
-  let mockCreateEntity: ReturnType<typeof vi.fn>;
-  let mockUpdateEntity: ReturnType<typeof vi.fn>;
-  let mockDeleteEntity: ReturnType<typeof vi.fn>;
-  let mockOnEntityCreated: ReturnType<typeof vi.fn>;
-  let mockOnEntityUpdated: ReturnType<typeof vi.fn>;
-  let mockOnEntityDeleted: ReturnType<typeof vi.fn>;
-  let mockOnRefresh: ReturnType<typeof vi.fn>;
-  let mockGetDeleteMessage: ReturnType<typeof vi.fn>;
-  let mockT: ReturnType<typeof vi.fn>;
+  let mockShowToast: MockedFunction<(message: string, type?: string, duration?: number) => string>;
+  let mockCreateEntity: MockedFunction<(data: Partial<TestEntity>) => Promise<TestEntity | null>>;
+  let mockUpdateEntity: MockedFunction<(id: string, data: Partial<TestEntity>) => Promise<TestEntity | null>>;
+  let mockDeleteEntity: MockedFunction<(id: string) => Promise<boolean>>;
+  let mockOnEntityCreated: MockedFunction<(entity: TestEntity) => void>;
+  let mockOnEntityUpdated: MockedFunction<(entity: TestEntity) => void>;
+  let mockOnEntityDeleted: MockedFunction<(id: string) => void>;
+  let mockOnRefresh: MockedFunction<() => void | Promise<void>>;
+  let mockGetDeleteMessage: MockedFunction<(entity: TestEntity) => string>;
+  let mockT: MockedFunction<(key: string) => string>;
 
   const testEntity: TestEntity = {
     id: 'entity-1',
@@ -54,7 +54,7 @@ describe('useHRCrudOperations', () => {
     vi.clearAllMocks();
 
     // Setup mocks
-    mockShowToast = vi.fn();
+    mockShowToast = vi.fn<[string, string?, number?], string>();
     mockT = vi.fn((key: string) => {
       const translations: Record<string, string> = {
         'errorOccurred': 'An error occurred',
@@ -73,14 +73,14 @@ describe('useHRCrudOperations', () => {
     (useToast as any).mockReturnValue({ showToast: mockShowToast });
     (useTranslations as any).mockReturnValue(mockT);
 
-    mockCreateEntity = vi.fn().mockResolvedValue(newEntity);
-    mockUpdateEntity = vi.fn().mockResolvedValue(testEntity);
-    mockDeleteEntity = vi.fn().mockResolvedValue(true);
-    mockOnEntityCreated = vi.fn();
-    mockOnEntityUpdated = vi.fn();
-    mockOnEntityDeleted = vi.fn();
-    mockOnRefresh = vi.fn();
-    mockGetDeleteMessage = vi.fn();
+    mockCreateEntity = vi.fn<[Partial<TestEntity>], Promise<TestEntity | null>>().mockResolvedValue(newEntity);
+    mockUpdateEntity = vi.fn<[string, Partial<TestEntity>], Promise<TestEntity | null>>().mockResolvedValue(testEntity);
+    mockDeleteEntity = vi.fn<[string], Promise<boolean>>().mockResolvedValue(true);
+    mockOnEntityCreated = vi.fn<[TestEntity], void>();
+    mockOnEntityUpdated = vi.fn<[TestEntity], void>();
+    mockOnEntityDeleted = vi.fn<[string], void>();
+    mockOnRefresh = vi.fn<[], void | Promise<void>>();
+    mockGetDeleteMessage = vi.fn<[TestEntity], string>();
   });
 
   describe('initial state', () => {

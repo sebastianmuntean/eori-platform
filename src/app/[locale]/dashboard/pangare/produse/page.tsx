@@ -62,10 +62,15 @@ export default function ProdusePangarPage() {
     refreshProducts();
   }, [refreshProducts]);
 
+  const resetForm = useCallback(() => {
+    setFormData(createEmptyProductFormData());
+    setSelectedProduct(null);
+  }, []);
+
   const handleAdd = useCallback(() => {
     resetForm();
     setShowAddModal(true);
-  }, []);
+  }, [resetForm]);
 
   const handleEdit = useCallback((product: Product) => {
     setSelectedProduct(product);
@@ -91,7 +96,7 @@ export default function ProdusePangarPage() {
       resetForm();
       refreshProducts();
     }
-  }, [formData, createProduct, refreshProducts]);
+  }, [formData, createProduct, refreshProducts, resetForm]);
 
   const handleUpdate = useCallback(async () => {
     if (!selectedProduct) return;
@@ -110,11 +115,6 @@ export default function ProdusePangarPage() {
       refreshProducts();
     }
   }, [deleteProduct, refreshProducts]);
-
-  const resetForm = useCallback(() => {
-    setFormData(createEmptyProductFormData());
-    setSelectedProduct(null);
-  }, []);
 
   const columns = useMemo(() => [
     { key: 'code' as keyof Product, label: t('code') || 'Code', sortable: true },

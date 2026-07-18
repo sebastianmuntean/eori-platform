@@ -48,7 +48,7 @@ export async function validateParishCodeUnique(
   code: string,
   excludeParishId?: string
 ): Promise<void> {
-  let query = db
+  const query = db
     .select()
     .from(parishes)
     .where(eq(parishes.code, code))

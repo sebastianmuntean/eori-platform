@@ -6,7 +6,7 @@
     "dev": "next dev -p 4058",
     "build": "next build",
     "start": "next start -p 4058",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -59,10 +59,10 @@
     "tailwindcss": "^3",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^1.0.4"
+    "vitest": "^1.0.4",
+    "eslint": "^9.39.2"
   },
   "overrides": {
-    "eslint": "^9.39.2",
     "@humanwhocodes/config-array": "npm:@eslint/config-array@^0.18.0",
     "@humanwhocodes/object-schema": "npm:@eslint/object-schema@^2.1.3",
     "glob": "^10.4.5",

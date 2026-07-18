@@ -18,7 +18,7 @@
   "parishes": "Parohii",
   "partners": "Parteneri",
   "menu": "Meniu",
-  "registratura": "Registratura",
+  "registry": "Registratura",
   "registrulGeneral": "Registrul General",
   "onlineForms": "Formulare Online",
   "mappingDatasets": "Dataset-uri Mapări",
@@ -114,5 +114,6 @@
   "notifications": "Notificări",
   "sendNotification": "Trimite Notificare",
   "departments": "Departamente",
-  "profile": "Profil"
+  "profile": "Profil",
+  "chat": "Chat"
 }

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
+import { routing } from '@/i18n/config';
 
 export default function RootPage() {
-  console.log('Step 1: Root page accessed, redirecting to /en/dashboard');
-  redirect('/en/dashboard');
+  redirect(`/${routing.defaultLocale}/dashboard`);
 }
-

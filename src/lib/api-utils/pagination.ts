@@ -21,12 +21,25 @@ const MAX_PAGE_SIZE = 100;
 const MIN_PAGE_SIZE = 1;
 
 /**
- * Parse and validate pagination parameters from URL search params
+ * Parse and validate pagination parameters from URL search params.
+ * Accepts both `limit` and `pageSize` (`limit` preferred, then `pageSize`).
  */
 export function parsePaginationParams(searchParams: URLSearchParams): PaginationParams {
   const page = Math.max(1, parseInt(searchParams.get('page') || String(DEFAULT_PAGE), 10) || DEFAULT_PAGE);
-  const rawPageSize = parseInt(searchParams.get('limit') || String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE;
-  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(MIN_PAGE_SIZE, rawPageSize));
+
+  const rawLimit = searchParams.get('limit');
+  const rawPageSize = searchParams.get('pageSize');
+  const rawSize =
+    rawLimit !== null
+      ? parseInt(rawLimit, 10)
+      : rawPageSize !== null
+        ? parseInt(rawPageSize, 10)
+        : DEFAULT_PAGE_SIZE;
+
+  const pageSize = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(MIN_PAGE_SIZE, Number.isFinite(rawSize) && rawSize > 0 ? rawSize : DEFAULT_PAGE_SIZE)
+  );
   const offset = (page - 1) * pageSize;
 
   return { page, pageSize, offset };
@@ -43,10 +56,3 @@ export function calculatePagination(total: number, page: number, pageSize: numbe
     totalPages: Math.ceil(total / pageSize),
   };
 }
-
-
-
-
-
-
-

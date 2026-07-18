@@ -2,7 +2,7 @@
  * Service for creating invoices from contracts
  */
 
-import { db } from '@/lib/db';
+import { db } from '@/database/client';
 import { contracts, contractInvoices, invoices, clients } from '@/database/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { generateContractInvoiceItems, generateContractInvoiceDescription } from '@/lib/invoice-templates';

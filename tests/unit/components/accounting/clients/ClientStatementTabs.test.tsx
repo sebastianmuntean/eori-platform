@@ -76,7 +76,7 @@ vi.mock('@/components/ui/Table', () => ({
 }));
 
 describe('ClientStatementTabs', () => {
-  const mockInvoices: Invoice[] = [
+  const mockInvoices = [
     {
       id: 'inv-1',
       invoiceNumber: 'INV-001',
@@ -97,9 +97,9 @@ describe('ClientStatementTabs', () => {
       total: '500.00',
       currency: 'RON',
     },
-  ];
+  ] as Invoice[];
 
-  const mockPayments: Payment[] = [
+  const mockPayments = [
     {
       id: 'pay-1',
       paymentNumber: 'PAY-001',
@@ -120,7 +120,7 @@ describe('ClientStatementTabs', () => {
       currency: 'RON',
       description: 'Payment made',
     },
-  ];
+  ] as Payment[];
 
   beforeEach(() => {
     vi.clearAllMocks();

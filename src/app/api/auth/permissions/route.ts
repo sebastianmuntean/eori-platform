@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { getUserEffectivePermissions } from '../../../../../lib/auth/permissions';
+import { getUserEffectivePermissions } from '@/lib/rbac';
 import { formatErrorResponse, logError } from '@/lib/errors';
 import { logRequest, logResponse, logError as logErrorSecure } from '@/lib/logger';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -10,7 +10,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
  * /api/auth/permissions:
  *   get:
  *     summary: Get current user's effective permissions
- *     description: Returns all effective permissions for the currently authenticated user (from roles + overrides).
+ *     description: Returns all effective permissions for the currently authenticated user (from roles).
  *     tags: [Authentication]
  *     security:
  *       - cookieAuth: []

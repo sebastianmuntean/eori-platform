@@ -168,7 +168,7 @@ export function useDocuments(): UseDocumentsReturn {
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      const response = await fetch(`/api/registratura/documents?${queryParams.toString()}`);
+      const response = await fetch(`/api/registry/documents?${queryParams.toString()}`);
       const result = await response.json();
 
       if (!result.success) {
@@ -190,7 +190,7 @@ export function useDocuments(): UseDocumentsReturn {
     setError(null);
 
     try {
-      const response = await fetch('/api/registratura/documents', {
+      const response = await fetch('/api/registry/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -219,7 +219,7 @@ export function useDocuments(): UseDocumentsReturn {
       setError(null);
 
       try {
-        const response = await fetch(`/api/registratura/documents/${id}`, {
+        const response = await fetch(`/api/registry/documents/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -249,7 +249,7 @@ export function useDocuments(): UseDocumentsReturn {
     setError(null);
 
     try {
-      const response = await fetch(`/api/registratura/documents/${id}`, {
+      const response = await fetch(`/api/registry/documents/${id}`, {
         method: 'DELETE',
       });
 
@@ -275,7 +275,7 @@ export function useDocuments(): UseDocumentsReturn {
     setError(null);
 
     try {
-      const response = await fetch(`/api/registratura/documents/${id}/cancel`, {
+      const response = await fetch(`/api/registry/documents/${id}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
@@ -327,9 +327,9 @@ export function useDocument(id?: string): UseDocumentReturn {
 
     try {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:329',message:'Fetching document from API',data:{documentId,apiEndpoint:'/api/registratura/documents/'+documentId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:329',message:'Fetching document from API',data:{documentId,apiEndpoint:'/api/registry/documents/'+documentId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
-      const response = await fetch(`/api/registratura/documents/${documentId}`);
+      const response = await fetch(`/api/registry/documents/${documentId}`);
       const result = await response.json();
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/6b2b323b-9151-4a40-9be4-c8a5ddf1ca69',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDocuments.ts:331',message:'API response received',data:{documentId,status:response.status,success:result.success,error:result.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
@@ -356,7 +356,7 @@ export function useDocument(id?: string): UseDocumentReturn {
     setError(null);
 
     try {
-      const response = await fetch(`/api/registratura/documents/${documentId}/workflow`);
+      const response = await fetch(`/api/registry/documents/${documentId}/workflow`);
       const result = await response.json();
 
       if (!result.success) {
@@ -394,7 +394,7 @@ export function useCreateDocument(): UseCreateDocumentReturn {
     setError(null);
 
     try {
-      const response = await fetch('/api/registratura/documents', {
+      const response = await fetch('/api/registry/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -436,7 +436,7 @@ export function useUpdateDocument(): UseUpdateDocumentReturn {
       setError(null);
 
       try {
-        const response = await fetch(`/api/registratura/documents/${id}`, {
+        const response = await fetch(`/api/registry/documents/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -479,7 +479,7 @@ export function useDeleteDocument(): UseDeleteDocumentReturn {
     setError(null);
 
     try {
-      const response = await fetch(`/api/registratura/documents/${id}`, {
+      const response = await fetch(`/api/registry/documents/${id}`, {
         method: 'DELETE',
       });
 
@@ -526,7 +526,7 @@ export function useRouteDocument(): UseRouteDocumentReturn {
       setError(null);
 
       try {
-        const response = await fetch(`/api/registratura/documents/${params.documentId}/workflow`, {
+        const response = await fetch(`/api/registry/documents/${params.documentId}/workflow`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -584,7 +584,7 @@ export function useResolveDocument(): UseResolveDocumentReturn {
       setError(null);
 
       try {
-        const response = await fetch(`/api/registratura/documents/${params.documentId}/resolve`, {
+        const response = await fetch(`/api/registry/documents/${params.documentId}/resolve`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

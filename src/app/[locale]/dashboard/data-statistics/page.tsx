@@ -745,7 +745,7 @@ export default function DataStatisticsPage() {
         ],
       },
       {
-        title: t('registraturaDocuments'),
+        title: t('registryDocuments'),
         sectionType: 'documents' as SectionType,
         items: [
           {

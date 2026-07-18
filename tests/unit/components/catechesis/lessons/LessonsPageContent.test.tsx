@@ -134,14 +134,14 @@ describe('LessonsPageContent', () => {
 
   it('should render the page container', () => {
     render(<LessonsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Lessons')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Lessons' })).toBeInTheDocument();
   });
 
   it('should render page header with correct title', () => {
     render(<LessonsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Lessons')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Lessons' })).toBeInTheDocument();
   });
 
   it('should fetch lessons on mount', () => {
@@ -184,19 +184,19 @@ describe('LessonsPageContent', () => {
 
   it('should use memoized columns', () => {
     const { rerender } = render(<LessonsPageContent locale={locale} />);
-    
+
     // Rerender should not recreate columns unnecessarily
     rerender(<LessonsPageContent locale={locale} />);
-    
-    expect(screen.getByText('Lessons')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Lessons' })).toBeInTheDocument();
   });
 
   it('should display status badges correctly', async () => {
     render(<LessonsPageContent locale={locale} />);
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Published')).toBeInTheDocument();
-      expect(screen.getByText('Unpublished')).toBeInTheDocument();
+      expect(screen.getAllByText('Published').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Unpublished').length).toBeGreaterThan(0);
     });
   });
 

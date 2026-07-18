@@ -35,14 +35,14 @@ vi.mock('next-intl', async () => {
 const mockRoles = [
   {
     id: '1',
-    name: 'admin',
-    description: 'Administrator role',
+    name: 'editor',
+    description: 'Editor role',
     createdAt: new Date('2024-01-01'),
   },
   {
     id: '2',
-    name: 'user',
-    description: 'Regular user role',
+    name: 'viewer',
+    description: 'Viewer role',
     createdAt: new Date('2024-01-02'),
   },
 ];
@@ -83,8 +83,8 @@ describe('RolesPageContent', () => {
 
       expect(screen.getByText('Manage Roles')).toBeInTheDocument();
       expect(screen.getByText('Add Role')).toBeInTheDocument();
-      expect(screen.getByText('admin')).toBeInTheDocument();
-      expect(screen.getByText('user')).toBeInTheDocument();
+      expect(screen.getByText('editor')).toBeInTheDocument();
+      expect(screen.getByText('viewer')).toBeInTheDocument();
     });
 
     it('should show loading state when loading', () => {
@@ -120,10 +120,10 @@ describe('RolesPageContent', () => {
     it('should open add modal when add button is clicked', () => {
       render(<RolesPageContent locale="ro" />);
 
-      const addButton = screen.getByText('Add Role');
+      const addButton = screen.getByRole('button', { name: 'Add Role' });
       fireEvent.click(addButton);
 
-      expect(screen.getByText('Add Role')).toBeInTheDocument();
+      expect(screen.getAllByText('Add Role').length).toBeGreaterThan(1);
     });
 
     it('should open edit modal when edit button is clicked', () => {
@@ -151,7 +151,7 @@ describe('RolesPageContent', () => {
 
       render(<RolesPageContent locale="ro" />);
 
-      const addButton = screen.getByText('Add Role');
+      const addButton = screen.getByRole('button', { name: 'Add Role' });
       fireEvent.click(addButton);
 
       const nameInput = screen.getByLabelText('Nume');
@@ -162,7 +162,7 @@ describe('RolesPageContent', () => {
 
       // Note: Form submission requires form element
       // This test verifies the modal opens correctly
-      expect(screen.getByText('Add Role')).toBeInTheDocument();
+      expect(screen.getAllByText('Add Role').length).toBeGreaterThan(0);
     });
   });
 });

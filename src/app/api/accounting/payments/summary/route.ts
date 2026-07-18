@@ -43,7 +43,7 @@ export async function GET(request: Request) {
       : undefined;
 
     // Calculate summary using SQL aggregation
-    let summaryQuery = db
+    const summaryQuery = db
       .select({
         totalIncome: sql<number>`COALESCE(SUM(CASE WHEN ${payments.type} = 'income' THEN ${payments.amount}::numeric ELSE 0 END), 0)`,
         totalExpense: sql<number>`COALESCE(SUM(CASE WHEN ${payments.type} = 'expense' THEN ${payments.amount}::numeric ELSE 0 END), 0)`,

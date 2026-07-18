@@ -3,7 +3,7 @@ import { parishes } from '../core/parishes';
 import { users } from '../superadmin/users';
 import { registerConfigurations } from './register_configurations';
 import { clients } from '../clients/clients';
-import { documentTypeEnum, documentStatusEnum } from './enums';
+import { documentTypeEnum, documentStatusEnum, generalRegisterResolutionStatusEnum } from './enums';
 
 export const generalRegister = pgTable('general_register', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -21,6 +21,8 @@ export const generalRegister = pgTable('general_register', {
   description: text('description'),
   filePath: text('file_path'),
   status: documentStatusEnum('status').notNull().default('draft'),
+  resolutionStatus: generalRegisterResolutionStatusEnum('resolution_status'),
+  resolution: text('resolution'),
   createdBy: uuid('created_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

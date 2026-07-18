@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       : (sortOrder === 'desc' ? desc(inventorySessions.createdAt) : asc(inventorySessions.createdAt));
 
     // Build query with LEFT JOINs for related data (flattened select to match Drizzle syntax)
-    let sessionsQuery = db
+    const sessionsQuery = db
       .select({
         id: inventorySessions.id,
         parishId: inventorySessions.parishId,

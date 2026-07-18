@@ -29,9 +29,6 @@
       "@/database/*": [
         "./database/*"
       ],
-      "@/drizzle/*": [
-        "./drizzle/*"
-      ],
       "@/types/*": [
         "./types/*"
       ]

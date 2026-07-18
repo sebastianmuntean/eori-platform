@@ -69,14 +69,11 @@ describe('useProductsTableColumns', () => {
 
   const mockProduct: Product = {
     id: '1',
-    parishId: '1',
     code: 'PROD001',
     name: 'Test Product',
     description: 'Test Description',
     category: 'Category 1',
     unit: 'buc',
-    purchasePrice: '10.00',
-    salePrice: '15.00',
     vatRate: '19',
     barcode: '123456',
     trackStock: true,
@@ -176,7 +173,7 @@ describe('useProductsTableColumns', () => {
 
     // Test render function with true value
     if (trackStockColumn?.render) {
-      const { container } = render(trackStockColumn.render(true) as React.ReactElement);
+      const { container } = render(trackStockColumn.render(true, mockProduct) as React.ReactElement);
       expect(container.querySelector('[data-testid="badge-info"]')).toBeInTheDocument();
     }
   });
@@ -197,13 +194,13 @@ describe('useProductsTableColumns', () => {
 
     // Test render function with true value
     if (isActiveColumn?.render) {
-      const { container } = render(isActiveColumn.render(true) as React.ReactElement);
+      const { container } = render(isActiveColumn.render(true, mockProduct) as React.ReactElement);
       expect(container.querySelector('[data-testid="badge-success"]')).toBeInTheDocument();
     }
 
     // Test render function with false value
     if (isActiveColumn?.render) {
-      const { container } = render(isActiveColumn.render(false) as React.ReactElement);
+      const { container } = render(isActiveColumn.render(false, mockProduct) as React.ReactElement);
       expect(container.querySelector('[data-testid="badge-secondary"]')).toBeInTheDocument();
     }
   });

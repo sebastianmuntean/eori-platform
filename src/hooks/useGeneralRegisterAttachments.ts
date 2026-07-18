@@ -47,8 +47,8 @@ export function useGeneralRegisterAttachments(): UseGeneralRegisterAttachmentsRe
 
     try {
       const url = workflowStepId
-        ? `/api/registratura/general-register/${documentId}/attachments?workflowStepId=${workflowStepId}`
-        : `/api/registratura/general-register/${documentId}/attachments`;
+        ? `/api/registry/general-register/${documentId}/attachments?workflowStepId=${workflowStepId}`
+        : `/api/registry/general-register/${documentId}/attachments`;
       
       const response = await fetch(url);
       
@@ -101,7 +101,7 @@ export function useGeneralRegisterAttachments(): UseGeneralRegisterAttachmentsRe
         }
 
         const response = await fetch(
-          `/api/registratura/general-register/${params.documentId}/attachments`,
+          `/api/registry/general-register/${params.documentId}/attachments`,
           {
             method: 'POST',
             body: formData,
@@ -147,7 +147,7 @@ export function useGeneralRegisterAttachments(): UseGeneralRegisterAttachmentsRe
 
     try {
       const response = await fetch(
-        `/api/registratura/general-register/${documentId}/attachments/${attachmentId}`,
+        `/api/registry/general-register/${documentId}/attachments/${attachmentId}`,
         {
           method: 'DELETE',
         }
@@ -176,7 +176,7 @@ export function useGeneralRegisterAttachments(): UseGeneralRegisterAttachmentsRe
 
     try {
       const response = await fetch(
-        `/api/registratura/general-register/${documentId}/attachments/${attachmentId}/download`
+        `/api/registry/general-register/${documentId}/attachments/${attachmentId}/download`
       );
 
       if (!response.ok) {

@@ -41,7 +41,7 @@ export function ClientStatementPageContent({ locale, clientId }: ClientStatement
   // Memoized client display name for page title
   const clientDisplayName = useMemo(
     () => (statement?.client ? getClientDisplayName(statement.client) : ''),
-    [statement?.client]
+    [statement]
   );
 
   // Update page title when client data is loaded

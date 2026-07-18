@@ -415,23 +415,27 @@ describe('GET /api/hr/reports/employees/export', () => {
       // Arrange
       const dbError = new Error('Database connection failed');
       
-      // Mock database to throw error
+      // Mock database to throw error — restore so later tests are not polluted
       const { db } = await import('../../../../../../../database/client');
-      vi.spyOn(db, 'select').mockImplementation(() => {
+      const selectSpy = vi.spyOn(db, 'select').mockImplementation(() => {
         throw dbError;
       });
 
-      const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
-        format: 'excel',
-      });
+      try {
+        const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
+          format: 'excel',
+        });
 
-      // Act
-      const response = await GET(request);
+        // Act
+        const response = await GET(request);
 
-      // Assert
-      const errorData = await assertErrorResponse(response, 500);
-      expect(errorData.success).toBe(false);
-      expect(errorData.error).toBeDefined();
+        // Assert
+        const errorData = await assertErrorResponse(response, 500);
+        expect(errorData.success).toBe(false);
+        expect(errorData.error).toBeDefined();
+      } finally {
+        selectSpy.mockRestore();
+      }
     });
 
     it('should handle Excel generation failure', async () => {
@@ -447,21 +451,27 @@ describe('GET /api/hr/reports/employees/export', () => {
       setEmployeesData(testEmployees);
       setContractsForEmployee('emp-1', []);
 
-      // Mock ExcelJS to throw error
+      // Mock ExcelJS to throw error — restore original mock afterward
       const excelError = new Error('Failed to generate Excel file');
+      const originalWriteBuffer = mockWorkbook.xlsx.writeBuffer;
       mockWorkbook.xlsx.writeBuffer = vi.fn().mockRejectedValue(excelError);
 
-      const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
-        format: 'excel',
-      });
+      try {
+        const request = createMockRequestWithParams('http://localhost/api/hr/reports/employees/export', {
+          format: 'excel',
+        });
 
-      // Act
-      const response = await GET(request);
+        // Act
+        const response = await GET(request);
 
-      // Assert
-      const errorData = await assertErrorResponse(response, 500);
-      expect(errorData.success).toBe(false);
-      expect(errorData.error).toBeDefined();
+        // Assert
+        const errorData = await assertErrorResponse(response, 500);
+        expect(errorData.success).toBe(false);
+        expect(errorData.error).toBeDefined();
+      } finally {
+        mockWorkbook.xlsx.writeBuffer = originalWriteBuffer;
+        mockWorkbook.xlsx.writeBuffer.mockResolvedValue(Buffer.from('mock-excel-data'));
+      }
     });
   });
 

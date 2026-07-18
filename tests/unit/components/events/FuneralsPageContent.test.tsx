@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '../../../setup/test-utils';
 import { FuneralsPageContent } from '@/components/events/FuneralsPageContent';
-import { useEvents } from '@/hooks/useEvents';
-import { useParishes } from '@/hooks/useParishes';
+import { useEvents, type ChurchEvent } from '@/hooks/useEvents';
+import { useParishes, type Parish } from '@/hooks/useParishes';
 import { useToast } from '@/hooks/useToast';
 
 // Mock hooks
@@ -37,12 +37,12 @@ describe('FuneralsPageContent', () => {
       priestName: 'Father John',
       notes: 'Test notes',
     },
-  ];
+  ] as ChurchEvent[];
 
   const mockParishes = [
     { id: 'parish-1', name: 'Parish 1' },
     { id: 'parish-2', name: 'Parish 2' },
-  ];
+  ] as Parish[];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,6 +64,7 @@ describe('FuneralsPageContent', () => {
       parishes: mockParishes,
       loading: false,
       error: null,
+      pagination: null,
       fetchParishes: mockFetchParishes,
       createParish: vi.fn(),
       updateParish: vi.fn(),
@@ -72,8 +73,11 @@ describe('FuneralsPageContent', () => {
 
     mockUseToast.mockReturnValue({
       toasts: [],
+      showToast: vi.fn(),
       success: mockSuccess,
       error: mockShowError,
+      warning: vi.fn(),
+      info: vi.fn(),
       removeToast: mockRemoveToast,
     });
   });
@@ -82,7 +86,7 @@ describe('FuneralsPageContent', () => {
     it('should render page header with correct title', () => {
       render(<FuneralsPageContent locale="en" />);
 
-      expect(screen.getByText('Funerals')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Funerals' })).toBeInTheDocument();
     });
 
     it('should render filters section', () => {

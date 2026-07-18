@@ -25,13 +25,11 @@ const mockT = (key: string) => {
     totalAmount: 'Total Amount',
     notes: 'Notes',
     participant: 'Participant',
-    participantStatuses: {
-      registered: 'Registered',
-      confirmed: 'Confirmed',
-      paid: 'Paid',
-      cancelled: 'Cancelled',
-      waitlisted: 'Waitlisted',
-    },
+    'participantStatuses.registered': 'Registered',
+    'participantStatuses.confirmed': 'Confirmed',
+    'participantStatuses.paid': 'Paid',
+    'participantStatuses.cancelled': 'Cancelled',
+    'participantStatuses.waitlisted': 'Waitlisted',
     cancel: 'Cancel',
     save: 'Save',
     saving: 'Saving...',
@@ -201,12 +199,12 @@ describe('ParticipantForm', () => {
     const setFormData = vi.fn();
     render(<ParticipantForm {...defaultProps} setFormData={setFormData} />);
 
-    const textareas = screen.getAllByRole('textbox');
-    // Find the notes textarea (it's one of the last textboxes)
-    const notesTextarea = textareas.find((el) => 
-      el.tagName === 'TEXTAREA' && el.getAttribute('rows') === '3'
-    ) || textareas[textareas.length - 1];
-    
+    // Both specialNeeds and notes use rows=3; notes is the last textarea
+    const textareas = screen.getAllByRole('textbox').filter(
+      (el) => el.tagName === 'TEXTAREA'
+    );
+    const notesTextarea = textareas[textareas.length - 1];
+
     fireEvent.change(notesTextarea, { target: { value: 'Test notes' } });
 
     expect(setFormData).toHaveBeenCalledWith(

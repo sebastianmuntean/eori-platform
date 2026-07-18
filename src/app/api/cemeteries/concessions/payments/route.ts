@@ -87,7 +87,7 @@ export async function GET(request: Request) {
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Build query - join with concessions to filter by cemeteryId if needed
-    let query = db.select({
+    const query = db.select({
       id: cemeteryConcessionPayments.id,
       concessionId: cemeteryConcessionPayments.concessionId,
       parishId: cemeteryConcessionPayments.parishId,

@@ -1,7 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useContractInvoiceGeneration } from '@/hooks/useContractInvoiceGeneration';
 import { Contract, ContractInvoice } from '@/hooks/useContracts';
+
+type GenerateInvoiceFn = (
+  contractId: string,
+  periodYear: number,
+  periodMonth: number
+) => Promise<{ invoice: any; contractInvoice: any } | null>;
+type FetchContractInvoicesFn = (contractId: string) => Promise<ContractInvoice[]>;
 
 describe('useContractInvoiceGeneration', () => {
   const mockContract: Contract = {
@@ -59,14 +66,19 @@ describe('useContractInvoiceGeneration', () => {
     },
   ];
 
-  let mockGenerateInvoiceFn: ReturnType<typeof vi.fn>;
-  let mockFetchContractInvoicesFn: ReturnType<typeof vi.fn>;
+  let mockGenerateInvoiceFn: MockedFunction<GenerateInvoiceFn>;
+  let mockFetchContractInvoicesFn: MockedFunction<FetchContractInvoicesFn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockGenerateInvoiceFn = vi.fn().mockResolvedValue(mockInvoice);
-    mockFetchContractInvoicesFn = vi.fn().mockResolvedValue(mockContractInvoices);
+    mockGenerateInvoiceFn = vi.fn<
+      [string, number, number],
+      Promise<{ invoice: any; contractInvoice: any } | null>
+    >().mockResolvedValue(mockInvoice);
+    mockFetchContractInvoicesFn = vi
+      .fn<[string], Promise<ContractInvoice[]>>()
+      .mockResolvedValue(mockContractInvoices);
   });
 
   describe('initial state', () => {
@@ -145,8 +157,8 @@ describe('useContractInvoiceGeneration', () => {
     });
 
     it('should set isGenerating to true during generation', async () => {
-      let resolveGenerate: (value: any) => void;
-      const generatePromise = new Promise((resolve) => {
+      let resolveGenerate: (value: { invoice: any; contractInvoice: any } | null) => void;
+      const generatePromise = new Promise<{ invoice: any; contractInvoice: any } | null>((resolve) => {
         resolveGenerate = resolve;
       });
       mockGenerateInvoiceFn.mockReturnValue(generatePromise);

@@ -431,6 +431,16 @@ async function ensureClientsExist(
  * POST /api/statistics/generate-fake-data - Generate fake data for testing
  */
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ success: false, error: 'Not Found' }, { status: 404 });
+  }
+  if (process.env.ALLOW_FAKE_DATA !== 'true') {
+    return NextResponse.json(
+      { success: false, error: 'Fake data generation is disabled. Set ALLOW_FAKE_DATA=true to enable.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const { userId, user } = await getCurrentUser();
     if (!userId || !user) {

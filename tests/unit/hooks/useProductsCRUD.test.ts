@@ -16,14 +16,11 @@ vi.mock('@/hooks/useProducts', async () => {
 // Mock product utilities
 vi.mock('@/lib/utils/products', () => ({
   createEmptyProductFormData: () => ({
-    parishId: '',
     code: '',
     name: '',
     description: '',
     category: '',
     unit: 'buc',
-    purchasePrice: '',
-    salePrice: '',
     vatRate: '19',
     barcode: '',
     trackStock: true,
@@ -31,14 +28,11 @@ vi.mock('@/lib/utils/products', () => ({
     isActive: true,
   }),
   productToFormData: (product: Product) => ({
-    parishId: product.parishId,
     code: product.code,
     name: product.name,
     description: product.description || '',
     category: product.category || '',
     unit: product.unit,
-    purchasePrice: product.purchasePrice || '',
-    salePrice: product.salePrice || '',
     vatRate: product.vatRate,
     barcode: product.barcode || '',
     trackStock: product.trackStock,
@@ -47,8 +41,6 @@ vi.mock('@/lib/utils/products', () => ({
   }),
   productFormDataToCreateData: (formData: any) => ({
     ...formData,
-    purchasePrice: formData.purchasePrice || null,
-    salePrice: formData.salePrice || null,
     minStock: formData.minStock || null,
     description: formData.description || null,
     category: formData.category || null,
@@ -56,8 +48,6 @@ vi.mock('@/lib/utils/products', () => ({
   }),
   productFormDataToUpdateData: (formData: any) => ({
     ...formData,
-    purchasePrice: formData.purchasePrice || null,
-    salePrice: formData.salePrice || null,
     minStock: formData.minStock || null,
     description: formData.description || null,
     category: formData.category || null,
@@ -105,14 +95,11 @@ describe('useProductsCRUD', () => {
 
   const mockProduct: Product = {
     id: '1',
-    parishId: 'parish-1',
     code: 'PROD-001',
     name: 'Test Product',
     description: 'Test Description',
     category: 'Category 1',
     unit: 'buc',
-    purchasePrice: '10.00',
-    salePrice: '15.00',
     vatRate: '19',
     barcode: '123456789',
     trackStock: true,
@@ -315,7 +302,6 @@ describe('useProductsCRUD', () => {
         result.current.crud.updateFormData({
           code: 'PROD-002',
           name: 'New Product',
-          parishId: 'parish-1',
           unit: 'buc',
           vatRate: '19',
           trackStock: true,

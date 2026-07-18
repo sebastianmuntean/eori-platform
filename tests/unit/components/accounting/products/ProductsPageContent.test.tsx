@@ -168,14 +168,6 @@ describe('ProductsPageContent', () => {
     });
   });
 
-  it('should fetch parishes on mount', async () => {
-    render(<ProductsPageContent locale="ro" />);
-
-    await waitFor(() => {
-      expect(mockFetchParishes).toHaveBeenCalledWith({ all: true });
-    });
-  });
-
   it('should handle search change and reset page', async () => {
     const user = userEvent.setup();
     render(<ProductsPageContent locale="ro" />);
@@ -260,14 +252,11 @@ describe('ProductsPageContent - with products data', () => {
   const mockProducts: Product[] = [
     {
       id: '1',
-      parishId: '1',
       code: 'PROD001',
       name: 'Test Product 1',
       description: 'Description 1',
       category: 'Category 1',
       unit: 'buc',
-      purchasePrice: '10.00',
-      salePrice: '15.00',
       vatRate: '19',
       barcode: '123456',
       trackStock: true,
@@ -280,14 +269,11 @@ describe('ProductsPageContent - with products data', () => {
     },
     {
       id: '2',
-      parishId: '2',
       code: 'PROD002',
       name: 'Test Product 2',
       description: 'Description 2',
       category: 'Category 2',
       unit: 'kg',
-      purchasePrice: '20.00',
-      salePrice: '30.00',
       vatRate: '19',
       barcode: '789012',
       trackStock: false,

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '../../../setup/test-utils';
 import { GeneralRegisterPageContent } from '@/components/registry/general-register/GeneralRegisterPageContent';
-import { useRouter } from 'next/navigation';
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -19,9 +18,12 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
-// Mock DocumentList component
-vi.mock('@/components/registratura/DocumentList', () => ({
-  DocumentList: ({ onDocumentClick, onCreateNew }: any) => (
+// Mock GeneralRegisterList (component under test uses this, not DocumentList)
+vi.mock('@/components/registry/GeneralRegisterList', () => ({
+  GeneralRegisterList: ({ onDocumentClick, onCreateNew }: {
+    onDocumentClick: (doc: { id: string }) => void;
+    onCreateNew: () => void;
+  }) => (
     <div data-testid="document-list">
       <button onClick={() => onDocumentClick({ id: 'doc-1' })}>Click Document</button>
       <button onClick={onCreateNew}>Create New</button>
@@ -29,35 +31,19 @@ vi.mock('@/components/registratura/DocumentList', () => ({
   ),
 }));
 
-// Mock translations
-const mockTranslations = {
-  common: {
-    breadcrumbDashboard: 'Dashboard',
-    loading: 'Loading...',
-  },
-  registratura: {
-    registratura: 'Registratura',
-    generalRegister: 'Registrul General',
-  },
-};
-
 describe('GeneralRegisterPageContent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should render the component with correct structure', () => {
-    render(<GeneralRegisterPageContent locale="ro" />, {
-      messages: mockTranslations,
-    });
+    render(<GeneralRegisterPageContent locale="ro" />);
 
     expect(screen.getByTestId('document-list')).toBeInTheDocument();
   });
 
   it('should call router.push when document is clicked', () => {
-    render(<GeneralRegisterPageContent locale="ro" />, {
-      messages: mockTranslations,
-    });
+    render(<GeneralRegisterPageContent locale="ro" />);
 
     const clickButton = screen.getByText('Click Document');
     clickButton.click();
@@ -66,9 +52,7 @@ describe('GeneralRegisterPageContent', () => {
   });
 
   it('should call router.push when create new is clicked', () => {
-    render(<GeneralRegisterPageContent locale="ro" />, {
-      messages: mockTranslations,
-    });
+    render(<GeneralRegisterPageContent locale="ro" />);
 
     const createButton = screen.getByText('Create New');
     createButton.click();
@@ -77,9 +61,7 @@ describe('GeneralRegisterPageContent', () => {
   });
 
   it('should use correct locale in navigation', () => {
-    render(<GeneralRegisterPageContent locale="en" />, {
-      messages: mockTranslations,
-    });
+    render(<GeneralRegisterPageContent locale="en" />);
 
     const clickButton = screen.getByText('Click Document');
     clickButton.click();
@@ -87,5 +69,3 @@ describe('GeneralRegisterPageContent', () => {
     expect(mockPush).toHaveBeenCalledWith('/en/dashboard/registry/general-register/doc-1');
   });
 });
-
-

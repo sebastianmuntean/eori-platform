@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useEntityCRUD, EntityCRUDConfig } from '@/hooks/useEntityCRUD';
 
@@ -30,15 +30,15 @@ type TestUpdateData = Partial<TestCreateData>;
 
 describe('useEntityCRUD', () => {
   let mockConfig: EntityCRUDConfig<TestEntity, TestFormData, TestCreateData, TestUpdateData>;
-  let mockCreateEntity: ReturnType<typeof vi.fn>;
-  let mockUpdateEntity: ReturnType<typeof vi.fn>;
-  let mockDeleteEntity: ReturnType<typeof vi.fn>;
-  let mockFetchEntities: ReturnType<typeof vi.fn>;
-  let mockRefreshEntities: ReturnType<typeof vi.fn>;
-  let mockOnEntityCreated: ReturnType<typeof vi.fn>;
-  let mockOnEntityUpdated: ReturnType<typeof vi.fn>;
-  let mockOnEntityDeleted: ReturnType<typeof vi.fn>;
-  let mockOnViewEntity: ReturnType<typeof vi.fn>;
+  let mockCreateEntity: MockedFunction<(data: TestCreateData) => Promise<TestEntity | null>>;
+  let mockUpdateEntity: MockedFunction<(id: string, data: TestUpdateData) => Promise<TestEntity | null>>;
+  let mockDeleteEntity: MockedFunction<(id: string) => Promise<boolean>>;
+  let mockFetchEntities: MockedFunction<(params: any) => Promise<void>>;
+  let mockRefreshEntities: MockedFunction<() => void>;
+  let mockOnEntityCreated: MockedFunction<(entity: TestEntity) => void>;
+  let mockOnEntityUpdated: MockedFunction<(entity: TestEntity) => void>;
+  let mockOnEntityDeleted: MockedFunction<(id: string) => void>;
+  let mockOnViewEntity: MockedFunction<(id: string) => void>;
 
   const mockEntity: TestEntity = {
     id: '1',
@@ -58,15 +58,15 @@ describe('useEntityCRUD', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockCreateEntity = vi.fn();
-    mockUpdateEntity = vi.fn();
-    mockDeleteEntity = vi.fn();
-    mockFetchEntities = vi.fn();
-    mockRefreshEntities = vi.fn();
-    mockOnEntityCreated = vi.fn();
-    mockOnEntityUpdated = vi.fn();
-    mockOnEntityDeleted = vi.fn();
-    mockOnViewEntity = vi.fn();
+    mockCreateEntity = vi.fn<[TestCreateData], Promise<TestEntity | null>>();
+    mockUpdateEntity = vi.fn<[string, TestUpdateData], Promise<TestEntity | null>>();
+    mockDeleteEntity = vi.fn<[string], Promise<boolean>>();
+    mockFetchEntities = vi.fn<[any], Promise<void>>();
+    mockRefreshEntities = vi.fn<[], void>();
+    mockOnEntityCreated = vi.fn<[TestEntity], void>();
+    mockOnEntityUpdated = vi.fn<[TestEntity], void>();
+    mockOnEntityDeleted = vi.fn<[string], void>();
+    mockOnViewEntity = vi.fn<[string], void>();
 
     mockConfig = {
       fetchEntities: mockFetchEntities,

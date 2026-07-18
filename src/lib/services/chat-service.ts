@@ -459,7 +459,7 @@ export async function getConversationMessages(
     }
   }
 
-  let query = db
+  const query = db
     .select({
       id: messages.id,
       conversationId: messages.conversationId,

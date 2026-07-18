@@ -76,7 +76,7 @@ export async function GET(request: Request) {
     const whereClause = buildWhereClause(conditions);
 
     // Get events
-    let query = db
+    const query = db
       .select({
         id: churchEvents.id,
         type: churchEvents.type,

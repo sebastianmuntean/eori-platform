@@ -133,14 +133,14 @@ describe('ClassesPageContent', () => {
 
   it('should render the page container', () => {
     render(<ClassesPageContent locale={locale} />);
-    
-    expect(screen.getByText('Classes')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Classes' })).toBeInTheDocument();
   });
 
   it('should render page header with correct title', () => {
     render(<ClassesPageContent locale={locale} />);
-    
-    expect(screen.getByText('Classes')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Classes' })).toBeInTheDocument();
   });
 
   it('should render breadcrumbs correctly', () => {
@@ -196,10 +196,10 @@ describe('ClassesPageContent', () => {
 
   it('should display status badges correctly', async () => {
     render(<ClassesPageContent locale={locale} />);
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Active')).toBeInTheDocument();
-      expect(screen.getByText('Inactive')).toBeInTheDocument();
+      expect(screen.getAllByText('Active').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0);
     });
   });
 });

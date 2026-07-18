@@ -13,6 +13,7 @@ export interface GeneralRegisterDocument {
   year: number;
   documentType: GeneralRegisterDocumentType;
   date: string;
+  dueDate: string | null;
   subject: string;
   from: string | null;
   petitionerClientId?: string | null;
@@ -20,6 +21,8 @@ export interface GeneralRegisterDocument {
   description: string | null;
   filePath: string | null;
   status: GeneralRegisterDocumentStatus;
+  resolutionStatus: 'approved' | 'rejected' | null;
+  resolution: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -33,7 +36,7 @@ export interface GeneralRegisterWorkflowStep {
   fromUserId: string | null;
   toUserId: string | null;
   action: 'sent' | 'forwarded' | 'returned' | 'approved' | 'rejected' | 'cancelled';
-  stepStatus: 'pending' | 'completed';
+  stepStatus: 'in_work' | 'redirected' | 'resolved';
   resolutionStatus: 'approved' | 'rejected' | null;
   resolution: string | null;
   notes: string | null;
@@ -79,7 +82,7 @@ export function useGeneralRegisterWorkflow(): UseGeneralRegisterWorkflowReturn {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/general-register/${documentId}/workflow`, {
+      const response = await fetch(`/api/registry/general-register/${documentId}/workflow`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -129,7 +132,7 @@ export function useGeneralRegisterWorkflow(): UseGeneralRegisterWorkflowReturn {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/general-register/${documentId}/workflow`, {
+      const response = await fetch(`/api/registry/general-register/${documentId}/workflow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +171,7 @@ export function useGeneralRegisterWorkflow(): UseGeneralRegisterWorkflowReturn {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/general-register/${documentId}/resolve`, {
+      const response = await fetch(`/api/registry/general-register/${documentId}/resolve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +208,7 @@ export function useGeneralRegisterWorkflow(): UseGeneralRegisterWorkflowReturn {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/registratura/general-register/${documentId}/cancel`, {
+      const response = await fetch(`/api/registry/general-register/${documentId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,6 +258,7 @@ export async function createGeneralRegisterDocument(data: {
   documentType: 'incoming' | 'outgoing' | 'internal';
   subject: string;
   from?: string | null;
+  petitionerClientId?: string | null;
   to?: string | null;
   description?: string | null;
   filePath?: string | null;
@@ -266,8 +270,8 @@ export async function createGeneralRegisterDocument(data: {
   });
   
   try {
-    console.log('[createGeneralRegisterDocument] Sending POST request to /api/registratura/general-register');
-    const response = await fetch('/api/registratura/general-register', {
+    console.log('[createGeneralRegisterDocument] Sending POST request to /api/registry/general-register');
+    const response = await fetch('/api/registry/general-register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -277,12 +281,31 @@ export async function createGeneralRegisterDocument(data: {
     });
 
     console.log('[createGeneralRegisterDocument] Response status:', response.status, response.ok);
-    const result = await response.json();
-    console.log('[createGeneralRegisterDocument] Response data:', result);
+    
+    // Check if response has content before trying to parse JSON
+    const contentType = response.headers.get('content-type');
+    let result: any = {};
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        result = await response.json();
+        console.log('[createGeneralRegisterDocument] Response data:', result);
+      } catch (parseError) {
+        console.error('[createGeneralRegisterDocument] Failed to parse JSON response:', parseError);
+        const text = await response.text();
+        console.error('[createGeneralRegisterDocument] Response text:', text);
+        throw new Error('Invalid JSON response from server');
+      }
+    } else {
+      const text = await response.text();
+      console.error('[createGeneralRegisterDocument] Non-JSON response:', text);
+      result = { error: text || 'Unknown error' };
+    }
     
     if (!response.ok) {
       console.error('[createGeneralRegisterDocument] Response not OK:', result);
-      throw new Error(result.error || 'Failed to create document');
+      const errorMessage = result.error || result.message || `Server error: ${response.status} ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     if (result.success) {
@@ -303,7 +326,7 @@ export async function createGeneralRegisterDocument(data: {
  */
 export async function getGeneralRegisterDocument(id: string): Promise<GeneralRegisterDocument | null> {
   try {
-    const response = await fetch(`/api/registratura/general-register/${id}`, {
+    const response = await fetch(`/api/registry/general-register/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -327,13 +350,33 @@ export async function getGeneralRegisterDocument(id: string): Promise<GeneralReg
 }
 
 /**
+ * Delete a general register document (cascades to workflow and attachments in DB)
+ */
+export async function deleteGeneralRegisterDocument(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/registry/general-register/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to delete document');
+    }
+    return result.success === true;
+  } catch (err) {
+    console.error('Error deleting general register document:', err);
+    throw err;
+  }
+}
+
+/**
  * Check if user can resolve a general register document
  * Note: Permission checking is handled server-side via the API
  */
 export async function canResolveGeneralRegisterDocument(documentId: string): Promise<boolean> {
   try {
     // Check via API - the server handles permission validation
-    const response = await fetch(`/api/registratura/general-register/${documentId}/workflow`, {
+    const response = await fetch(`/api/registry/general-register/${documentId}/workflow`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -407,7 +450,7 @@ export function useGeneralRegisterDocuments(): UseGeneralRegisterDocumentsReturn
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      const response = await fetch(`/api/registratura/general-register?${queryParams.toString()}`, {
+      const response = await fetch(`/api/registry/general-register?${queryParams.toString()}`, {
         credentials: 'include',
       });
       const result = await response.json();
