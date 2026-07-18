@@ -124,7 +124,8 @@ export async function login(
         name: user.name,
       },
     };
-  } catch {
+  } catch (error) {
+    console.error('Login exception:', error);
     return { success: false, error: 'Login failed' };
   }
 }

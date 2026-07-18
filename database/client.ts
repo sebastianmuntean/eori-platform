@@ -2,8 +2,12 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool, type PoolConfig } from 'pg';
 import * as schema from './schema';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
+function getDatabaseUrl(): string {
+  const raw = process.env.DATABASE_URL?.trim();
+  if (!raw) {
+    throw new Error('DATABASE_URL is not set');
+  }
+  return raw;
 }
 
 function isLocalDatabase(connectionString: string): boolean {
@@ -14,7 +18,7 @@ function isLocalDatabase(connectionString: string): boolean {
 }
 
 function getPoolConfig(): PoolConfig {
-  const connectionString = process.env.DATABASE_URL!;
+  const connectionString = getDatabaseUrl();
 
   if (isLocalDatabase(connectionString)) {
     return { connectionString, max: 10 };
