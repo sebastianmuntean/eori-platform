@@ -28,11 +28,14 @@ export async function GET() {
   try {
     const { db } = await import('@/database/client');
     const result = await db.execute(sql`SELECT 1 as ok`);
-    const row = (result as { rows?: Array<{ ok: number }> }).rows?.[0];
+    const rows = (result as unknown as { rows?: Array<Record<string, unknown>> })
+      .rows;
+    const okValue = rows?.[0]?.ok;
+
     return NextResponse.json({
       ok: true,
       dbConfigured: true,
-      db: row?.ok === 1 || Boolean(result),
+      db: okValue === 1 || okValue === '1' || Boolean(rows?.length),
       host,
     });
   } catch (error) {
